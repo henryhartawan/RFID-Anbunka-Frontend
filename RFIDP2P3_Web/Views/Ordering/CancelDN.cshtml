@@ -1,0 +1,558 @@
+﻿@{
+	ViewData["Title"] = "Cancel DN";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div class="col-xs-12">
+			<div class="col-xs-0 col-md-2"></div>
+			<div class="col-xs-12 col-md-8">
+				<div class="col-xs-12">
+					<h2><b>Cancel DN</b></h2>
+				</div>
+				<div class="col-xs-6" style="padding-left:0px;">
+					<label class="col-sm-3 control-label">DN No.</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" id="DN_No" onclick="this.select()" />
+					</div>
+					<div class="col-sm-1">
+						<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-primary" id="btnUpload">
+							<i class="k-icon k-i-upload"></i>
+						</button>
+					</div>
+					<label class="col-sm-3 control-label">Deliv. Date</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="Delivery_Date" disabled />
+					</div>
+					<label class="col-sm-3 control-label">Plant</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="Plant_Code" disabled />
+					</div>
+					<label class="col-sm-3 control-label">Dock</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="Doc_Code" disabled />
+					</div>
+				</div>
+				<div class="col-xs-6" style="padding-right:0px;">
+					<label class="col-sm-3 control-label">Supplier</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="Supplier_Alias" disabled />
+					</div>
+					<label class="col-sm-3 control-label">PO No.</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="PO_No" disabled />
+					</div>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;padding-top:10px;">
+					<div id="grid1" style="margin-left:0px;margin-top:0px;"></div>
+				</div>
+				@if (Context.Session.GetString("edit_CancelDN") == "True")
+				{
+					<div class="col-xs-12" style="padding-bottom:10px;">
+						<button type="button" class="btn btn-primary" id="btnSubmit" style="width:100%;">Submit</button>
+					</div>
+				}
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+	<div class="" role="document" style="padding-left:25vw;">
+		<div class="modal-content" style="width:50vw">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Upload Cancel DN</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<form id="formUpload" enctype="multipart/form-data">
+					<span>Download template <a href="../../templates/Cancel DN.xlsx" style="color:#0099ff" download="Template Cancel DN.xlsx">here</a></span>
+					<input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	/* The container */
+	.container {
+		display: block;
+		position: relative;
+		padding-left: 35px;
+		margin-bottom: 12px;
+		cursor: pointer;
+		font-size: 22px;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	/* Hide the browser's default checkbox */
+	.container input {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+		height: 0;
+		width: 0;
+		left: 0;
+	}
+
+	/* Create a custom checkbox */
+	.checkmark {
+		position: absolute;
+		top: -5px;
+		left: 3px;
+		height: 20px;
+		width: 30px;
+		background-color: #c2d6d6;
+	}
+
+	/* On mouse-over, add a grey background color */
+	.container:hover input ~ .checkmark {
+		background-color: #669999;
+	}
+
+	/* When the checkbox is checked, add a blue background */
+	.container input:checked ~ .checkmark {
+		background-color: #339966;
+	}
+
+	/* Create the checkmark/indicator (hidden when not checked) */
+	.checkmark:after {
+		content: "";
+		position: absolute;
+		display: none;
+	}
+
+	/* Show the checkmark when checked */
+	.container input:checked ~ .checkmark:after {
+		display: block;
+	}
+
+	/* Style the checkmark/indicator */
+	.container .checkmark:after {
+		left: 12px;
+		top: 4px;
+		width: 5px;
+		height: 10px;
+		border: solid white;
+		border-width: 0 3px 3px 0;
+		-webkit-transform: rotate(45deg);
+		-ms-transform: rotate(45deg);
+		transform: rotate(45deg);
+	}
+</style>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.inputs.$inputDN.on('input', o.eventHandlers.onChangeDNNo.bind(o));
+
+			o.dom.$grid.on('click', '#checkAll', o.eventHandlers.onClickCheckAll.bind(o));
+			o.dom.$grid.on('click', '.checkbox', o.eventHandlers.onClickCheckBox.bind(o));
+
+			o.dom.btnSubmit.on('click', o.eventHandlers.onClickBtnSubmit.bind(o));
+			o.dom.$btnUpload.on('click', o.eventHandlers.onClickBtnUpload.bind(o));
+			o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.inputs = {};
+			o.dom.$grid = $("#grid1");
+			o.dom.inputs.$inputDN = $("#DN_No");
+			o.dom.btnSubmit = $("#btnSubmit");
+			o.dom.$editorUpload = $("#editorUpload");
+			o.dom.$btnUpload = $("#btnUpload");
+			o.dom.$btnSaveUpload = $("#btnSaveUpload");
+		},
+		data: {
+			DN_No: '',
+			checkedList: []
+		},
+		dom: {},
+		eventHandlers: {
+			onChangeDNNo:function(e){
+				var o = this;
+				o.data.DN_No = $("#DN_No").val();
+				$("#Supplier_Alias").val('');
+				$("#PO_No").val('');
+				$("#Delivery_Date").val('');
+				$("#Plant_Code").val('');
+				$("#Doc_Code").val('');
+
+				if(o.data.DN_No != '' && o.data.DN_No.length == 16) {
+					o.fn.checkDN.call(o);
+				} else {
+					$("#Supplier_Alias").val('');
+					$("#PO_No").val('');
+					$("#Delivery_Date").val('');
+					$("#Plant_Code").val('');
+					$("#Doc_Code").val('');
+				}
+			},
+			onClickCheckAll: function(e){
+				var o = this;
+				var $checkAll = $(e.target);
+				var view = o.dom.$grid.data('kendoGrid').dataSource.data();
+
+				for(var i = 0; i < view.length; i++){
+					var di = view[i];
+					var $tr = o.dom.$grid.find('tr[data-uid="' + di.uid + '"]');
+					var $checkbox = $tr.find('.checkbox');
+
+					if(di.DN_Status == 'Active') $checkbox.prop('checked', $checkAll.prop('checked'));
+
+					if($checkAll.prop('checked') && o.data.checkedList.indexOf(di.Part_No) < 0 && di.DN_Status == 'Active') {
+						o.data.checkedList.push(di.Part_No);
+					}
+					else if(!$checkAll.prop('checked') && o.data.checkedList.indexOf(di.Part_No) >= 0){
+						o.data.checkedList.splice(o.data.checkedList.indexOf(di.Part_No), 1);
+					}
+				}
+			},
+			onClickCheckBox: function(e){
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+				if($(e.target).prop('checked')){
+					o.data.checkedList.push(di.Part_No);
+				}
+				else{
+					o.data.checkedList.splice(o.data.checkedList.indexOf(di.Part_No), 1);
+				}
+				var totcheck = o.data.checkedList.length;
+
+				var grid = $("#grid1").data("kendoGrid");
+				var dataSource = grid.dataSource;
+				var totdata = dataSource.total();
+
+				if(totcheck != totdata){
+					$("#checkAll").prop( "checked", false );
+				}
+				else if(totcheck == totdata){
+					$("#checkAll").prop( "checked", true );
+				}
+			},
+			onClickBtnSubmit: function(){
+				var o = this;
+				var data = o.fn.getData.call(o);
+
+				if (data != null && o.data.DN_No != '' && data.DN.length > 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							o.fn.submitReceiving.call(o,data);
+						}
+					});
+				}
+			},
+			onClickBtnUpload: function () {
+				var o = this;
+				$("#fileUpload").data('kendoUpload').clearAllFiles();
+				o.dom.$editorUpload.modal('show');
+			},
+			onClickBtnSaveUpload: function () {
+				var o = this;
+				swal.fire({
+					title: 'Upload Cancel DN?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						let formData = new FormData();
+						let files = $("#fileUpload").data('kendoUpload').getFiles();
+						let file = files[0].rawFile;
+						formData.append('file', file);
+
+						$.ajax({
+							url: "@myurl" + "CancelDN/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
+							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							type: 'post',
+							data: formData,
+							contentType: false,
+							processData: false
+						}).done(function (data, textStatus, jqXHR) {
+							var remarks = data[0].Remarks;
+							if(remarks != '') {
+								swal.fire({ title: 'Warning', text: remarks, icon: 'warning'});
+							} else {
+								o.dom.$editorUpload.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
+								$("#fileUpload").data('kendoUpload').clearAllFiles();
+							}
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							$("#grid").data('kendoGrid').dataSource.read();
+							$("#fileUpload").data('kendoUpload').clearAllFiles();
+						});
+					}
+				});
+			},
+		},
+		fn: {
+			checkDN: function(){
+				var o = this;
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'CancelDN/CheckDN',
+					dataType: 'text',
+					data: JSON.stringify({
+						DN_No: o.data.DN_No
+					})
+				}).done(function(data, textStatus, jqXHR) {
+					var result = data.split('~');
+
+					if(result[0] == 'Error') {
+						o.data.DN_No = '';
+						$("#Supplier_Alias").val('');
+						$("#PO_No").val('');
+						$("#Delivery_Date").val('');
+						$("#Plant_Code").val('');
+						$("#Doc_Code").val('');
+
+						$("#btnSubmit").prop("disabled", true);
+
+						swal.fire('Error', result[1], 'error');
+					} else {
+						$("#Supplier_Alias").val(result[1]);
+						$("#PO_No").val(result[2]);
+						$("#Delivery_Date").val(result[3]);
+						$("#Plant_Code").val(result[4]);
+						$("#Doc_Code").val(result[5]);
+
+						$("#btnSubmit").prop("disabled", false);
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				});
+			},
+			getData: function () {
+				var o = this;
+
+				var data = {
+					DN_No: o.data.DN_No,
+					UserLogin: "@Context.Session.GetString("PIC_ID")",
+					DN: []
+				};
+
+				var grid = $("#grid1").data("kendoGrid");
+				var selectedData = [];
+
+				grid.tbody.find("tr").each(function () {
+					var row = $(this);
+					var checkbox = row.find("input.checkbox");
+
+					if (checkbox.is(":checked")) {
+						var dataItem = grid.dataItem(row);
+
+						selectedData.push({
+							PartNo: dataItem.Part_No
+						});
+					}
+				});
+
+				data.DN = selectedData;
+				return data;
+			},
+			submitReceiving: function (data) {
+				var o = this;
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'CancelDN/INS',
+					dataType: 'text',
+					data: JSON.stringify(data)
+				}).done(function(data, textStatus, jqXHR) {
+					o.data.DN_No = '';
+					$("#DN_No").val('');
+					$("#Supplier_Alias").val('');
+					$("#PO_No").val('');
+					$("#Delivery_Date").val('');
+					$("#Plant_Code").val('');
+					$("#Doc_Code").val('');
+					swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				});
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				height:330,
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'CancelDN/DNDetail',
+								dataType: 'text',
+								data: JSON.stringify({
+									DN_No: o.data.DN_No
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								Part_No: { type: "string" },
+								Job_No: { type: "string" },
+								Part_Name: { type: "string" },
+								Qty_Order: { type: "number" },
+								DN_Status: { type: "string" }
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_CancelDN") == "True")
+				{
+					<text>
+					{
+						width: 30,
+						title: '',
+						headerTemplate: '<label class="container"><input type="checkbox" id="checkAll"/><span class="checkmark"></span></label>',
+						template: '<label class="container"><input type="checkbox" class="checkbox"><span class="checkmark"></span></label>',
+					},
+					</text>
+				}
+				{
+					field: "Part_No",
+					title: "Part No",
+					width: 100,
+				},
+				{
+					field: "Job_No",
+					title: "Job No",
+					width: 100
+				},
+				{
+					field: "Part_Name",
+					title: "Part Name",
+					width: 150
+				},
+				{
+					field: "Qty_Order",
+					title: "Qty Order",
+					width: 50
+				},
+				{
+					field: "DN_Status",
+					title: "Status",
+					width: 50
+				}],
+				dataBound: function () {
+					var grid = this;
+
+					grid.tbody.find("tr").each(function () {
+						var row = $(this);
+						var dataItem = grid.dataItem(row);
+						var checkbox = row.find("input.checkbox");
+
+						if (dataItem.DN_Status === 'Inactive') {
+							checkbox.prop("disabled", true);
+						}
+					});
+					
+					$("#checkAll").prop("checked", false);
+					o.data.checkedList = [];
+
+					grid.tbody.find("tr").each(function () {
+						var row = $(this);
+						var checkbox = row.find("input.checkbox");
+
+						checkbox.prop("checked", false);
+					});
+				}
+			});
+
+			$("#fileUpload").kendoUpload({
+				multiple: false,
+				validation: {
+					allowedExtensions: [".xls", "xlsx"]
+				}
+			});
+
+			$("#DN_No").val('');
+			$("#Supplier_Alias").val('');
+			$("#PO_No").val('');
+			$("#Delivery_Date").val('');
+			$("#Plant_Code").val('');
+			$("#Doc_Code").val('');
+			$("#DN_No").select();
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>

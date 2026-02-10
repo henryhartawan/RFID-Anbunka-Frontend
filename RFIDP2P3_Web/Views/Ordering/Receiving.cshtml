@@ -1,0 +1,525 @@
+﻿@{
+	ViewData["Title"] = "Receiving";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-grid th .k-link {
+		white-space: normal;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div class="col-xs-12">
+			<div class="col-xs-0 col-md-2"></div>
+			<div class="col-xs-12 col-md-8">
+				<div class="col-xs-12">
+					<h2><b>Receiving</b></h2>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;font-size:18px;">
+					<div class="radio-custom radio-inline col-xs-5" style="text-align:right;">
+						<input type="radio" name="GRType" class="GRType" id="GRType_Full" value="Full" checked style="margin-top:9px;">
+						<label for="GRType_Full"><b>Full</b></label>
+					</div>
+					<div class="radio-custom radio-inline col-xs-5" style="padding-left:50px;">
+						<input type="radio" name="GRType" class="GRType" id="GRType_Partial" value="Partial" style="margin-top:9px;">
+						<label for="GRType_Partial"><b>Partial</b></label>
+					</div>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">DN No</label>
+					<input type="text" id="DN_No" onclick="this.select()" class="form-control" maxlength="16">
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Vendor</label>
+					<input type="text" id="Vendor" class="form-control" disabled>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Message</label>
+					<input type="text" id="Message" class="form-control" style="color:red;" disabled>
+				</div>
+				@if (Context.Session.GetString("add_GR") == "True")
+				{
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<button type="button" class="btn btn-primary" id="btnSubmit" style="width:100%;">Submit</button>
+				</div>
+				}
+				<div class="col-xs-12" id="divGrid" style="padding-bottom:10px;">
+					<div id="grid1" style="margin-left:0px;margin-top:0px;"></div>
+				</div>
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+		</div>
+	</div>
+</div>
+
+<style>
+	/* The container */
+	.container {
+		display: block;
+		position: relative;
+		padding-left: 35px;
+		margin-bottom: 12px;
+		cursor: pointer;
+		font-size: 22px;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	/* Hide the browser's default checkbox */
+	.container input {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+		height: 0;
+		width: 0;
+		left: 0;
+	}
+
+	/* Create a custom checkbox */
+	.checkmark {
+		position: absolute;
+		top: -5px;
+		left: 3px;
+		height: 20px;
+		width: 30px;
+		background-color: #c2d6d6;
+	}
+
+	/* On mouse-over, add a grey background color */
+	.container:hover input ~ .checkmark {
+		background-color: #669999;
+	}
+
+	/* When the checkbox is checked, add a blue background */
+	.container input:checked ~ .checkmark {
+		background-color: #339966;
+	}
+
+	/* Create the checkmark/indicator (hidden when not checked) */
+	.checkmark:after {
+		content: "";
+		position: absolute;
+		display: none;
+	}
+
+	/* Show the checkmark when checked */
+	.container input:checked ~ .checkmark:after {
+		display: block;
+	}
+
+	/* Style the checkmark/indicator */
+	.container .checkmark:after {
+		left: 12px;
+		top: 4px;
+		width: 5px;
+		height: 10px;
+		border: solid white;
+		border-width: 0 3px 3px 0;
+		-webkit-transform: rotate(45deg);
+		-ms-transform: rotate(45deg);
+		transform: rotate(45deg);
+	}
+</style>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.inputs.$inputType.on('click', o.eventHandlers.onClickRadio.bind(o));
+			o.dom.inputs.$inputDN.on('input', o.eventHandlers.onChangeDNNo.bind(o));
+
+			o.dom.$grid.on('click', '#checkAll', o.eventHandlers.onClickCheckAll.bind(o));
+			o.dom.$grid.on('click', '.checkbox', o.eventHandlers.onClickCheckBox.bind(o));
+
+			o.dom.btnSubmit.on('click', o.eventHandlers.onClickBtnSubmit.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.inputs = {};
+			o.dom.$grid = $("#grid1");
+			o.dom.inputs.$inputDN = $("#DN_No");
+			o.dom.inputs.$inputType = $(".GRType");
+			o.dom.btnSubmit = $("#btnSubmit");
+		},
+		data: {
+			Type: 'Full',
+			DN_No: '',
+			checkedList: []
+		},
+		dom: {},
+		eventHandlers: {
+			onClickRadio:function(e){
+				var o = this;
+				o.data.Type = e.target.value;
+				
+				if(o.data.Type == 'Partial') $("#divGrid").show();
+				else $("#divGrid").hide();
+
+				$("#DN_No").val('');
+				o.data.DN_No = '';
+				$("#Vendor").val('');
+				$("#Message").val('');
+				o.dom.$grid.data('kendoGrid').dataSource.read();
+				o.fn.checkDN.call(o);
+			},
+			onChangeDNNo:function(e){
+				var o = this;
+				o.data.DN_No = $("#DN_No").val();
+				$("#Vendor").val('');
+				$("#Message").val('');
+				o.dom.$grid.data('kendoGrid').dataSource.read();
+
+				o.fn.checkDN.call(o);
+			},
+			onClickCheckAll: function(e){
+				var o = this;
+				var $checkAll = $(e.target);
+				var view = o.dom.$grid.data('kendoGrid').dataSource.data();
+
+				for(var i = 0; i < view.length; i++){
+					var di = view[i];
+					var $tr = o.dom.$grid.find('tr[data-uid="' + di.uid + '"]');
+					var $checkbox = $tr.find('.checkbox');
+
+					if(di.Qty_Remain > 0) $checkbox.prop('checked', $checkAll.prop('checked'));
+
+					if($checkAll.prop('checked') && o.data.checkedList.indexOf(di.Part_No) < 0 && di.Qty_Remain > 0) {
+						o.data.checkedList.push(di.Part_No);
+					}
+					else if(!$checkAll.prop('checked') && o.data.checkedList.indexOf(di.Part_No) >= 0){
+						o.data.checkedList.splice(o.data.checkedList.indexOf(di.Part_No), 1);
+					}
+				}
+			},
+			onClickCheckBox: function(e){
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+				if($(e.target).prop('checked')){
+					o.data.checkedList.push(di.Part_No);
+				}
+				else{
+					o.data.checkedList.splice(o.data.checkedList.indexOf(di.Part_No), 1);
+				}
+				var totcheck = o.data.checkedList.length;
+
+				var grid = $("#grid1").data("kendoGrid");
+				var dataSource = grid.dataSource;
+				var totdata = dataSource.total();
+
+				if(totcheck != totdata){
+					$("#checkAll").prop( "checked", false );
+				}
+				else if(totcheck == totdata){
+					$("#checkAll").prop( "checked", true );
+				}
+			},
+			onClickBtnSubmit: function(){
+				var o = this;
+				var data = o.fn.getData.call(o);
+
+				if (data != null && o.data.DN_No != '' && $("#Message").val() == '' && data.DN.length > 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							o.fn.submitReceiving.call(o,data);
+						}
+					});
+				}
+			}
+		},
+		fn: {
+			checkDN: function(){
+				var o = this;
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'GR/Vendor',
+					dataType: 'text',
+					data: JSON.stringify({
+						Type: o.data.Type,
+						DN_No: o.data.DN_No
+					})
+				}).done(function(data, textStatus, jqXHR) {
+					var result = data.split('~');
+
+					if(o.data.DN_No != '') {
+						if(result[0] == 'Error') {
+							$("#Message").val(result[1]);
+							$("#Vendor").val('');
+						} else {
+							$("#Message").val('');
+							$("#Vendor").val(result[1]);
+
+							if(o.data.Type == 'Full') {
+								var data = o.fn.getData.call(o);
+								o.fn.submitReceiving.call(o,data);
+							}
+						}
+					} else {
+						$("#Message").val('');
+						$("#Vendor").val('');
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				});
+			},
+			getData: function () {
+				var o = this;
+
+				var data = {
+					DN_No: o.data.DN_No,
+					UserLogin: "@Context.Session.GetString("PIC_ID")",
+					DN: []
+				};
+				
+				var grid = $("#grid1").data("kendoGrid");
+				var selectedData = [];
+
+				var isValid = true;
+
+				grid.tbody.find("tr").each(function () {
+					var row = $(this);
+					var checkbox = row.find("input.checkbox");
+
+					if (checkbox.is(":checked")) {
+						var dataItem = grid.dataItem(row);
+
+						if (dataItem.Qty_GR === 0) {
+							swal.fire('Error', "Qty for Part No " + dataItem.Part_No + " can't be 0", 'error');
+							isValid = false;
+							return false;
+						}
+
+						selectedData.push({
+							PartNo: dataItem.Part_No,
+							Qty: dataItem.Qty_GR.toString()
+						});
+					}
+				});
+
+				if (!isValid) {
+					return null;
+				}
+
+				data.DN = selectedData;
+				return data;
+			},
+			submitReceiving: function (data) {
+				var o = this;
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'GR/INS',
+					dataType: 'text',
+					data: JSON.stringify(data)
+				}).done(function(data, textStatus, jqXHR) {
+					$("#DN_No").val('');
+					o.data.DN_No = '';
+					o.fn.checkDN.call(o);
+					swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+				});
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				height:225,
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'GR/DNDetail',
+								dataType: 'text',
+								data: JSON.stringify({
+									Type: o.data.Type,
+									DN_No: o.data.DN_No
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								Part_No: { type: "string", editable: false },
+								Job_No: { type: "string", editable: false },
+								Qty_Order: { type: "number", editable: false },
+								Qty_Received: { type: "number", editable: false },
+								Qty_Remain: { type: "number", editable: false },
+								Qty_GR: { type: "number", editable: true },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				editable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				edit: function(e) {
+					var row = e.container.closest("tr");
+					var checkbox = row.find("input.checkbox");
+					if (!checkbox.is(":checked")) {
+						this.closeCell();
+					}
+				},
+				columns: [
+				@if (Context.Session.GetString("add_GR") == "True")
+				{
+					<text>
+					{
+						width: 30,
+						title: '',
+						headerTemplate: '<label class="container"><input type="checkbox" id="checkAll"/><span class="checkmark"></span></label>',
+						template: '<label class="container"><input type="checkbox" class="checkbox"><span class="checkmark"></span></label>',
+					},
+					</text>
+				}
+				{
+					field: "Part_No",
+					title: "Part No",
+					width: 100,
+				},
+				{
+					field: "Job_No",
+					title: "Job No",
+					width: 100
+				},
+				{
+					field: "Qty_Order",
+					title: "Qty Order",
+					width: 50
+				},
+				{
+					field: "Qty_Received",
+					title: "Qty Received",
+					width: 50
+				},
+				{
+					field: "Qty_Remain",
+					title: "Qty Remain",
+					width: 50
+				},
+				{
+					field: "Qty_GR",
+					title: "Qty GR",
+					width: 50,
+					editor: function (container, options) {
+						var grid = $("#grid1").data("kendoGrid");
+						var row = container.closest("tr");
+						var dataItem = grid.dataItem(row);
+						var maxQty = dataItem.Qty_Remain;
+
+						$('<input name="' + options.field + '"/>')
+						.appendTo(container)
+						.kendoNumericTextBox({
+							autoWidth: true,
+							format: "#",
+							min: 0,
+							max: maxQty,
+							decimals: 0,
+							restrictDecimals: true
+						});
+					},
+				}],
+				dataBound: function () {
+					var grid = this;
+
+					if (o.data.Type == 'Full') {
+						grid.tbody.find("tr").each(function () {
+							var row = $(this);
+							var checkbox = row.find("input.checkbox");
+
+							checkbox.prop("checked", true);
+						});
+
+						$("#checkAll").prop("checked", true);
+					} else {
+						$("#checkAll").prop("checked", false);
+					}
+
+					grid.tbody.find("tr").each(function () {
+						var row = $(this);
+						var dataItem = grid.dataItem(row);
+						var checkbox = row.find("input.checkbox");
+
+						if (dataItem.Qty_Remain === 0) {
+							checkbox.prop("disabled", true);
+							checkbox.prop("checked", false);
+						}
+					});
+				}
+			});
+
+			$("#GRType_Full").prop('checked', true);
+			$("#GRType_Partial").prop('checked', false);
+			$("#DN_No").val('');
+			$("#Vendor").val('');
+			$("#Message").val('');
+			$("#divGrid").hide();
+			$("#DN_No").select();
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>

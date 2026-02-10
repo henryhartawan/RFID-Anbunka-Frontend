@@ -1,0 +1,319 @@
+﻿@{
+	ViewData["Title"] = "Master Param Jam";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Master Param Jam</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Day Start</label>
+								<div class="col-sm-9">
+									<input type="text" class="timePicker" id="Jam_Awal_Day" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Night Start</label>
+								<div class="col-sm-9">
+									<input type="text" class="timePicker" id="Jam_Awal_Night" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Jam Kerja 1 Shift</label>
+								<div class="col-sm-9">
+									<input type="text" class="timePicker" id="Jam_Kerja_1_Shift" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Jam Kerja 2 Shift</label>
+								<div class="col-sm-9">
+									<input type="text" class="timePicker" id="Jam_Kerja_2_Shift" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Gap to Supply</label>
+								<div class="col-sm-9">
+									<input type="text" class="timePicker" id="Gap_To_Supply" style="width:100%;" />
+								</div>
+							</div>
+							<div class="clearfix"></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var Param_ID = '';
+
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+			o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpdate: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+				Param_ID = di.Param_ID;
+				$("#Jam_Awal_Day").data('kendoTimePicker').value(di.Jam_Awal_Day);
+				$("#Jam_Awal_Night").data('kendoTimePicker').value(di.Jam_Awal_Night);
+				$("#Jam_Kerja_1_Shift").data('kendoTimePicker').value(di.Jam_Kerja_1_Shift);
+				$("#Jam_Kerja_2_Shift").data('kendoTimePicker').value(di.Jam_Kerja_2_Shift);
+				$("#Gap_To_Supply").data('kendoTimePicker').value(di.Gap_To_Supply);
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function(e){
+				var o = this;
+				var Jam_Awal_Day = kendo.toString($("#Jam_Awal_Day").data('kendoTimePicker').value(), 'HH:mm:ss');
+				var Jam_Awal_Night = kendo.toString($("#Jam_Awal_Night").data('kendoTimePicker').value(), 'HH:mm:ss');
+				var Jam_Kerja_1_Shift = kendo.toString($("#Jam_Kerja_1_Shift").data('kendoTimePicker').value(), 'HH:mm:ss');
+				var Jam_Kerja_2_Shift = kendo.toString($("#Jam_Kerja_2_Shift").data('kendoTimePicker').value(), 'HH:mm:ss');
+				var Gap_To_Supply = kendo.toString($("#Gap_To_Supply").data('kendoTimePicker').value(), 'HH:mm:ss');
+
+				if(Jam_Awal_Day != '' && Jam_Awal_Day != null && Jam_Awal_Night != '' && Jam_Awal_Night != null &&
+				  Jam_Kerja_1_Shift != '' && Jam_Kerja_1_Shift != null && Jam_Kerja_2_Shift != '' && Jam_Kerja_2_Shift != null &&
+				  Gap_To_Supply != '' && Gap_To_Supply != null){
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterParamJam/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									Param_ID: Param_ID.toString(),
+									Jam_Awal_Day: Jam_Awal_Day,
+									Jam_Awal_Night: Jam_Awal_Night,
+									Jam_Kerja_1_Shift: Jam_Kerja_1_Shift,
+									Jam_Kerja_2_Shift: Jam_Kerja_2_Shift,
+									Gap_To_Supply: Gap_To_Supply,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									console.log(jqXHR);
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								$("#grid").data("kendoGrid").dataSource.read();
+							});
+						}
+					});
+				}else{
+					swal.fire('All fields is mandatory','','warning')
+				}
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Param Jam.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterParamJam/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "Param_ID",
+							fields: {
+								Jam_Awal_Day: { type: "string" },
+								Jam_Awal_Night: { type: "string" },
+								Jam_Kerja_1_Shift: { type: "string" },
+								Jam_Kerja_2_Shift: { type: "string" },
+								Gap_To_Supply: { type: "string" },
+								Param_Status: { type: "string" },
+								Entry_By: { type: "string" },
+								Entry_Date: { type: "string" }
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_master_param_jam") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Update",
+							text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "Jam_Awal_Day",
+					title: "Day Start",
+					width: 100,
+					template: "<div class='customClass'> #= (Jam_Awal_Day == null) ? ' ' : kendo.toString(Jam_Awal_Day, 'HH:mm') # </div>",
+				},
+				{
+					field: "Jam_Awal_Night",
+					title: "Night Start",
+					width: 100,
+					template: "<div class='customClass'> #= (Jam_Awal_Night == null) ? ' ' : kendo.toString(Jam_Awal_Night, 'HH:mm') # </div>",
+				},
+				{
+					field: "Jam_Kerja_1_Shift",
+					title: "Jam Kerja 1 Shift",
+					width: 100,
+					template: "<div class='customClass'> #= (Jam_Kerja_1_Shift == null) ? ' ' : kendo.toString(Jam_Kerja_1_Shift, 'HH:mm') # </div>",
+				},
+				{
+					field: "Jam_Kerja_2_Shift",
+					title: "Jam Kerja 2 Shift",
+					width: 100,
+					template: "<div class='customClass'> #= (Jam_Kerja_2_Shift == null) ? ' ' : kendo.toString(Jam_Kerja_2_Shift, 'HH:mm') # </div>",
+				},
+				{
+					field: "Gap_To_Supply",
+					title: "Gap to Supply",
+					width: 100,
+					template: "<div class='customClass'> #= (Gap_To_Supply == null) ? ' ' : kendo.toString(Gap_To_Supply, 'HH:mm') # </div>",
+				},
+				{
+					field: "Param_Status",
+					title: "Status",
+					width: 100
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "Entry_By",
+						title: "User",
+						width: 100,
+						template: "<div class='customClass'> #= (Entry_By == null) ? ' ' : kendo.toString(Entry_By, '') # </div>",
+					},
+					{
+						field: "Entry_Date",
+						title: "Date",
+						width: 150,
+						template: "<div class='customClass'> #= (Entry_Date == null) ? ' ' : kendo.toString(Entry_Date, '') # </div>",
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+			});
+
+			$(".timePicker").kendoTimePicker({
+				format: "HH:mm"
+			})
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Param Jam -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

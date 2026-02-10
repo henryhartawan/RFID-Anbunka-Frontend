@@ -1,0 +1,721 @@
+﻿@{
+	ViewData["Title"] = "Master Packing Spec";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+		height: 30px;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Master Packaging Spec</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="col-md-12">
+								<div class="form-group form-material col-md-4">
+									<label class="col-sm-3 control-label">Box Type</label>
+									<div class="col-sm-9">
+										<input type="text" class="form-control" id="BoxType" required title="Box Type" />
+									</div>
+								</div>
+								<div class="form-group form-material col-md-4">
+									<label class="col-sm-3 control-label">Qty Layer</label>
+									<div class="col-sm-9">
+										<input type="text" class="kendoNumber" id="QtyLayer" required title="Qty Layer" style="width:100%;" />
+									</div>
+								</div>
+								<div class="form-group form-material col-md-4">
+									<label class="col-sm-3 control-label">Stacking</label>
+									<div class="col-sm-9">
+										<input type="text" class="kendoNumber" id="Stacking" required title="Stacking" style="width:100%;" />
+									</div>
+								</div>
+								<div class="col-md-12">
+									<label class="col-sm-12" style="text-align:center;padding-top:10px;">Box</label>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Box Width (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoBox" id="BoxWidth" required title="Box Width" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Box Weight (kg)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoNumberDec" id="BoxWeight" required title="Box Weight" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Box Length (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoBox" id="BoxLength" required title="Box Length" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Box Volume (m3)</label>
+										<div class="col-sm-9">
+											<input type="text" class="form-control" id="BoxVolume" required title="Box Volume" disabled />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Box Height (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoBox" id="BoxHeight" required title="Box Height" style="width:100%;" />
+										</div>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<label class="col-sm-12" style="text-align:center;padding-top:10px;">Skid</label>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Skid Width (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoSkid" id="SkidWidth" required title="Skid Width" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Skid Length (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoSkid" id="SkidLength" required title="Skid Length" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Skid Height (mm)</label>
+										<div class="col-sm-9">
+											<input type="text" class="kendoSkid" id="SkidHeight" required title="Skid Height" style="width:100%;" />
+										</div>
+									</div>
+									<div class="form-group form-material col-md-6">
+										<label class="col-sm-3 control-label">Skid Volume (m3)</label>
+										<div class="col-sm-9">
+											<input type="text" class="form-control" id="SkidVolume" required title="Skid Volume" disabled />
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="clearfix"></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+	<div class="" role="document" style="padding-left:25vw;">
+		<div class="modal-content" style="width:50vw">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Upload Master Packing Spec</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<form id="formUpload" enctype="multipart/form-data">
+					<span>Download template <a href="../../templates/Master Packing Spec.xlsx" style="color:#0099ff" download="Template Master Packing Spec.xlsx">here</a></span>
+					<input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var IU = 'I';
+
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+			o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+			o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+			o.dom.$grid.on('click', '.btnActive', o.eventHandlers.onClickBtnActive.bind(o));
+			o.dom.$grid.on('click', '.btnDeactive', o.eventHandlers.onClickBtnActive.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.$editorUpload = $("#editorUpload");
+			o.dom.$btnSaveUpload = $("#btnSaveUpload");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this; IU = 'I';
+
+				$("#BoxType").val('');
+				document.getElementById("BoxType").disabled = false;
+				$("#BoxWidth").data('kendoNumericTextBox').value('');
+				$("#BoxLength").data('kendoNumericTextBox').value('');
+				$("#BoxHeight").data('kendoNumericTextBox').value('');
+				$("#BoxVolume").val('');
+				$("#BoxWeight").data('kendoNumericTextBox').value('');
+				$("#QtyLayer").data('kendoNumericTextBox').value('');
+				$("#Stacking").data('kendoNumericTextBox').value('');
+				$("#SkidWidth").data('kendoNumericTextBox').value('');
+				$("#SkidLength").data('kendoNumericTextBox').value('');
+				$("#SkidHeight").data('kendoNumericTextBox').value('');
+				$("#SkidVolume").val('');
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnDelete: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: 'Delete?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterPackingSpec/DEL',
+							dataType: 'text',
+							data: JSON.stringify({
+								BoxType: di.BoxType
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnActive: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: di.PackingStatus == 'Active' ? 'Deactivate?' : 'Activate?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterPackingSpec/ACT',
+							dataType: 'text',
+							data: JSON.stringify({
+								BoxType: di.BoxType,
+								UserLogin: "@Context.Session.GetString("PIC_ID")"
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: di.PackingStatus == 'Active' ? 'Data Inactive' : 'Data Active', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpdate: function (e) {
+				var o = this; IU = 'U';
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				$("#BoxType").val(di.BoxType);
+				document.getElementById("BoxType").disabled = true;
+				$("#BoxWidth").data('kendoNumericTextBox').value(di.BoxWidth);
+				$("#BoxLength").data('kendoNumericTextBox').value(di.BoxLength);
+				$("#BoxHeight").data('kendoNumericTextBox').value(di.BoxHeight);
+				$("#BoxVolume").val(di.BoxVolume.replace(',', '.'));
+				$("#BoxWeight").data('kendoNumericTextBox').value(di.BoxWeight.replace(',', '.'));
+				$("#QtyLayer").data('kendoNumericTextBox').value(di.QtyLayer);
+				$("#Stacking").data('kendoNumericTextBox').value(di.Stacking);
+				$("#SkidWidth").data('kendoNumericTextBox').value(di.SkidWidth);
+				$("#SkidLength").data('kendoNumericTextBox').value(di.SkidLength);
+				$("#SkidHeight").data('kendoNumericTextBox').value(di.SkidHeight);
+				$("#SkidVolume").val(di.SkidVolume.replace(',', '.'));
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function (e) {
+				var o = this;
+
+				var BoxType = $("#BoxType").val();
+				var BoxWidth = $("#BoxWidth").val();
+				var BoxLength = $("#BoxLength").val();
+				var BoxHeight = $("#BoxHeight").val();
+				var BoxVolume = $("#BoxVolume").val();
+				var BoxWeight = $("#BoxWeight").val();
+				var QtyLayer = $("#QtyLayer").val();
+				var Stacking = $("#Stacking").val();
+				var SkidWidth = $("#SkidWidth").val();
+				var SkidLength = $("#SkidLength").val();
+				var SkidHeight = $("#SkidHeight").val();
+				var SkidVolume = $("#SkidVolume").val();
+
+				if(BoxType != "" && BoxWidth != "" && BoxLength != "" && BoxHeight != "" && BoxVolume != "" && 
+				  BoxWeight != "" && QtyLayer != "" && Stacking != "" && SkidWidth != "" && SkidLength != "" &&
+				  SkidHeight != "" && SkidVolume != "" && BoxWidth != 0 && BoxLength != 0 && BoxHeight != 0 &&
+				  BoxVolume != 0 && BoxWeight != 0 && QtyLayer != 0 && Stacking != 0 && SkidWidth != 0 && SkidLength != 0 &&
+				  SkidHeight != 0 && SkidVolume != 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterPackingSpec/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									IUType: IU,
+									BoxType: BoxType,
+									BoxWidth: BoxWidth,
+									BoxLength: BoxLength,
+									BoxHeight: BoxHeight,
+									BoxVolume: BoxVolume,
+									BoxWeight: BoxWeight,
+									QtyLayer: QtyLayer,
+									Stacking: Stacking,
+									SkidWidth: SkidWidth,
+									SkidLength: SkidLength,
+									SkidHeight: SkidHeight,
+									SkidVolume: SkidVolume,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				} else {
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+				}
+			},
+			onClickBtnUpload: function () {
+				var o = this;
+				$("#fileUpload").data('kendoUpload').clearAllFiles();
+				o.dom.$editorUpload.modal('show');
+			},
+			onClickBtnSaveUpload: function () {
+				var o = this;
+				swal.fire({
+					title: 'Upload Master Packing Spec?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						let formData = new FormData();
+						let files = $("#fileUpload").data('kendoUpload').getFiles();
+						let file = files[0].rawFile;
+						formData.append('file', file);
+
+						$.ajax({
+							url: "@myurl" + "MasterPackingSpec/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
+							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							type: 'post',
+							data: formData,
+							contentType: false,
+							processData: false
+						}).done(function (data, textStatus, jqXHR) {
+							var remarks = data[0].Remarks;
+							if(remarks != '') {
+								swal.fire({ title: 'Warning', text: remarks, icon: 'warning'});
+							} else {
+								o.dom.$editorUpload.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
+								$("#fileUpload").data('kendoUpload').clearAllFiles();
+							}
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							$("#grid").data('kendoGrid').dataSource.read();
+							$("#fileUpload").data('kendoUpload').clearAllFiles();
+						});
+					}
+				});
+			},
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Packing Spec.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterPackingSpec/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "BoxType",
+							fields: {
+								BoxType: { type: "string" },
+								BoxWidth: { type: "string" },
+								BoxLength: { type: "string" },
+								BoxHeight: { type: "string" },
+								BoxVolume: { type: "string" },
+								BoxWeight: { type: "string" },
+								QtyLayer: { type: "string" },
+								Stacking: { type: "string" },
+								SkidWidth: { type: "string" },
+								SkidLength: { type: "string" },
+								SkidHeight: { type: "string" },
+								SkidVolume: { type: "string" },
+								PackingStatus: { type: "string" },
+								LastUpdate: { type: "string" },
+								UserUpdate: { type: "string" },
+								Remarks: { type: "string" },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_master_packing_spec") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Update",
+							text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("del_master_packing_spec") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Delete",
+							text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("edit_master_packing_spec") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Active",
+							text: "<i class='fa fa-check btnActive' style='font-size:18px;color:#008000;'></i>"
+						},{
+							name: "Deactive",
+							text: "<i class='fa fa-times btnDeactive' style='font-size:18px;color:#ff0000;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "BoxType",
+					title: "Box Type",
+					width: 100
+				},
+				{
+					title: "Box Spec",
+					columns: [
+					{
+						field: "BoxWidth",
+						title: "Width (mm)",
+						width: 100
+					},
+					{
+						field: "BoxLength",
+						title: "Length (mm)",
+						width: 100
+					},
+					{
+						field: "BoxHeight",
+						title: "Height (mm)",
+						width: 100
+					},
+					{
+						field: "BoxVolume",
+						title: "Volume (m3)",
+						width: 100
+					},
+					{
+						field: "BoxWeight",
+						title: "Weight (kg)",
+						width: 100
+					}]
+				},
+				{
+					field: "QtyLayer",
+					title: "Qty Layer",
+					width: 100
+				},
+				{
+					field: "Stacking",
+					title: "Stacking",
+					width: 100
+				},
+				{
+					title: "Skid Spec",
+					columns: [
+					{
+						field: "SkidWidth",
+						title: "Width (mm)",
+						width: 100
+					},
+					{
+						field: "SkidLength",
+						title: "Length (mm)",
+						width: 100
+					},
+					{
+						field: "SkidHeight",
+						title: "Height (mm)",
+						width: 100
+					},
+					{
+						field: "SkidVolume",
+						title: "Volume (m3)",
+						width: 100
+					}]
+				},
+				{
+					field: "PackingStatus",
+					title: "Status",
+					width: 100
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "UserUpdate",
+						title: "User",
+						width: 100
+					},
+					{
+						field: "LastUpdate",
+						title: "Date",
+						width: 150
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e){
+					var grid = this;
+
+					grid.tbody.find("tr[role='row']").each(function(){
+						var model = grid.dataItem(this);
+						if(model.PackingStatus == 'Active'){
+							$(this).find(".k-grid-Active").hide();
+							$(this).find(".k-grid-Deactive").show();
+						}else{
+							$(this).find(".k-grid-Active").show();
+							$(this).find(".k-grid-Deactive").hide();
+						}
+					});
+				}
+			});
+
+			$(".kendoNumber").kendoNumericTextBox({
+				format: "#",
+				min: 0,
+				decimals: 0,
+				restrictDecimals: true
+			});
+
+			$(".kendoNumberDec").kendoNumericTextBox({
+				format: "#.##",
+				min: 0,
+				decimals: 2,
+				restrictDecimals: true
+			});
+
+			$(".kendoBox").kendoNumericTextBox({
+				format: "#",
+				min: 0,
+				decimals: 0,
+				restrictDecimals: true,
+				change: function(){
+					var width = Number($('#BoxWidth').data('kendoNumericTextBox').value());
+					var length = Number($('#BoxLength').data('kendoNumericTextBox').value());
+					var height = Number($('#BoxHeight').data('kendoNumericTextBox').value());
+
+					var vol = kendo.toString((width / 1000) * (length / 1000) * (height / 1000), '#.#######');
+
+					$('#BoxVolume').val(vol);
+				},
+				spin: function(){
+					var width = Number($('#BoxWidth').data('kendoNumericTextBox').value());
+					var length = Number($('#BoxLength').data('kendoNumericTextBox').value());
+					var height = Number($('#BoxHeight').data('kendoNumericTextBox').value());
+
+					var vol = kendo.toString((width / 1000) * (length / 1000) * (height / 1000), '#.#######');
+
+					$('#BoxVolume').val(vol);
+				}
+			});
+
+			$(".kendoSkid").kendoNumericTextBox({
+				format: "#",
+				min: 0,
+				decimals: 0,
+				restrictDecimals: true,
+				change: function(){
+					var width = Number($('#SkidWidth').data('kendoNumericTextBox').value());
+					var length = Number($('#SkidLength').data('kendoNumericTextBox').value());
+					var height = Number($('#SkidHeight').data('kendoNumericTextBox').value());
+
+					var vol = kendo.toString((width / 1000) * (length / 1000) * (height / 1000), '#.#######');
+
+					$('#SkidVolume').val(vol);
+				},
+				spin: function(){
+					var width = Number($('#SkidWidth').data('kendoNumericTextBox').value());
+					var length = Number($('#SkidLength').data('kendoNumericTextBox').value());
+					var height = Number($('#SkidHeight').data('kendoNumericTextBox').value());
+
+					var vol = kendo.toString((width / 1000) * (length / 1000) * (height / 1000), '#.#######');
+
+					$('#SkidVolume').val(vol);
+				}
+			});
+
+			$("#fileUpload").kendoUpload({
+				multiple: false,
+				validation: {
+					allowedExtensions: [".xls", "xlsx"]
+				}
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Packing Spec -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_master_packing_spec") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+		<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button>
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

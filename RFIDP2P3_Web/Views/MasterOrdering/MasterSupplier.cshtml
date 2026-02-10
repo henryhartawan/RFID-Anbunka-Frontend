@@ -1,0 +1,567 @@
+﻿@{
+	ViewData["Title"] = "Master Supplier & LP";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Master Supplier</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Supplier Code</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="SupplierCode" required title="Supplier Code" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Supplier Name</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="SupplierName" required title="Supplier Name" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Supplier Alias</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="SupplierAlias" required title="Supplier Alias" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6" style="height:37px;">&nbsp;</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Address</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="Address" required title="Address" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6" style="float:right;">
+								<div class="form-group form-material col-md-4">
+									<label class="col-sm-4 control-label">City</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="City" required title="City" />
+									</div>
+								</div>
+								<div class="form-group form-material col-md-4">
+									<label class="col-sm-4 control-label">State</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="State" required title="State" />
+									</div>
+								</div>
+								<div class="form-group form-material col-md-4" style="padding-right:0;">
+									<label class="col-sm-4 control-label">Country</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="Country" required title="Country" />
+									</div>
+								</div>
+							</div>
+							<div class="clearfix"></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+	<div class="" role="document" style="padding-left:25vw;">
+		<div class="modal-content" style="width:50vw">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Upload Master Supplier</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<form id="formUpload" enctype="multipart/form-data">
+					<span>Download template <a href="../../templates/Master Supplier.xlsx" style="color:#0099ff" download="Template Master Supplier.xlsx">here</a></span>
+					<input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var IU = 'I';
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+			o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+			o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+			o.dom.$grid.on('click', '.btnActive', o.eventHandlers.onClickBtnActive.bind(o));
+			o.dom.$grid.on('click', '.btnDeactive', o.eventHandlers.onClickBtnActive.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.inputs = {};
+			o.dom.inputs.$inputSupplierCode = $("#SupplierCode");
+			o.dom.inputs.$inputSupplierName = $("#SupplierName");
+			o.dom.inputs.$inputSupplierAlias = $("#SupplierAlias");
+			o.dom.inputs.$inputAddress = $("#Address");
+			o.dom.inputs.$inputCity = $("#City");
+			o.dom.inputs.$inputState = $("#State");
+			o.dom.inputs.$inputCountry = $("#Country");
+			o.dom.$editorUpload = $("#editorUpload");
+			o.dom.$btnSaveUpload = $("#btnSaveUpload");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this; IU = 'I';
+
+				document.getElementById("SupplierCode").disabled = false;
+				o.dom.inputs.$inputSupplierCode.val('');
+				o.dom.inputs.$inputSupplierName.val('');
+				o.dom.inputs.$inputSupplierAlias.val('');
+				o.dom.inputs.$inputAddress.val('');
+				o.dom.inputs.$inputCity.val('');
+				o.dom.inputs.$inputState.val('');
+				o.dom.inputs.$inputCountry.val('');
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnDelete: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: 'Delete?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterSupplier/DEL',
+							dataType: 'text',
+							data: JSON.stringify({
+								SupplierCode: di.SupplierCode
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnActive: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: di.SupplierStatus == 'Active' ? 'Deactivate?' : 'Activate?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterSupplier/ACT',
+							dataType: 'text',
+							data: JSON.stringify({
+								SupplierCode: di.SupplierCode,
+								UserLogin: "@Context.Session.GetString("PIC_ID")"
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: di.SupplierStatus == 'Active' ? 'Data Inactive' : 'Data Active', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpdate: function (e) {
+				var o = this; IU = 'U';
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				o.dom.inputs.$inputSupplierCode.val(di.SupplierCode);
+				o.dom.inputs.$inputSupplierName.val(di.SupplierName);
+				o.dom.inputs.$inputSupplierAlias.val(di.SupplierAlias);
+				o.dom.inputs.$inputAddress.val(di.Address);
+				o.dom.inputs.$inputCity.val(di.City);
+				o.dom.inputs.$inputState.val(di.State);
+				o.dom.inputs.$inputCountry.val(di.Country);
+
+				document.getElementById("SupplierCode").disabled = true;
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function (e) {
+				var o = this;
+				var SupplierCode = $("#SupplierCode").val();
+				var SupplierName = $("#SupplierName").val();
+				var SupplierAlias = $("#SupplierAlias").val();
+				var Address = $("#Address").val();
+				var City = $("#City").val();
+				var State = $("#State").val();
+				var Country = $("#Country").val();
+
+				if(SupplierCode != "" && SupplierName != "") {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterSupplier/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									IUType: IU,
+									SupplierCode: SupplierCode,
+									SupplierName: SupplierName,
+									SupplierAlias: SupplierAlias,
+									Address: Address,
+									City: City,
+									State: State,
+									Country: Country,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				} else {
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+				}
+			},
+			onClickBtnUpload: function () {
+				var o = this;
+				$("#fileUpload").data('kendoUpload').clearAllFiles();
+				o.dom.$editorUpload.modal('show');
+			},
+			onClickBtnSaveUpload: function () {
+				var o = this;
+				swal.fire({
+					title: 'Upload Master Supplier?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						let formData = new FormData();
+						let files = $("#fileUpload").data('kendoUpload').getFiles();
+						let file = files[0].rawFile;
+						formData.append('file', file);
+
+						$.ajax({
+							url: "@myurl" + "MasterSupplier/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
+							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							type: 'post',
+							data: formData,
+							contentType: false,
+							processData: false
+						}).done(function (data, textStatus, jqXHR) {
+							var remarks = data[0].Remarks;
+							if(remarks != '') {
+								swal.fire({ title: 'Warning', text: remarks, icon: 'warning'});
+							} else {
+								o.dom.$editorUpload.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
+								$("#fileUpload").data('kendoUpload').clearAllFiles();
+							}
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							$("#grid").data('kendoGrid').dataSource.read();
+							$("#fileUpload").data('kendoUpload').clearAllFiles();
+						});
+					}
+				});
+			},
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Supplier.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterSupplier/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "SupplierCode",
+							fields: {
+								SupplierCode: { type: "string" },
+								SupplierName: { type: "string" },
+								SupplierAlias: { type: "string" },
+								Address: { type: "string" },
+								City: { type: "string" },
+								State: { type: "string" },
+								Country: { type: "string" },
+								SupplierStatus: { type: "string" },
+								LastUpdate: { type: "string" },
+								UserUpdate: { type: "string" },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_master_supplier") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Update",
+							text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("del_master_supplier") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Delete",
+							text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("edit_master_supplier") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Active",
+							text: "<i class='fa fa-check btnActive' style='font-size:18px;color:#008000;'></i>"
+						},{
+							name: "Deactive",
+							text: "<i class='fa fa-times btnDeactive' style='font-size:18px;color:#ff0000;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "SupplierCode",
+					title: "Supplier Code",
+					width: 100,
+					template: "<div class='customClass'> #= (SupplierCode == null) ? ' ' : kendo.toString(SupplierCode, '') # </div>",
+				},
+				{
+					field: "SupplierName",
+					title: "Supplier Name",
+					width: 200,
+					template: "<div class='customClass'> #= (SupplierName == null) ? ' ' : kendo.toString(SupplierName, '') # </div>",
+				},
+				{
+					field: "SupplierAlias",
+					title: "Alias",
+					width: 100,
+					template: "<div class='customClass'> #= (SupplierAlias == null) ? ' ' : kendo.toString(SupplierAlias, '') # </div>",
+				},
+				{
+					field: "Address",
+					title: "Address",
+					width: 300,
+					template: "<div class='customClass'> #= (Address == null) ? ' ' : kendo.toString(Address, '') # </div>",
+				},
+				{
+					field: "City",
+					title: "City",
+					width: 100,
+					template: "<div class='customClass'> #= (City == null) ? ' ' : kendo.toString(City, '') # </div>",
+				},
+				{
+					field: "State",
+					title: "State",
+					width: 100,
+					template: "<div class='customClass'> #= (State == null) ? ' ' : kendo.toString(State, '') # </div>",
+				},
+				{
+					field: "Country",
+					title: "Country",
+					width: 100,
+					template: "<div class='customClass'> #= (Country == null) ? ' ' : kendo.toString(Country, '') # </div>",
+				},
+				{
+					field: "SupplierStatus",
+					title: "Status",
+					width: 100
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "UserUpdate",
+						title: "User",
+						width: 100
+					},
+					{
+						field: "LastUpdate",
+						title: "Date",
+						width: 150
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e){
+					var grid = this;
+
+					grid.tbody.find("tr[role='row']").each(function(){
+						var model = grid.dataItem(this);
+						if(model.SupplierStatus == 'Active'){
+							$(this).find(".k-grid-Active").hide();
+							$(this).find(".k-grid-Deactive").show();
+						}else{
+							$(this).find(".k-grid-Active").show();
+							$(this).find(".k-grid-Deactive").hide();
+						}
+					});
+				}
+			});
+
+			$("#fileUpload").kendoUpload({
+				multiple: false,
+				validation: {
+					allowedExtensions: [".xls", "xlsx"]
+				}
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Supplier -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_master_supplier") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+		<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button>
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

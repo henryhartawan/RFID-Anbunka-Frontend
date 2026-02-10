@@ -1,0 +1,1017 @@
+﻿@{
+	ViewData["Title"] = "SO";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+		height: 30px;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">SO</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-4 control-label">Line</label>
+								<div class="col-sm-8">
+									<input type="text" class="" id="LineOrderCode" style="width:100%;" />
+								</div>
+								<label class="col-sm-4 control-label">Supplier</label>
+								<div class="col-sm-8">
+									<input type="text" class="" id="Supplier" style="width:100%;" />
+								</div>
+								<label class="col-sm-4 control-label">Arrival Date</label>
+								<div class="col-sm-8">
+									<input type="text" class="" id="Arrival_Date" style="width:100%;" />
+								</div>
+								<label class="col-sm-4 control-label">Route</label>
+								<div class="col-sm-8">
+									<input type="text" class="" id="Route" style="width:100%;" disabled />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-4 control-label">Cycle</label>
+								<div class="col-sm-8">
+									<input type="text" class="" id="Cycle" style="width:100%;" />
+								</div>
+								<label class="col-sm-4 control-label">Volumetric (m3)</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="Volumetric" disabled />
+								</div>
+								<label class="col-sm-4 control-label">Total Part Volume (m3)</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="TotalPartVolume" disabled />
+								</div>
+								<label class="col-sm-4 control-label">Remarks</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="Remarks" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-12">
+								<div id="grid1" style="margin-left:0px;margin-top:0px;"></div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* <div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+	<div class="" role="document" style="padding-left:25vw;">
+		<div class="modal-content" style="width:50vw">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Upload SO</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<form id="formUpload" enctype="multipart/form-data">
+					<span>Download template <a href="../../templates/SO.xlsx" style="color:#0099ff" download="Template SO.xlsx">here</a></span>
+					<input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+			</div>
+		</div>
+	</div>
+</div> *@
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid1.on('click', '#btnAdd', o.eventHandlers.onClickBtnAdd.bind(o));
+			o.dom.$grid1.on('click', '.btnDeleteRow', o.eventHandlers.onClickBtnDeleteRow.bind(o));
+
+			// o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+			// o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.$btnSave = $("#btnSave");
+			o.dom.$grid1 = $("#grid1");
+			o.dom.$editorUpload = $("#editorUpload");
+			o.dom.$btnUpload = $("#btnUpload");
+			o.dom.$btnSaveUpload = $("#btnSaveUpload");
+		},
+		data: {
+			Line: '',
+			Supplier: '',
+			ExCore: '',
+			Route: '',
+			ArrivalDate: '',
+			TotalPartVolume: 0,
+			arrPart: []
+		},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this;
+				$("#LineOrderCode").data('kendoComboBox').value('');
+				$("#Supplier").data('kendoComboBox').value('');
+				$("#Cycle").data('kendoComboBox').value('');
+				$("#Cycle").data('kendoComboBox').enable(false);
+				$("#Arrival_Date").data('kendoDatePicker').value('');
+				$("#Route").data('kendoComboBox').value('');
+				$("#Route").data('kendoComboBox').enable(false);
+				$("#Volumetric").val('');
+				$("#TotalPartVolume").val('');
+				$("#Remarks").val('');
+				
+				o.data.Line = '';
+				o.data.Supplier = '';
+				o.data.ExCore = '';
+				o.data.Route = '';
+				o.data.ArrivalDate = '';
+				o.data.TotalPartVolume = 0;
+				$(".btnAdd").prop("disabled", true);
+
+				$("#grid1").data('kendoGrid').dataSource.data([]);
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function(e){
+				var o = this;
+				var data = o.fn.getData.call(o);
+				console.log(data);
+				
+				if (data.ErrStat) {
+					swal.fire({ title: 'Warning', html: 'Please Fill Qty Order!<br>Ex Core must be different', icon: 'warning' });
+				} else if (data.Line != '' &&
+						  data.Supplier != '' &&
+						  data.ArrivalDate != '' &&
+						  data.Route != '' &&
+						  data.Cycle != '' &&
+						  data.Remarks != '' &&
+						  data.SOParts.length != 0
+				) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'SO/INS',
+								dataType: 'text',
+								data: JSON.stringify(data)
+							}).done(function (data, textStatus, jqXHR) {
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				} else {
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
+				}
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnDeleteRow: function (e) {
+				var o = this;
+				var di = o.dom.$grid1.data('kendoGrid').dataItem($(e.target).closest('tr'));
+				o.dom.$grid1.data('kendoGrid').dataSource.remove(di);
+
+				o.data.TotalPartVolume -= di.Volume;
+				$("#TotalPartVolume").val(o.data.TotalPartVolume);
+
+				o.data.ExCore = '';
+				o.data.TotalPartVolume = 0;
+				var grid = $("#grid1").data("kendoGrid");
+				grid.dataSource.view().forEach(function(item) {
+					o.data.ExCore += ';' + item.ExCore;
+					o.data.TotalPartVolume += item.Volume
+				});
+
+				$("#TotalPartVolume").val(o.data.TotalPartVolume);
+
+				o.data.ExCore = o.data.ExCore.substring(1);
+				if(o.data.ExCore != '') {
+					$("#Route").data('kendoComboBox').enable(true);
+				} else {
+					$("#Route").data('kendoComboBox').enable(false);
+				}
+
+				$("#Route").data('kendoComboBox').dataSource.read();
+			},
+			onClickBtnAdd: function () {
+				var o = this;
+
+				o.dom.$grid1.data("kendoGrid").dataSource.add({
+					ExCore: '',
+					DepthID: '',
+					Depth: '',
+					Part_No: '',
+					Part_Name: '',
+					Job_No: '',
+					Qty_Order: '',
+					QtyPCS: '',
+					Volume: ''
+				});
+
+				o.dom.$grid1.data('kendoGrid').refresh();
+			},
+			// onClickBtnUpload: function () {
+			// 	var o = this;
+			// 	$("#fileUpload").data('kendoUpload').clearAllFiles();
+			// 	o.dom.$editorUpload.modal('show');
+			// },
+			// onClickBtnSaveUpload: function () {
+			// 	var o = this;
+			// }
+		},
+		fn: {
+			getData: function () {
+				var o = this;
+				var data = {};
+
+				data.Line = o.data.Line;
+				data.Supplier = o.data.Supplier;
+				data.ArrivalDate = o.data.ArrivalDate;
+				data.Route = o.data.Route;
+				data.Cycle = $("#Cycle").data('kendoComboBox').value();
+				data.Volumetric = $("#Volumetric").val();
+				data.TotalPartVolume = $("#TotalPartVolume").val();
+				data.Remarks = $("#Remarks").val();
+				data.UserLogin = "@Context.Session.GetString("PIC_ID")";
+
+				data.ErrStat = '';
+				var arr = o.dom.$grid1.data('kendoGrid').dataSource.data();
+				o.data.arrPart = [];
+
+				for (var i = 0; i < arr.length; i++) {
+					if (arr[i].Qty_Order == '') data.ErrStat = true;
+
+					if (o.data.arrPart.indexOf(arr[i].ExCore) == -1) o.data.arrPart.push(arr[i].ExCore);
+					else data.ErrStat = true;
+				}
+
+				data.SOParts = o.dom.$grid1.data('kendoGrid').dataSource.data().map(function (e) {
+					return {
+						ExCore: e.ExCore,
+						DepthID: e.DepthID,
+						Part_No: e.Part_No,
+						Part_Name: e.Part_Name,
+						Job_No: e.Job_No,
+						Qty_Order: e.Qty_Order.toString(),
+						QtyPCS: e.QtyPCS.toString(),
+						Volume: e.Volume.toString()
+					};
+				});
+
+				return data;
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "SO.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'SO/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								SO_No: { type: "string" },
+								LineOrderCode: { type: "string" },
+								Supplier: { type: "string" },
+								ArrivalDate: { type: "string" },
+								RouteCode: { type: "string" },
+								CycleIssue: { type: "string" },
+								Volumetric: { type: "number" },
+								TotalPartVolume: { type: "number" },
+								Remarks: { type: "string" },
+								ExCore: { type: "string" },
+								Depth: { type: "string" },
+								Part_No: { type: "string" },
+								Part_Name: { type: "string" },
+								Job_No: { type: "string" },
+								Qty_Order: { type: "number" },
+								QtyPCS: { type: "number" },
+								Volume: { type: "number" },
+								SO_Status: { type: "string" },
+								Entry_User: { type: "string" },
+								Entry_Date: { type: "string" }
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					field: "SO_No",
+					title: "SO No",
+					width: 100
+				},
+				{
+					field: "LineOrderCode",
+					title: "Line",
+					width: 100
+				},
+				{
+					field: "Supplier",
+					title: "Supplier",
+					width: 150
+				},
+				{
+					field: "Job_No",
+					title: "Job No",
+					width: 100
+				},
+				{
+					field: "Part_No",
+					title: "Part No",
+					width: 100
+				},
+				{
+					field: "Part_Name",
+					title: "Part Name",
+					width: 150
+				},
+				{
+					field: "ExCore",
+					title: "Ex Core",
+					width: 100
+				},
+				{
+					field: "Qty_Order",
+					title: "Qty Order",
+					width: 100
+				},
+				{
+					field: "QtyPCS",
+					title: "Pcs",
+					width: 100
+				},
+				{
+					field: "RouteCode",
+					title: "Route",
+					width: 100
+				},
+				{
+					field: "ArrivalDate",
+					title: "Date",
+					width: 100
+				},
+				{
+					field: "CycleArrival",
+					title: "Cycle",
+					width: 100
+				},
+				{
+					field: "TimeArrival",
+					title: "Time",
+					width: 100
+				},
+				{
+					field: "Volume",
+					title: "Vol (m3)",
+					width: 100
+				},],
+				toolbar: $("#template_toolbar").html(),
+			});
+
+			$("#LineOrderCode").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					o.data.Line = this.value();
+					o.data.ExCore = '';
+
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+
+					if(o.data.Line != '' && o.data.Supplier != '' && o.data.ArrivalDate != '') {
+						$(".btnAdd").prop("disabled", false);
+					} else {
+						$(".btnAdd").prop("disabled", true);
+					}
+
+					$("#grid1").data('kendoGrid').dataSource.data([]);
+				}
+			}).data("kendoComboBox");
+
+			$("#Supplier").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "Supplier", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					o.data.Supplier = this.value();
+					o.data.ExCore = '';
+
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+
+					if(o.data.Line != '' && o.data.Supplier != '' && o.data.ArrivalDate != '') {
+						$(".btnAdd").prop("disabled", false);
+					} else {
+						$(".btnAdd").prop("disabled", true);
+					}
+
+					$("#grid1").data('kendoGrid').dataSource.data([]);
+				}
+			}).data("kendoComboBox");
+
+			$("#Arrival_Date").kendoDatePicker({
+				format: "dd/MM/yyyy",
+				change: function(){
+					o.data.ArrivalDate = kendo.toString(this.value(), 'yyyy-MM-dd');
+					o.data.ExCore = '';
+
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+
+					if(o.data.Line != '' && o.data.Supplier != '' && o.data.ArrivalDate != '') {
+						$(".btnAdd").prop("disabled", false);
+					} else {
+						$(".btnAdd").prop("disabled", true);
+					}
+
+					$("#grid1").data('kendoGrid').dataSource.data([]);
+				}
+			});
+
+			$("#Route").kendoComboBox({
+				dataValueField: "RouteCode",
+				dataTextField: "Route",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'SO/INQRoute',
+								dataType: 'text',
+								data: JSON.stringify({
+									ExCore: o.data.ExCore
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				dataBound: function(e) {
+					var combo = e.sender;
+					var data = combo.dataSource.view();
+
+					if (data.length === 1) {
+						combo.select(0);
+						combo.trigger("change");
+					} else {
+						this.value('');
+					}
+				},
+				change: function(){
+					o.data.Route = this.value();
+
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+
+					if(o.data.Route != '') {
+						$("#Cycle").data('kendoComboBox').enable(true);
+					} else {
+						$("#Cycle").data('kendoComboBox').enable(false);
+					}
+
+					$("#Cycle").data('kendoComboBox').dataSource.read();
+				}
+			}).data("kendoComboBox");
+
+			$("#Cycle").kendoComboBox({
+				dataValueField: "CycleIssueID",
+				dataTextField: "Cycle",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'SO/INQCycle',
+								dataType: 'text',
+								data: JSON.stringify({
+									Route: o.data.Route
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+				}
+			}).data("kendoComboBox");
+
+			o.dom.$grid1.kendoGrid({
+				height:280,
+				dataSource: {
+					data: [],
+					schema: {
+						model: {
+							fields: {
+								ExCore: { type: "string" },
+								DepthID: { type: "string" },
+								Depth: { type: "string" },
+								Part_No: { type: "string" },
+								Part_Name: { type: "string" },
+								Job_No: { type: "string" },
+								Qty_Order: { type: "number" },
+								QtyPCS: { type: "number" },
+								Volume: { type: "number" }
+							}
+						}
+					}
+				},
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				editable: true,
+				autoSync: true,
+				columns: [
+				{
+					title: "",
+					width: 50,
+					command: [{
+						name: "Delete",
+						text: "<i class='fa fa-trash-o btnDeleteRow' style='font-size:18px;color:#800000;'></i>"
+					}]
+				},
+				{
+					field: "Job_No",
+					title: "Job No",
+					width: 100,
+					editor: function (container, options) {
+						$('<input name="' + options.field + '"/>').appendTo(container).kendoComboBox({
+							autoWidth: true,
+							dataSource: {
+								transport: {
+									read: function (options) {
+										$.ajax({
+											method: 'post',
+											headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+											url: "@myurl" + 'SO/INQPart',
+											dataType: 'text',
+											data: JSON.stringify({
+												Line: o.data.Line,
+												Supplier: o.data.Supplier,
+												JobNo: ''
+											})
+										}).done(function (data, textStatus, jqXHR) {
+											try {
+												var result = JSON.parse(data);
+											}
+											catch (e) {
+												swal.fire('Error', 'Error loading grid', 'error');
+												options.success({ data: [] });
+												return;
+											}
+											options.success(result);
+										}).fail(function (jqXHR, textStatus, errorThrown) {
+											swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+											options.success({ data: [] });
+										});
+									}
+								}
+							},
+							filter: "contains",
+							autoWidth: true,
+							dataTextField: 'JobNo',
+							dataValueField: 'JobNo',
+							select: function (e) {
+								if (e.item == null) e.preventDefault();
+							}
+						});
+					},
+				},
+				{
+					field: "ExCore",
+					title: "Ex Core",
+					width: 100,
+					editor: function (container, options) {
+						$('<input name="' + options.field + '"/>').appendTo(container).kendoComboBox({
+							autoWidth: true,
+							dataSource: {
+								transport: {
+									read: function (dsOptions) {
+										var selectedJobNo = options.model.Job_No;
+
+										$.ajax({
+											method: 'post',
+											headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+											url: "@myurl" + 'SO/INQPart',
+											dataType: 'text',
+											data: JSON.stringify({
+												Line: o.data.Line,
+												Supplier: o.data.Supplier,
+												JobNo: selectedJobNo
+											})
+										}).done(function (data, textStatus, jqXHR) {
+											try {
+												var result = JSON.parse(data);
+											}
+											catch (e) {
+												swal.fire('Error', 'Error loading grid', 'error');
+												dsOptions.success({ data: [] });
+												return;
+											}
+
+											if (selectedJobNo && result && result.length > 0) {
+												result = result.filter(x => x.JobNo === selectedJobNo);
+											}
+
+											dsOptions.success(result);
+										}).fail(function (jqXHR, textStatus, errorThrown) {
+											swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+											dsOptions.success({ data: [] });
+										});
+									}
+								}
+							},
+							filter: "contains",
+							autoWidth: true,
+							dataTextField: 'ExCore',
+							dataValueField: 'ExCore',
+							select: function (e) {
+								if (e.item == null) e.preventDefault();
+							}
+						});
+					},
+				},
+				{
+					field: "DepthID",
+					hidden: true,
+					template: "#= DepthID #"
+				},
+				{
+					field: "Depth",
+					title: "Depth",
+					width: 150,
+					template: "#= Depth #"
+				},
+				{
+					field: "Part_No",
+					title: "Part No",
+					width: 100,
+					template: "#= Part_No #"
+				},
+				{
+					field: "Part_Name",
+					title: "Part Name",
+					width: 150,
+					template: "#= Part_Name #"
+				},
+				{
+					field: "Qty_Order",
+					title: "Qty Order (Box)",
+					width: 50
+				},
+				{
+					field: "QtyPCS",
+					title: "Qty (PCS)",
+					width: 50,
+					template: "#= QtyPCS #"
+				},
+				{
+					field: "Volume",
+					title: "Volume",
+					width: 50,
+					template: "#= Volume #"
+				},
+				{
+					field: "BaseQtyPCS",
+					hidden: true,
+					template: "#= QtyPCS #"
+				},
+				{
+					field: "baseVolume",
+					hidden: true,
+					template: "#= Volume #"
+				}],
+				toolbar: $("#template_toolbar1").html(),
+				save: function(e) {
+					let currentRow = e.model;
+					if ((e.values.Job_No && currentRow.Job_No != e.values.Job_No) || (e.values.ExCore && currentRow.ExCore != e.values.ExCore)) {
+						var excore = e.values.ExCore == null ? e.values.Job_No : e.values.ExCore;
+
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl" + 'SO/INQPartDetail',
+							dataType: 'text',
+							data: JSON.stringify({
+								ExCore: excore,
+								Line: o.data.Line,
+								Supplier: o.data.Supplier,
+								ArrivalDate: o.data.ArrivalDate
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (typeof data === "string") {
+								data = JSON.parse(data);
+							}
+
+							if (data && data.length > 0) {
+								data = data[0];
+								e.model.set("ExCore", data.ExCore);
+								e.model.set("DepthID", data.DepthID);
+								e.model.set("Depth", data.Depth);
+								e.model.set("Part_No", data.Part_No);
+								e.model.set("Part_Name", data.Part_Name);
+								e.model.set("Job_No", data.Job_No);
+								e.model.set("Qty_Order", 1);
+								e.model.set("QtyPCS", data.QtyPCS);
+								e.model.set("Volume", data.Volume);
+								e.model.set("BaseQtyPCS", data.QtyPCS);
+								e.model.set("BaseVolume", data.Volume);
+
+								let grid = $("#grid1").data("kendoGrid");
+								grid.refresh();
+
+								$("#Volumetric").val(data.TruckVolume);
+							}
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						});
+					} else if (e.values.Qty_Order != null) {
+						e.model.set("QtyPCS", currentRow.BaseQtyPCS * e.values.Qty_Order);
+						e.model.set("Volume", currentRow.BaseVolume * e.values.Qty_Order);
+					}
+
+					o.data.ExCore = '';
+					o.data.TotalPartVolume = 0;
+					var grid = $("#grid1").data("kendoGrid");
+					grid.dataSource.view().forEach(function(item) {
+						o.data.ExCore += ';' + item.ExCore;
+						o.data.TotalPartVolume += item.Volume
+					});
+
+					$("#TotalPartVolume").val(o.data.TotalPartVolume);
+
+					o.data.ExCore = o.data.ExCore.substring(1);
+					if(o.data.ExCore != '') {
+						$("#Route").data('kendoComboBox').enable(true);
+					} else {
+						$("#Route").data('kendoComboBox').enable(false);
+					}
+
+					$("#Route").data('kendoComboBox').dataSource.read();
+				},
+				edit: function(e) {
+					var fieldName = e.container.find("input").attr("title");
+					var model = e.model;
+
+					if ((fieldName === "DepthID" && model.DepthID) ||
+						(fieldName === "Depth" && model.Depth) ||
+						(fieldName === "Part_No" && model.Part_No) ||
+						(fieldName === "Part_Name" && model.Part_Name) ||
+						(fieldName === "QtyPCS" && model.QtyPCS) ||
+						(fieldName === "Volume" && model.Volume)) {
+
+						var input = e.container.find("input");
+
+						var combo = input.data("kendoNumericTextBox");
+						if (combo) {
+							combo.enable(false);
+						} else {
+							input.prop("disabled", true);
+						}
+					}
+				}
+			});
+
+			// $("#fileUpload").kendoUpload({
+			// 	multiple: false,
+			// 	validation: {
+			// 		allowedExtensions: [".xls", "xlsx"]
+			// 	}
+			// });
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- SO -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_SO") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+		@* <button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button> *@
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar1">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Part Info -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+		<button data-toggle="tooltip" title="Add" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning btnAdd" id="btnAdd" disabled>
+			<i class="k-icon k-i-plus"></i>
+		</button>
+	</div>
+</script>

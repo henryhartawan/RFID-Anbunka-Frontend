@@ -1,0 +1,315 @@
+﻿@{
+	ViewData["Title"] = "Master Privilege";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.del {
+		background-color: #fdd;
+	}
+
+	.edit {
+		background-color: #fda;
+	}
+
+	.add {
+		background-color: #ced;
+	}
+
+	.read {
+		background-color: #b3fff6;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-5">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$grid.on('click', '#btnSave', o.eventHandlers.onClickBtnSave.bind(o));
+			o.dom.$grid.on('click', '.checkbox_read', o.eventHandlers.onClickCheckBoxRead);
+			o.dom.$grid.on('click', '.checkbox_add', o.eventHandlers.onClickCheckBoxAdd);
+			o.dom.$grid.on('click', '.checkbox_edit', o.eventHandlers.onClickCheckBoxEdit);
+			o.dom.$grid.on('click', '.checkbox_del', o.eventHandlers.onClickCheckBoxDel);
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$grid = $("#grid");
+		},
+		data: {
+			UserGroup_Id: "@Context.Session.GetString("UserGroup_Id")"
+		},
+		dom: {},
+		eventHandlers: {
+			onClickBtnSave: function () {
+				var o = this;
+				swal.fire({
+					title: "Save?",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						var data = o.fn.getData.call(o);
+						console.log(data);
+						$.ajax({
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterPrivilege/INS',
+							dataType: 'text',
+							data: JSON.stringify(data)
+						}).done(function (data, textStatus, jqXHR) {
+							swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickCheckBoxRead: function (e) {
+				var $target = $(e.target);
+				if ($target.prop('checked')) $target.parent().addClass('read');
+				else $target.parent().removeClass('read');
+			},
+			onClickCheckBoxAdd: function (e) {
+				var $target = $(e.target);
+				if ($target.prop('checked')) $target.parent().addClass('add');
+				else $target.parent().removeClass('add');
+			},
+			onClickCheckBoxEdit: function (e) {
+				var $target = $(e.target);
+				if ($target.prop('checked')) $target.parent().addClass('edit');
+				else $target.parent().removeClass('edit');
+			},
+			onClickCheckBoxDel: function (e) {
+				var $target = $(e.target);
+				if ($target.prop('checked')) $target.parent().addClass('del');
+				else $target.parent().removeClass('del');
+			}
+		},
+		fn: {
+			getData: function () {
+				var o = this;
+				var data = {
+					UserGroup_Id: o.data.UserGroup_Id,
+					Privileges: []
+				};
+
+				o.dom.$grid.find('.k-grid-content tr').each(function (i, e) {
+					var di = o.dom.$grid.data('kendoGrid').dataItem(this);
+					var $row = $(this);
+					var row = {
+						Menu_Id: di.Menu_Id,
+						checkedbox_read: $row.find('.checkbox_read').prop('checked') ? '1' : '0',
+						checkedbox_add: $row.find('.checkbox_add').prop('checked') ? '1' : '0',
+						checkedbox_edit: $row.find('.checkbox_edit').prop('checked') ? '1' : '0',
+						checkedbox_del: $row.find('.checkbox_del').prop('checked') ? '1' : '0'
+					};
+
+					data.Privileges.push(row);
+				});
+
+				return data;
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterPrivilege/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									UserGroup_Id: o.data.UserGroup_Id
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+									console.log(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "Menu_Id",
+							fields: {
+								Menu_Id: { type: "string" },
+								MenuGroup_Name: { type: "string" },
+								Menu_Name: { type: "string" },
+								MenuDescription: { type: "string" },
+								checkedbox_read: { type: "boolean" },
+								checkedbox_add: { type: "boolean" },
+								checkedbox_edit: { type: "boolean" },
+								checkedbox_del: { type: "boolean" }
+							}
+						}
+					}
+				},
+				scrollable: true,
+				sortable: false,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				refresh: true,
+				columns: [
+				{
+					field: "Menu_Id",
+					title: "Menu_Id",
+					hidden: true,
+					width: 100
+				},
+				{
+					field: "MenuGroup_Name",
+					title: "Menu Group",
+					sortAscending: "Sort (asc)",
+					width: 100
+				},
+				{
+					field: "MenuDescription",
+					title: "Menu Name",
+					sortAscending: "Sort (asc)",
+					width: 300
+				},
+				{
+					width: 80,
+					field: "checkedbox_read",
+					title: "Read",
+					template:'#if(data.Menu_Name!=="") { # <input type="checkbox" #: checkedbox_read ? "checked" : "" # class="checkbox checkbox_read"> #}#',
+				},
+				{
+					width: 80,
+					field: "checkedbox_add",
+					title: "Add",
+					template: '#if(data.Menu_Name!=="password"&&data.Menu_Name!=="master_user_priv"&&data.Menu_Name!=="ApprovalCancel"&&data.Menu_Name!=="MonitorPallet"&&data.Menu_Name!=="AnbunkaDNDetail"&&data.Menu_Name!=="AndonCentral"&&data.Menu_Name!=="AndonMonitoringStockCasting"&&data.Menu_Name!=="AndonDelivery"&&data.Menu_Name!=="AndonSummaryReceiving"&&data.Menu_Name!=="AndonMonitoringStockEngine"&&data.Menu_Name!=="AndonMonitoringReturnPallet"&&data.Menu_Name!=="ReportLog"&&data.Menu_Name!=="LastInitStock"&&data.Menu_Name!=="StockFlow"&&data.Menu_Name!=="PlanSupply"&&data.Menu_Name!=="Kebutuhan"&&data.Menu_Name!=="SkemaPickup"&&data.Menu_Name!=="Produksi"&&data.Menu_Name!=="PartPerCycle"&&data.Menu_Name!=="DN"&&data.Menu_Name!=="TN"&&data.Menu_Name!=="PlanSupplyFinal"&&data.Menu_Name!=="master_param_jam"&&data.Menu_Name!=="ResumeReport"&&data.Menu_Name!=="CancelDN"&&data.Menu_Name!=="ReportPackingInstruction"&&data.Menu_Name!=="MasterCILPFuture"&&data.Menu_Name!=="MasterCIPartFuture"){ # <input type="checkbox" #: checkedbox_add ? "checked" : "" # class="checkbox checkbox_add"> #}#',
+				},
+				{
+					width: 80,
+					field: "checkedbox_edit",
+					title: "Edit",
+					template: '#if(data.Menu_Name!=="MonitorPallet"&&data.Menu_Name!=="AnbunkaDNDetail"&&data.Menu_Name!=="AndonCentral"&&data.Menu_Name!=="AndonMonitoringStockCasting"&&data.Menu_Name!=="AndonDelivery"&&data.Menu_Name!=="AndonSummaryReceiving"&&data.Menu_Name!=="AndonMonitoringStockEngine"&&data.Menu_Name!=="AndonMonitoringReturnPallet"&&data.Menu_Name!=="PreDelivery"&&data.Menu_Name!=="DeliveryCasting"&&data.Menu_Name!=="ReceivingEngine"&&data.Menu_Name!=="Posting"&&data.Menu_Name!=="DeliveryEngine"&&data.Menu_Name!=="ReceivingCasting"&&data.Menu_Name!=="LDKPairing"&&data.Menu_Name!=="DeliveryNG"&&data.Menu_Name!=="TPGI"&&data.Menu_Name!=="Heijunka"&&data.Menu_Name!=="PlanProduksi"&&data.Menu_Name!=="PO"&&data.Menu_Name!=="UploadInitStock"&&data.Menu_Name!=="Produksi"&&data.Menu_Name!=="PartPerCycle"&&data.Menu_Name!=="LastInitStock"&&data.Menu_Name!=="StockFlow"&&data.Menu_Name!=="PlanSupply"&&data.Menu_Name!=="Kebutuhan"&&data.Menu_Name!=="SkemaPickup"&&data.Menu_Name!=="POMilkrun"&&data.Menu_Name!=="Calculate"&&data.Menu_Name!=="GR"&&data.Menu_Name!=="PlanSupplyFinal"&&data.Menu_Name!=="ResumeReport"&&data.Menu_Name!=="ReportPackingInstruction"&&data.Menu_Name!=="ReportPackingInstruction"&&data.Menu_Name!=="Getsudo"&&data.Menu_Name!=="CalculateMonthly"){ # <input type="checkbox" #: checkedbox_edit ? "checked" : "" # class="checkbox checkbox_edit"> #}#',
+				},
+				{
+					width: 80,
+					field: "checkedbox_del",
+					title: "Delete",
+					template: '#if(data.Menu_Name!=="password"&&data.Menu_Name!=="master_user_priv"&&data.Menu_Name!=="GRPro"&&data.Menu_Name!=="ApprovalCancel"&&data.Menu_Name!=="MonitorPallet"&&data.Menu_Name!=="AnbunkaDNDetail"&&data.Menu_Name!=="AndonCentral"&&data.Menu_Name!=="AndonMonitoringStockCasting"&&data.Menu_Name!=="AndonDelivery"&&data.Menu_Name!=="AndonSummaryReceiving"&&data.Menu_Name!=="AndonMonitoringStockEngine"&&data.Menu_Name!=="AndonMonitoringReturnPallet"&&data.Menu_Name!=="ReportLog"&&data.Menu_Name!=="Heijunka"&&data.Menu_Name!=="PlanProduksi"&&data.Menu_Name!=="HRP"&&data.Menu_Name!=="UploadInitStock"&&data.Menu_Name!=="Produksi"&&data.Menu_Name!=="PartPerCycle"&&data.Menu_Name!=="DN"&&data.Menu_Name!=="LastInitStock"&&data.Menu_Name!=="StockFlow"&&data.Menu_Name!=="PlanSupply"&&data.Menu_Name!=="Kebutuhan"&&data.Menu_Name!=="SkemaPickup"&&data.Menu_Name!=="TN"&&data.Menu_Name!=="PlanSupplyFinal"&&data.Menu_Name!=="GR"&&data.Menu_Name!=="master_param_jam"&&data.Menu_Name!=="ResumeReport"&&data.Menu_Name!=="CancelDN"&&data.Menu_Name!=="ReportPackingInstruction"&&data.Menu_Name!=="Getsudo"&&data.Menu_Name!=="MasterCILPFuture"&&data.Menu_Name!=="MasterCIPartFuture"){ # <input type="checkbox" #: checkedbox_del ? "checked" : "" # class="checkbox checkbox_del"> #}#',
+				}],
+				toolbar: kendo.template($("#template_toolbar").html()),
+				dataBound: function (e) {
+					o.initAfter();
+					o.dom.$grid.find('.checkbox_read').filter(':checked').parent().addClass('read');
+					o.dom.$grid.find('.checkbox_add').filter(':checked').parent().addClass('add');
+					o.dom.$grid.find('.checkbox_edit').filter(':checked').parent().addClass('edit');
+					o.dom.$grid.find('.checkbox_del').filter(':checked').parent().addClass('del');
+				}
+			});
+		},
+		initAfter: function () {
+			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+			o.dom.$UserGroupID = $("#usergroupid");
+			o.dom.$UserGroupID.css("width", "200px").kendoComboBox({
+				value: "@Context.Session.GetString("UserGroup_Id")",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterUserGroup/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									UserGroup_Id: o.data.UserGroup_Id
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading combobox', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				placeholder: "User Group...",
+				dataTextField: "UserGroup",
+				dataValueField: "UserGroup_Id",
+				//value: o.data.UserGroup_Id,
+				filter: 'contains',
+				change: function (e) {
+					if (this.value() && this.selectedIndex == -1) {
+						this._filterSource({
+							value: this.value(),
+							field: this.options.dataTextField,
+							operator: "contains"
+						});
+						this.select(0);
+						if (this.selectedIndex == -1) {
+							this.text("");
+							this.value("");
+						}
+					}
+					o.data.UserGroup_Id = this.value();
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				}
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Privilege -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+		<input type="text" name="usergroupid" id="usergroupid" value="">
+		<button class="k-button" id="btnSave" type="button">Save</button>
+	</div>
+</script>

@@ -1,0 +1,455 @@
+﻿@{
+	ViewData["Title"] = "Resume Report";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$grid = $("#grid");
+		},
+		data: {
+			From: kendo.toString((function(){var a = new Date(); a.setDate(1); return a})(), 'yyyyMMdd'),
+			To: new Date(),
+			Line: ''
+		},
+		dom: {},
+		eventHandlers: {
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Report Resume.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				excelExport: function(e){
+					var rows = e.workbook.sheets[0].rows;
+
+					for (var ri = 0; ri < rows.length; ri++){
+						var row = rows[ri];
+						if(row.type == 'footer'){
+							for(var ci = 0; ci < row.cells.length; ci++){
+								var cell = row.cells[ci];
+
+								if(cell.value){
+									cell.value = $(cell.value).text();
+									cell.hAlign = 'right';
+								}
+							}
+						}
+					}
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'ResumeReport/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									From: kendo.toString(o.data.From, 'yyyyMMdd'),
+									To: kendo.toString(o.data.To, 'yyyyMMdd'),
+									Line: o.data.Line
+								}),
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								DN_No: { type: "string" },
+								SupplierCode: { type: "string" },
+								SupplierName: { type: "string" },
+								SupplierAlias: { type: "string" },
+								Group_Route: { type: "string" },
+								PO_No: { type: "string" },
+								Order_Date: { type: "string" },
+								LineOrderCode: { type: "string" },
+								Plant_Code: { type: "string" },
+								Delivery_Date: { type: "string" },
+								Delivery_Time: { type: "string" },
+								CycleArrival: { type: "string" },
+								Doc_Code: { type: "string" },
+								Recv_Order_Status: { type: "string" },
+								Pickup_Date: { type: "string" },
+								Receive_Date: { type: "string" },
+								Receive_By: { type: "string" },
+								PO_Item: { type: "string" },
+								PartNumber: { type: "string" },
+								PartName: { type: "string" },
+								JobNo: { type: "string" },
+								QtyPerBox: { type: "number" },
+								Total_Kanban: { type: "number" },
+								DN_Qty: { type: "number" },
+								GR_Qty: { type: "number" },
+								Remain_Qty: { type: "number" },
+								Receive_Method: { type: "string" },
+								Partial_Status: { type: "string" },
+								Updated_Date: { type: "string" },
+								Disable_Date: { type: "string" },
+								Order_Status: { type: "string" },
+								SAP_Mat_Doc_No: { type: "string" }
+							}
+						}
+					},
+					batch: true,
+					aggregate: [
+						{field: "Total_Kanban", aggregate: "sum"},
+						{field: "DN_Qty", aggregate: "sum"},
+						{field: "GR_Qty", aggregate: "sum"},
+						{field: "Remain_Qty", aggregate: "sum"}
+					],
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					field: "DN_No",
+					title: "DN No",
+					width: 100,
+				},
+				{
+					field: "SupplierCode",
+					title: "Supplier Code",
+					width: 100
+				},
+				{
+					field: "SupplierName",
+					title: "Supplier Name",
+					width: 150,
+					template: "<div class='customClass'> #= (SupplierName == null) ? ' ' : kendo.toString(SupplierName, '') # </div>",
+				},
+				{
+					field: "SupplierAlias",
+					title: "Transporter",
+					width: 100
+				},
+				{
+					field: "Group_Route",
+					title: "Route",
+					width: 100
+				},
+				{
+					field: "PO_No",
+					title: "PO No.",
+					width: 100
+				},
+				{
+					field: "Order_Date",
+					title: "Order Date",
+					width: 100
+				},
+				{
+					field: "LineOrderCode",
+					title: "Line",
+					width: 100
+				},
+				{
+					field: "Plant_Code",
+					title: "Plant",
+					width: 100
+				},
+				{
+					field: "Delivery_Date",
+					title: "Dlv. Date",
+					width: 100
+				},
+				{
+					field: "Delivery_Time",
+					title: "Dlv. Time",
+					width: 100
+				},
+				{
+					field: "CycleArrival",
+					title: "Dlv. Cycle",
+					width: 100
+				},
+				{
+					field: "Doc_Code",
+					title: "Dock",
+					width: 100
+				},
+				{
+					field: "Recv_Order_Status",
+					title: "Supplier Rcv. Order Status",
+					width: 100
+				},
+				{
+					field: "Pickup_Date",
+					title: "Pickup Date",
+					width: 100
+				},
+				{
+					field: "Receive_Date",
+					title: "Rcv. Date",
+					width: 100,
+					template: "<div class='customClass'> #= (Receive_Date == null) ? ' ' : kendo.toString(Receive_Date, '') # </div>",
+				},
+				{
+					field: "Receive_By",
+					title: "Rcv. By",
+					width: 100
+				},
+				{
+					field: "PO_Item",
+					title: " ",
+					width: 50
+				},
+				{
+					field: "PartNumber",
+					title: "Part No.",
+					width: 100
+				},
+				{
+					field: "PartName",
+					title: "Part Name",
+					width: 150,
+					template: "<div class='customClass'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+				},
+				{
+					field: "JobNo",
+					title: "Job No.",
+					width: 100
+				},
+				{
+					field: "QtyPerBox",
+					title: "Qty/Kanban",
+					width: 100
+				},
+				{
+					field: "Total_Kanban",
+					title: "Qty Kanban",
+					width: 100,
+					format: "{0:n0}",
+					attributes: {
+						style: "text-align: right;"
+					},
+					aggregates: ["sum"],
+					footerTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(kendo.parseInt(sum), 'n0') #</span></div>",
+				},
+				{
+					field: "DN_Qty",
+					title: "Qty Order",
+					width: 100,
+					format: "{0:n0}",
+					attributes: {
+						style: "text-align: right;"
+					},
+					aggregates: ["sum"],
+					footerTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(kendo.parseInt(sum), 'n0') #</span></div>",
+				},
+				{
+					field: "GR_Qty",
+					title: "Qty Rcv.",
+					width: 100,
+					format: "{0:n0}",
+					attributes: {
+						style: "text-align: right;"
+					},
+					aggregates: ["sum"],
+					footerTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(kendo.parseInt(sum), 'n0') #</span></div>",
+				},
+				{
+					field: "Remain_Qty",
+					title: "Qty Balance",
+					width: 100,
+					format: "{0:n0}",
+					attributes: {
+						style: "text-align: right;"
+					},
+					aggregates: ["sum"],
+					footerTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(kendo.parseInt(sum), 'n0') #</span></div>",
+				},
+				{
+					field: "Receive_Method",
+					title: "Rcv. Method",
+					width: 100
+				},
+				{
+					field: "Partial_Status",
+					title: "Partial Status",
+					width: 100
+				},
+				{
+					field: "Updated_Date",
+					title: "Updated Date",
+					width: 100,
+					template: "<div class='customClass'> #= (Updated_Date == '1900-01-01 00:00:00.000') ? ' ' : kendo.toString(Updated_Date, '') # </div>",
+				},
+				{
+					field: "Disable_Date",
+					title: "Disable Date",
+					width: 100
+				},
+				{
+					field: "Order_Status",
+					title: "Order Status",
+					width: 100
+				},
+				{
+					field: "SAP_Mat_Doc_No",
+					title: "Mat Doc No.",
+					width: 100
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e) {
+					o.initAfter();
+				}
+			});
+		},
+		initAfter: function(){
+			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+			o.dom.From = $("#From");
+			o.dom.To = $("#To");
+			o.dom.Line = $("#Line");
+
+			o.dom.From.kendoDatePicker({
+				format: 'yyyyMMdd',
+				value: o.data.From,
+				change: function () {
+					o.data.From = this.value() != null ? this.value() : '';
+
+					if(this.value()){
+						o.dom.$grid.data('kendoGrid').dataSource.read();
+					}
+				}
+			});
+
+			o.dom.To.kendoDatePicker({
+				format: 'yyyyMMdd',
+				value: o.data.To,
+				change: function () {
+					o.data.To = this.value() != null ? this.value() : '';
+
+					if(this.value()){
+						o.dom.$grid.data('kendoGrid').dataSource.read();
+					}
+				}
+			});
+
+			o.dom.Line.kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				value: o.data.Line,
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					o.data.Line = this.value();
+
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				}
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Report Order vs Receiving vs SAP -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+		&nbsp;&nbsp;
+		<input type="date" id="From" placeholder="From" />
+		&nbsp;&nbsp;
+		<input type="date" id="To" placeholder="To" />
+		&nbsp;&nbsp;
+		<input type="" id="Line" placeholder="Line" />
+	</div>
+</script>

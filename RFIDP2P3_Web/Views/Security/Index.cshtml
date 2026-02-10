@@ -1,0 +1,132 @@
+﻿
+@{
+    ViewData["Title"] = "Security";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+
+<div class="page-main">
+    <div class="page-content">
+        <div class="" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel">Change Password</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="panel">
+                        <div class="panel-body" id="panel" data-plugin="scrollable">
+                            <div data-role="container">
+                                <div data-role="content">
+                                    <form class="form-horizontal" id="submitSecurity">
+                                        <input type="hidden" id="type">
+                                        <div class="col-md-12">
+                                            <div class="form-group form-material col-md-12 padding-0">
+                                                <label class="col-sm-2 control-label">User ID</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" class="form-control" id="PIC_ID" value="@Context.Session.GetString("PIC_ID")" disabled>
+                                                </div>
+                                            </div>
+                                            <div class="form-group form-material col-md-12 padding-0">
+                                                <label class="col-sm-2 control-label">Name</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" class="form-control" id="PIC_Name" value="@Context.Session.GetString("PIC_Name")" disabled>
+                                                </div>
+                                            </div>
+                                            <div class="form-group form-material col-md-12 padding-0">
+                                                <label class="col-sm-2 control-label">New Password</label>
+                                                <div class="col-sm-10">
+                                                    <input type="password" onkeyup="checkVal()" class="form-control" id="NewPass" required />
+                                                </div>
+                                            </div>
+                                            <div class="form-group form-material col-md-12 padding-0">
+                                                <label class="col-sm-2 control-label">Retype New Password</label>
+                                                <div class="col-sm-10">
+                                                    <input type="password" onkeyup="checkVal()" class="form-control" id="ReNewPass" required />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="col-sm-12" id="valid" style="color:red;font-weight:bold;"></label>
+                                            </div>
+                                            <input class="btn btn-primary pull-right" id="btnSubmit" type="submit" value="Save New Password" />
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function checkVal() {
+        var errormsg = '';
+
+        var newpass = document.getElementById("NewPass").value;
+        var renewpass = document.getElementById("ReNewPass").value;
+
+        if (newpass != '') {
+            const pattern1 = /[A-Z]/;
+            const pattern2 = /[a-z]/;
+            const pattern3 = /[0-9]/;
+            const pattern4 = /[`!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+            var len = newpass.length;
+
+            if (newpass != renewpass) errormsg += "Password do not match";
+            if (len < 8) errormsg += '<br/>Password must be at least 8 characters';
+            if (!pattern1.test(newpass)) errormsg += '<br/>Password must contain upper case';
+            if (!pattern2.test(newpass)) errormsg += '<br/>Password must contain lower case';
+            if (!pattern3.test(newpass)) errormsg += '<br/>Password must contain number';
+            if (!pattern4.test(newpass)) errormsg += '<br/>Password must contain symbol';
+        }
+
+        if (errormsg != ''){
+            document.getElementById("valid").innerHTML = errormsg;
+            document.getElementById("btnSubmit").disabled = true;
+        } else {
+            document.getElementById("valid").innerHTML = "";
+            document.getElementById("btnSubmit").disabled = false;
+        }
+    }
+
+    $("#submitSecurity").submit(function (e) {
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+
+        var PIC_ID = document.getElementById("PIC_ID").value;
+        var Password = document.getElementById("NewPass").value;
+
+        swal.fire({
+            title: "Save?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    url: "@myurl"+'Security',
+                    dataType: 'text',
+                    data: JSON.stringify({
+                        PIC_ID: PIC_ID,
+                        password: Password
+                    })
+                }).done(function (data, textStatus, jqXHR) {
+                    if (data !== 'success') {
+                        swal.fire('Error', data, 'error');
+                        return;
+                    }
+                    swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                    location.reload();
+                });
+            }
+        });
+    });
+</script>

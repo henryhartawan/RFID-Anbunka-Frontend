@@ -1,0 +1,542 @@
+﻿@{
+	ViewData["Title"] = "Master Finish Goods";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+		height: 30px;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-5">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Master Finish Goods</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6" style="height:37px;">
+								<label class="col-sm-3 control-label">Unique No</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="UniqueNumber" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Part No</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="PartNumber" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Part Name</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="PartName" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6" style="height:37px;">
+								<label class="col-sm-3 control-label">Qty/Box</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="QtyPerBox" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">UOM</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="UOM" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6" style="height:37px;">
+								<label class="col-sm-3 control-label">Box Type</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="BoxType" style="width:100%;" />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6" style="height:37px;">
+								<label class="col-sm-3 control-label">Weight Gross (kg)</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="WeightGross" style="width:100%;" />
+								</div>
+							</div>
+							<div class="clearfix"></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var IUType = 'I';
+
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+			o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+			o.dom.$grid.on('click', '.btnActive', o.eventHandlers.onClickBtnActive.bind(o));
+			o.dom.$grid.on('click', '.btnDeactive', o.eventHandlers.onClickBtnActive.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this;
+				IUType = 'I';
+
+				$("#UniqueNumber").val('');
+				document.getElementById("UniqueNumber").disabled = false;
+				$("#PartNumber").val('');
+				document.getElementById("PartNumber").disabled = false;
+				$("#PartName").val('');
+				document.getElementById("PartName").disabled = false;
+				$("#QtyPerBox").data('kendoNumericTextBox').value('');
+				$("#UOM").val('');
+				$("#BoxType").data('kendoComboBox').value('');
+				$("#WeightGross").data('kendoNumericTextBox').value('');
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnDelete: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: 'Delete?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterFinishGoods/DEL',
+							dataType: 'text',
+							data: JSON.stringify({
+								UniqueNumber: di.UniqueNumber
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnActive: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: di.FinishGoodsStatus == 'Active' ? 'Deactivate?' : 'Activate?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterFinishGoods/ACT',
+							dataType: 'text',
+							data: JSON.stringify({
+								UniqueNumber: di.UniqueNumber,
+								UserLogin: "@Context.Session.GetString("PIC_ID")"
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: di.FinishGoodsStatus == 'Active' ? 'Data Inactive' : 'Data Active', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpdate: function (e) {
+				var o = this;
+				IUType = 'U';
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				$("#UniqueNumber").val(di.UniqueNumber);
+				document.getElementById("UniqueNumber").disabled = true;
+				$("#PartNumber").val(di.PartNumber);
+				document.getElementById("PartNumber").disabled = true;
+				$("#PartName").val(di.PartName);
+				document.getElementById("PartName").disabled = true;
+				$("#QtyPerBox").data('kendoNumericTextBox').value(di.QtyPerBox);
+				$("#UOM").val(di.UOM);
+				$("#BoxType").data('kendoComboBox').value(di.BoxType);
+				$("#BoxType").data('kendoComboBox').trigger("change");
+				$("#WeightGross").data('kendoNumericTextBox').value(di.WeightGross.replace(',', '.'));
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function (e) {
+				var o = this;
+				var UniqueNumber = $("#UniqueNumber").val();
+				var PartNumber = $("#PartNumber").val();
+				var PartName = $("#PartName").val();
+				var QtyPerBox = $("#QtyPerBox").val();
+				var UOM = $("#UOM").val();
+				var BoxType = $("#BoxType").data('kendoComboBox').value();
+				var WeightGross = $("#WeightGross").val();
+
+				if(UniqueNumber != '' && UniqueNumber != 0 && PartNumber != '' && PartName != '' &&
+				  QtyPerBox != '' && QtyPerBox != 0 && UOM != '' && BoxType != '' && WeightGross != '' &&
+				  WeightGross != 0){
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterFinishGoods/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									UniqueNumber: UniqueNumber,
+									PartNumber: PartNumber,
+									PartName: PartName,
+									QtyPerBox: QtyPerBox,
+									UOM: UOM,
+									BoxType: BoxType,
+									WeightGross: WeightGross,
+									IUType: IUType,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				}else{
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+				}
+			},
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Finish Goods.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterFinishGoods/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "UniqueNumber",
+							fields: {
+								UniqueNumber: { type: "string" },
+								PartNumber: { type: "string" },
+								PartName: { type: "string" },
+								QtyPerBox: { type: "string" },
+								UOM: { type: "string" },
+								BoxType: { type: "string" },
+								WeightGross: { type: "string" },
+								FinishGoodsStatus: { type: "string" },
+								LastUpdate: { type: "string" },
+								UserUpdate: { type: "string" },
+								Remarks: { type: "string" },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_master_finish_goods") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Update",
+							text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("del_master_finish_goods") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Delete",
+							text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("edit_master_finish_goods") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Active",
+							text: "<i class='fa fa-check btnActive' style='font-size:18px;color:#008000;'></i>"
+						},{
+							name: "Deactive",
+							text: "<i class='fa fa-times btnDeactive' style='font-size:18px;color:#ff0000;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "UniqueNumber",
+					title: "UN",
+					width: 100
+				},
+				{
+					field: "PartNumber",
+					title: "Part Number",
+					width: 100,
+				},
+				{
+					field: "PartName",
+					title: "Part Name",
+					width: 200,
+					template: "<div class='customClass'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+				},
+				{
+					field: "QtyPerBox",
+					title: "Qty/Box",
+					width: 100,
+				},
+				{
+					field: "UOM",
+					title: "UOM",
+					width: 100,
+				},
+				{
+					field: "BoxType",
+					title: "Box Type",
+					width: 100,
+				},
+				{
+					field: "WeightGross",
+					title: "Weight Gross (kg)",
+					width: 100,
+				},
+				{
+					field: "FinishGoodsStatus",
+					title: "Status",
+					width: 100
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "UserUpdate",
+						title: "User",
+						width: 100
+					},
+					{
+						field: "LastUpdate",
+						title: "Date",
+						width: 150
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e){
+					var grid = this;
+
+					grid.tbody.find("tr[role='row']").each(function(){
+						var model = grid.dataItem(this);
+						if(model.FinishGoodsStatus == 'Active'){
+							$(this).find(".k-grid-Active").hide();
+							$(this).find(".k-grid-Deactive").show();
+						}else{
+							$(this).find(".k-grid-Active").show();
+							$(this).find(".k-grid-Deactive").hide();
+						}
+					});
+				}
+			});
+
+			$("#QtyPerBox").kendoNumericTextBox({
+				format: "#",
+				min: 0,
+				decimals: 0,
+				restrictDecimals: true
+			});
+
+			$("#WeightGross").kendoNumericTextBox({
+				format: "#.##",
+				min: 0,
+				decimals: 2,
+				restrictDecimals: true
+			});
+
+			$("#BoxType").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "BoxType", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+				}
+			}).data("kendoComboBox");
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Finish Goods -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_master_finish_goods") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+		@* <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button> *@
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

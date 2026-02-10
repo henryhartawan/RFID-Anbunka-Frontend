@@ -1,0 +1,98 @@
+﻿@{
+	Layout = null;
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+@model RFIDP2P3_Web.Models.User
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>ICS KEP - Login</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<script src="~/js/libs/jquery/jquery-1.11.2.min.js"></script>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/bootstrap.css" />
+	<link rel="stylesheet" href="~/css/style.css" />
+	<link rel="icon" href="~/img/icon.png" />
+</head>
+<body class="login">
+	<div class="flex">
+		<div class="bg-banner-login">
+			<div class="block-login"></div>
+		</div>
+		<div>
+
+		</div>
+		<div class="bg-form-login" style="height:100vh;">
+			<div style="height:25vh;padding-top:3px;">
+				<a asp-controller="Andon" asp-action="AndonCentral">P3 Andon Central</a>&nbsp;&nbsp;|&nbsp;
+				<a asp-controller="Andon" asp-action="AndonMonitoringStockCasting">P3 Andon Buffer Stock</a>&nbsp;&nbsp;|&nbsp;
+				<a asp-controller="Andon" asp-action="AndonDelivery">P3 Andon Pre Delivery & Delivery</a>
+				<br />
+				<a asp-controller="Andon" asp-action="AndonSummaryReceiving">P2 Andon Receiving & Return Pallet</a>&nbsp;&nbsp;|&nbsp;
+				<a asp-controller="Andon" asp-action="AndonMonitoringStockEngine">P2 Andon Monitoring Stock</a>
+				<br />
+			</div>
+			<div>
+				<img src="~/img/RFID-Logo.wine.png" class="logo-login" />
+				<form class="form-login" method="POST">
+					<div class="heightspace"></div>
+					<input type="text" id="username" name="username" placeholder="username" autofocus required />
+					<br>
+					<input type="password" id="password" name="password" placeholder="password" required />
+					<div class="red">
+						@ViewBag.Message
+					</div>
+					<div class="heightspace"></div>
+					<input class="submit" type="submit" id="btnLogin" value="LOGIN" />
+				</form>
+				<br>
+				<div class="copyright">&copy; 2023 - PT Astra Daihatsu Motor</div>
+				<div class="version">Version 1.0.0</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		var AppD = {
+			attachEvents: function () {
+				var o = this;
+				o.dom.btnLogin.on('click', o.eventHandlers.onClickBtnLogin.bind(o));
+			},
+			cacheDom: function () {
+				var o = this;
+				o.dom.btnLogin = $("#btnLogin");
+			},
+			data: {},
+			dom: {},
+			eventHandlers: {
+				onClickBtnLogin: function () {
+					$.ajax({
+						method: 'post',
+						headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+						url: '@myurl' + 'Login/Index',
+						dataType: 'text',
+						data: JSON.stringify({
+							PIC_ID: $("#username").val(),
+							password: $("#password").val(),
+						})
+					});
+				}
+			},
+			init: function () {
+				var o = this;
+				o.cacheDom();
+				o.attachEvents();
+				o.initElements();
+			},
+			initElements: function () { }
+		};
+
+		$(function () {
+			AppD.init();
+		});
+	</script>
+</body>
+</html>

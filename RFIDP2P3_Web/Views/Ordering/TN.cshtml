@@ -1,0 +1,313 @@
+﻿@{
+	ViewData["Title"] = "TN";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+			o.dom.$grid.on('click', '#btnSync', o.eventHandlers.onClickBtnSync.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$grid = $("#grid");
+		},
+		data: {
+			Prod_Date: new Date(),
+			Supplier_Code: ''
+		},
+		dom: {},
+		eventHandlers: {
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnSync: function () {
+				var o = this;
+
+				if(o.data.Prod_Date != '' && o.data.Prod_Date != null) {
+					swal.fire({
+						title: 'Sync to EDN?',
+						html: 'Periode: ' + kendo.toString(o.data.Prod_Date, 'yyyyMMdd') + '<br>Supplier: ' + o.data.Supplier_Code,
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'TN/Sync',
+								dataType: 'text',
+								data: JSON.stringify({
+									Periode: kendo.toString(o.data.Prod_Date, 'yyyyMMdd'),
+									Supplier_Code: o.data.Supplier_Code,
+									UserLogin: "@Context.Session.GetString("PIC_ID")",
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('', data, 'error');
+									console.log(jqXHR);
+									return;
+								}
+								swal.fire({ title: 'Success', text: 'Data synced', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				} else {
+					swal.fire({ title: 'Warning', text: 'Please choose periode first', icon: 'warning'});
+				}
+			},
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "TN.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'TN/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									Periode: kendo.toString(o.data.Prod_Date, 'yyyyMMdd'),
+									Supplier_Code: o.data.Supplier_Code
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								Periode_ID: { type: "string" },
+								PO_No: { type: "string" },
+								TN_No: { type: "string" },
+								RouteCode: { type: "string" },
+								PlantCode: { type: "string" },
+								SupplierCode: { type: "string" },
+								RouteName: { type: "string" },
+								Shift_Info: { type: "string" },
+								Qty: { type: "number" },
+								Create_Date: { type: "date" },
+								Create_By: { type: "string" },
+								TN_Status: { type: "string" }
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					field: "Periode_ID",
+					title: "Periode",
+					width: 100,
+				},
+				{
+					field: "PO_No",
+					title: "PO No",
+					width: 100
+				},
+				{
+					field: "TN_No",
+					title: "TN No",
+					width: 150
+				},
+				{
+					field: "RouteCode",
+					title: "Route Code",
+					width: 100
+				},
+				{
+					field: "PlantCode",
+					title: "Plant",
+					width: 100
+				},
+				{
+					field: "SupplierCode",
+					title: "Supplier",
+					width: 100
+				},
+				{
+					field: "RouteName",
+					title: "Route Name",
+					width: 100,
+					template: "<div class='customClass'> #= (RouteName == null) ? ' ' : kendo.toString(RouteName, '') # </div>",
+				},
+				{
+					field: "Shift_Info",
+					title: "Shift",
+					width: 100
+				},
+				{
+					field: "Qty",
+					title: "Qty",
+					width: 100
+				},
+				{
+					field: "Create_Date",
+					title: "Create Date",
+					width: 100,
+					template: "<div class='customClass'> #= (Create_Date == null) ? ' ' : kendo.toString(Create_Date, 'dd/MM/yyyy HH:mm:ss') # </div>",
+				},
+				{
+					field: "Create_By",
+					title: "Create By",
+					width: 100
+				},
+				{
+					field: "TN_Status",
+					title: "Status",
+					width: 100,
+					template: "<div class='customClass'> #= (TN_Status == null) ? ' ' : kendo.toString(TN_Status, '') # </div>",
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e) {
+					o.initAfter();
+				}
+			});
+		},
+		initAfter: function(){
+			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+			o.dom.Prod_Date = $("#Prod_Date");
+			o.dom.Supplier_Code = $("#Supplier_Code");
+
+			o.dom.Prod_Date.kendoDatePicker({
+				format: 'yyyyMMdd',
+				value: o.data.Prod_Date,
+				change: function () {
+					o.data.Prod_Date = this.value() != null ? this.value() : '';
+
+					if(this.value()){
+						o.dom.$grid.data('kendoGrid').dataSource.read();
+					}
+				}
+			});
+
+			o.dom.Supplier_Code.kendoMultiSelect({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "Supplier", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				value: o.data.Supplier_Code,
+				change: function () {
+					o.data.Supplier_Code = this.value() != null ? this.value().join('; ') : '';
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				},
+				tagMode: "none",
+				clearButton: false
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- TN -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("edit_TN") == "True")
+	{
+		<button data-toggle="tooltip" title="Sync to EDN" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnSync">
+			<i class="fa fa-refresh"></i>
+		</button>
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+		&nbsp;&nbsp;
+		<input type="date" id="Prod_Date" placeholder="Periode" />
+		&nbsp;&nbsp;
+		<input type="text" id="Supplier_Code" placeholder="Supplier" style="width:200px;" />
+	</div>
+</script>

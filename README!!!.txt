@@ -1,0 +1,1 @@
+rename 03_thisfile.rst to 03_Руководство_по_эксплуатации.rst

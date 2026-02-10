@@ -1,0 +1,1268 @@
+﻿@{
+    ViewData["Title"] = "LDK";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+    .k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+        height: 30px;
+    }
+</style>
+
+<div id="qr_code" style="display:none;"></div>
+
+<div class="page-main">
+    <div class="page-content padding-5">
+        <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalTitle">LDK</h4>
+            </div>
+            <div class="modal-body margin-bottom-0 padding-bottom-0">
+                <div class="panel">
+                    <div class="panel-body">
+                        <form class="form-horizontal">
+                            <div class="col-md-6">
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">LDK No.</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="LDKNo" disabled />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Shop</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="" id="ShopId" style="width:100%" required />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Shift</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="" id="Shift" style="width:100%" required />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Reason</label>
+                                    <div class="col-sm-9">
+                                        <textarea type="text" class="form-control" id="Reason" maxlength="300" style="width:100%;" rows="5" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Type NG</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="" id="TypeNG" style="width:100%" required />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Dept/bag/Jalur</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="" id="DeptId" style="width:100%" required />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <label class="col-sm-3 control-label">Tgl/Jam Kejadian</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="" id="WaktuKejadian" style="width:100%" required />
+                                    </div>
+                                </div>
+                                <div class="form-group form-material col-md-12">
+                                    <div id="gridPart" style="margin-top:5px; margin-bottom:10px;"></div>
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+                <button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var detailExportPromises = [];
+
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+            o.dom.$grid.on('input', '#LDK_No', o.eventHandlers.onChange.bind(o));
+            o.dom.$grid.on('click', '#LDK_No', o.eventHandlers.onClickFocus.bind(o));
+
+            o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+            o.dom.$grid.on('click', '#btnSearch', o.eventHandlers.onClickBtnSearch.bind(o));
+
+            o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+            o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+            o.dom.$grid.on('click', '.btnApprove', o.eventHandlers.onClickBtnApprove.bind(o));
+            o.dom.$grid.on('click', '.btnReject', o.eventHandlers.onClickBtnReject.bind(o));
+            o.dom.$grid.on('click', '.btnDownload', o.eventHandlers.onClickBtnDownload.bind(o));
+
+            o.dom.$gridPart.on('click', '#btnAdd', o.eventHandlers.onClickBtnAdd.bind(o));
+            o.dom.$gridPart.on('click', '.btnDeleteRow', o.eventHandlers.onClickBtnDeleteRow.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$editor = $("#editor");
+            o.dom.$grid = $("#grid");
+            o.dom.$gridPart = $("#gridPart");
+            o.dom.$btnSave = $("#btnSave");
+        },
+        data: {
+            LDK_No: '',
+            Type_NG: '',
+            TglKejadian: '',
+            arrPart: []
+        },
+        dom: {},
+        eventHandlers: {
+            onClickBtnExcel: function () {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').saveAsExcel();
+            },
+            onClickBtnCreate: function () {
+                var o = this;
+
+                $("#LDKNo").val('');
+                $("#TypeNG").data("kendoDropDownList").value('');
+                $("#ShopId").data("kendoComboBox").value('');
+                $("#ShopId").data("kendoComboBox").enable(true);
+                $("#DeptId").data("kendoComboBox").value('');
+                $("#Shift").data("kendoDropDownList").value('');
+                $("#WaktuKejadian").data("kendoDateTimePicker").value('');
+                $("#Reason").val('');
+
+                var dataSource = o.fn.getSource.call(o, '');
+                o.dom.$gridPart.data('kendoGrid').setDataSource(dataSource);
+
+                o.dom.$editor.modal('show');
+            },
+            onChange: function () {
+                var o = this;
+                o.data.LDK_No = $("#LDK_No").val();
+            },
+            onClickFocus(e) { $(e.target).select(); },
+            onClickBtnSearch: function (e) {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').dataSource.read();
+            },
+            onClickBtnUpdate: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+                var kejadian = new Date(di.Kejadian);
+
+                $("#LDKNo").val(di.LDK_No);
+                $("#TypeNG").data("kendoDropDownList").value(di.NGTypeID);
+                $("#ShopId").data("kendoComboBox").value(di.ShopId);
+                $("#ShopId").data("kendoComboBox").enable(false);
+                $("#DeptId").data("kendoComboBox").value(di.DeptId);
+                $("#Shift").data("kendoDropDownList").value(di.Shift);
+                $("#WaktuKejadian").data("kendoDateTimePicker").value(kejadian);
+                $("#Reason").val(di.Reason == null ? di.Reason : di.Reason.replace(/<br>/g,"\n"));
+
+                var dataSource = o.fn.getSource.call(o, di.LDK_No);
+                o.dom.$gridPart.data('kendoGrid').setDataSource(dataSource);
+
+                o.dom.$editor.modal('show');
+            },
+            onClickBtnDelete: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+                swal.fire({
+                    title: 'Delete?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'LDK/DEL',
+                            dataType: 'text',
+                            data: JSON.stringify({
+                                LDK_No: di.LDK_No
+                            })
+                        }).done(function (data, textStatus, jqXHR) {
+                            if (data !== 'success') {
+                                swal.fire('', data, 'error');
+                                return;
+                            }
+                            swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                        }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                            o.dom.$grid.data('kendoGrid').dataSource.read();
+                        });
+                    }
+                });
+            },
+            onClickBtnApprove: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+                swal.fire({
+                    title: "Approve?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'LDK/App',
+                            dataType: 'text',
+                            data: JSON.stringify({
+                                LDK_No: di.LDK_No,
+                                Approval: 'A',
+                                ApprovalAt: di.ApprovalAt,
+                                UserLogin: "@Context.Session.GetString("PIC_ID")"
+                            })
+                        }).done(function (data, textStatus, jqXHR) {
+                            if (data !== 'success') {
+                                swal.fire('Error', data, 'error');
+                                return;
+                            }
+                            o.dom.$editor.modal('hide');
+                            swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                        }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                            o.dom.$grid.data('kendoGrid').dataSource.read();
+                        });
+                    }
+                });
+            },
+            onClickBtnReject: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+                swal.fire({
+                    title: "Reject?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'LDK/App',
+                            dataType: 'text',
+                            data: JSON.stringify({
+                                LDK_No: di.LDK_No,
+                                Approval: 'R',
+                                ApprovalAt: di.ApprovalAt,
+                                UserLogin: "@Context.Session.GetString("PIC_ID")"
+                            })
+                        }).done(function (data, textStatus, jqXHR) {
+                            if (data !== 'success') {
+                                swal.fire('Error', data, 'error');
+                                return;
+                            }
+                            o.dom.$editor.modal('hide');
+                            swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                        }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                            o.dom.$grid.data('kendoGrid').dataSource.read();
+                        });
+                    }
+                });
+            },
+            onClickBtnDownload: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+                
+                var pattern = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/;
+                var dt = new Date(di.Waktu_Kejadian.replace(pattern, '$3-$2-$1 $4:$5:$6'));
+
+                var pdf = new jsPDF({
+                    orientation: "p",
+                    unit: "mm",
+                    format: "a4"
+                });
+
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(11);
+
+                pdf.text("No LDK", 20, 15);
+                pdf.text(":", 60, 15);
+                pdf.text(di.LDK_No, 65, 15);
+
+                pdf.text("Type NG", 20, 21);
+                pdf.text(":", 60, 21)
+                pdf.text(di.NGType, 65, 21);
+
+                pdf.text("Shop", 20, 27);
+                pdf.text(":", 60, 27);
+                pdf.text(di.ShopName, 65, 27);
+
+                pdf.text("Dept/Bagian/Jalur", 20, 33);
+                pdf.text(":", 60, 33);
+                pdf.text(di.DeptName, 65, 33);
+
+                pdf.text("Tgl Kejadian", 20, 39);
+                pdf.text(":", 60, 39);
+                pdf.text(kendo.toString(dt, 'dd-MM-yyyy'), 65, 39);
+
+                pdf.text("Jam", 20, 45);
+                pdf.text(":", 60, 45);
+                pdf.text(kendo.toString(dt, 'HH:mm:ss'), 65, 45);
+
+                pdf.text("Shift", 20, 51);
+                pdf.text(":", 60, 51);
+                pdf.text(di.Shift, 65, 51);
+
+                $("#qr_code").html("");
+                $('#qr_code').qrcode(di.LDK_No);
+                var canvas = document.querySelector("#qr_code canvas");
+                var img = canvas.toDataURL("image/jpeg", 1);
+                pdf.addImage(img, 'png', 150, 10, 40, 40);
+                
+                pdf.setLineWidth(0.2);
+                pdf.setFontSize(10);
+                pdf.setFontStyle("bold");
+                
+                pdf.rect(20, 57, 40, 7);
+                pdf.text("Part No", 40, 62, "center");
+                pdf.rect(60, 57, 65, 7);
+                pdf.text("Part Desc", 92.5, 62, "center");
+                pdf.rect(125, 57, 45, 7);
+                pdf.text("Part Name", 147.5, 62, "center");
+                pdf.rect(170, 57, 20, 7);
+                pdf.text("Qty", 180, 62, "center");
+
+                pdf.setFontStyle("normal");
+
+                var det = '';
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    url: "@myurl" + 'LDK/INQd',
+                    dataType: 'text',
+                    data: JSON.stringify({
+                        LDK_No: di.LDK_No
+                    })
+                }).done(function (data, textStatus, jqXHR) {
+                    det = JSON.parse(data);
+
+                    var y1 = 57;
+                    var y2 = 62;
+
+                    for (var i = 0; i < det.length; i++) {
+                        y1 = y1 + 7;
+                        y2 = y2 + 7;
+
+                        if (y1 > 275) { 
+                            pdf.addPage();
+                            y1 = 15;
+                            y2 = 20;
+                        }
+
+                        pdf.rect(20, y1, 40, 7);
+                        pdf.text(det[i].PartNumber, 40, y2, "center");
+                        pdf.rect(60, y1, 65, 7);
+                        pdf.text(det[i].PartDescription, 92.5, y2, "center");
+                        pdf.rect(125, y1, 45, 7);
+                        pdf.text(det[i].PartName, 147.5, y2, "center");
+                        pdf.rect(170, y1, 20, 7);
+                        pdf.text(det[i].Qty, 180, y2, "center");
+                    }
+                    y1 = y1 + 11;
+                    y2 = y2 + 11;
+
+                    var reasons = di.Reason.split("<br>");
+
+                    if (y1 > (268 - (4 * (reasons.length + 1)))) {
+                        pdf.addPage();
+                        y1 = 15;
+                        y2 = 20;
+                    }
+
+                    pdf.rect(20, y1, 170, (5 * (reasons.length + 1)));
+                    pdf.setFontStyle("bold");
+                    pdf.text("Reason : ", 22, y2);
+
+                    pdf.setFontStyle("normal");
+                    for (var i = 0; i < reasons.length; i++) {
+                        y2 = y2 + 4;
+                        pdf.text(reasons[i], 22, y2);
+                    }
+
+                    y2 = y2 + 10;
+                    pdf.setFontStyle("italic");
+
+                    var createtext = "Created by : " + di.Entry_User + " (" + di.Entry_Date + ")";
+                    pdf.text(createtext, 190, y2, "right");
+                    y2 = y2 + 6;
+
+                    var signtext1 = "Digitally signed by : " + di.Approve1_By_ID + " (" + di.Approve1_Date + "), " + di.Approve2_By_ID + " (" + di.Approve2_Date + "),";
+                    var signtext2 = di.Approve3_By_ID + " (" + di.Approve3_Date + "), " + di.Approve4_By_ID + " (" + di.Approve4_Date + ")";
+                    pdf.text(signtext1, 190, y2, "right");
+                    pdf.text(signtext2, 190, y2 + 4, "right");
+
+                    pdf.save(di.LDK_No.replace(/\//g, '-') + '.pdf');
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                });
+            },
+            onClickBtnSave: function () {
+                var o = this;
+                var data = o.fn.getData.call(o);
+
+                if (data.ErrStat) {
+                    swal.fire({ title: 'Warning', html: 'Please Fill Part Number & Qty!<br>Part Number must be different', icon: 'warning' });
+                } else if (data.NGTypeID != "" && data.ShopId != "" && data.DeptId != "" && data.Shift != "" && data.Waktu_Kejadian != "" && data.Reason != "" && data.Parts.length != 0) {
+                    swal.fire({
+                        title: "Save?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'LDK/INS',
+                                dataType: 'text',
+                                data: JSON.stringify(data)
+                            }).done(function (data, textStatus, jqXHR) {
+                                o.dom.$editor.modal('hide');
+                                swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                                o.dom.$grid.data('kendoGrid').dataSource.read();
+                            });
+                        }
+                    });
+                } else {
+                    swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
+                }
+            },
+            onClickBtnDeleteRow: function (e) {
+                var o = this;
+                var di = o.dom.$gridPart.data('kendoGrid').dataItem($(e.target).closest('tr'));
+                o.dom.$gridPart.data('kendoGrid').dataSource.remove(di);
+            },
+            onClickBtnAdd: function () {
+                var o = this;
+
+                o.dom.$gridPart.data("kendoGrid").dataSource.add({
+                    PartNumber: '',
+                    Qty: ''
+                });
+                o.dom.$gridPart.data('kendoGrid').refresh();
+            },
+        },
+        fn: {
+            getSource: function (LDK_No) {
+                var dataSource = new kendo.data.DataSource({
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'LDK/INQp',
+                                dataType: 'text',
+                                data: JSON.stringify({
+                                    LDK_No: LDK_No
+                                })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        },
+                    },
+                    schema: {
+                        model: {
+                            id: "PartNumber",
+                            fields: {
+                                PartNumber: { type: "string" },
+                                Qty: { type: "string" }
+                            }
+                        }
+                    },
+                });
+
+                return dataSource;
+            },
+            getData: function () {
+                var o = this;
+                var data = {};
+                data.LDK_No = $("#LDKNo").val();
+                data.NGTypeID =  $("#TypeNG").data("kendoDropDownList").value();
+                data.ShopId = $("#ShopId").data("kendoComboBox").value();
+                data.DeptId = $("#DeptId").data("kendoComboBox").value();
+                data.Shift = $("#Shift").data("kendoDropDownList").value();
+                data.Waktu_Kejadian = kendo.toString($("#WaktuKejadian").data("kendoDateTimePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+                data.Reason = $("#Reason").val().replace(/\n/g, "<br>");
+                data.UserLogin = "@Context.Session.GetString("PIC_ID")";
+
+                data.ErrStat = '';
+                var arr = o.dom.$gridPart.data('kendoGrid').dataSource.data();
+                o.data.arrPart = [];
+
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].PartNumber == '' || arr[i].Qty == '') data.ErrStat = true;
+
+                    if (o.data.arrPart.indexOf(arr[i].PartNumber) == -1) o.data.arrPart.push(arr[i].PartNumber);
+                    else data.ErrStat = true;
+                }
+
+                data.Parts = o.dom.$gridPart.data('kendoGrid').dataSource.data().map(function (e) {
+                    return {
+                        PartNumber: e.PartNumber,
+                        QtyProdPerDay: e.Qty
+                    };
+                });
+
+                return data;
+            }
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+            o.dom.$grid.kendoGrid({
+                excel: {
+                    allPages: true
+                },
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'LDK/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({
+                                    LDK_No: o.data.LDK_No,
+                                    NGTypeID: o.data.Type_NG,
+                                    Waktu_Kejadian: o.data.TglKejadian,
+                                    UserLogin: "@Context.Session.GetString("PIC_ID")"
+                                })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    },
+                    schema: {
+                        model: {
+                            id: "LDK_No",
+                            fields: {
+                                LDK_No: { type: "string" },
+                                NGTypeID: { type: "string" },
+                                NGType: { type: "string" },
+                                ShopId: { type: "string" },
+                                ShopName: { type: "string" },
+                                DeptId: { type: "string" },
+                                DeptName: { type: "string" },
+                                Waktu_Kejadian: { type: "string" },
+                                Kejadian: { type: "string" },
+                                Shift: { type: "string" },
+                                Reason: { type: "string" },
+                                Status_Approval: { type: "string" },
+                                RFIDNo: { type: "string" },
+                                ApprovalAt: { type: "string" },
+                                EditButton: { type: "string" },
+                                ApproveButton: { type: "string" },
+                                DownloadButton: { type: "string" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            contains: "Contains",
+                            eq: "Equal to",
+                            neq: "Not equal to"
+                        }
+                    }
+                },
+                pageable: {
+                    refresh: true,
+                    input: true,
+                    numeric: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                detailInit: detailInit,
+                columns: [
+                @if (Context.Session.GetString("edit_LDK") == "True")
+                {
+                <text>
+                {
+                    title: "Update",
+                    width: 50,
+                    command: [{
+                        name: "Update",
+                        text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+                    }]
+                },
+                </text>
+                }
+                @if (Context.Session.GetString("del_LDK") == "True")
+                {
+                <text>
+                {
+                    title: "Delete",
+                    width: 50,
+                    command: [{
+                        name: "Delete",
+                        text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+                    }]
+                },
+                </text>
+                }
+                @if (Context.Session.GetString("edit_LDK") == "True")
+                {
+                <text>
+                {
+                    title: "Approve",
+                    width: 50,
+                    command: [{
+                        name: "Approve",
+                        text: "<i class='fa fa-thumbs-o-up btnApprove' style='font-size:18px;color:green;'></i>"
+                    }]
+                },
+                </text>
+                }
+                @if (Context.Session.GetString("edit_LDK") == "True")
+                {
+                <text>
+                {
+                    title: "Reject",
+                    width: 50,
+                    command: [{
+                        name: "Reject",
+                        text: "<i class='fa fa-thumbs-o-down btnReject' style='font-size:18px;color:red;'></i>"
+                    }]
+                },
+                </text>
+                }
+                {
+                    title: "Download",
+                    width: 50,
+                    command: [{
+                        name: "Download",
+                        text: "<i class='fa fa-download btnDownload' style='font-size:18px;color:blue;'></i>"
+                    }]
+                },
+                {
+                    title: "No. LDK",
+                    field: "LDK_No",
+                    template: "<div class='customClass'> #= (LDK_No == null) ? ' ' : kendo.toString(LDK_No, '') # </div>",
+                    width: 150
+                },
+                {
+                    title: "Type NG",
+                    field: "NGType",
+                    template: "<div class='customClass'> #= (NGType == null) ? ' ' : kendo.toString(NGType, '') # </div>",
+                    width: 150
+                },
+                {
+                    title: "Shop",
+                    field: "ShopName",
+                    template: "<div class='customClass'> #= (ShopName == null) ? ' ' : kendo.toString(ShopName, '') # </div>",
+                    width: 100
+                },
+                {
+                    title: "Dept",
+                    field: "DeptName",
+                    template: "<div class='customClass'> #= (DeptName == null) ? ' ' : kendo.toString(DeptName, '') # </div>",
+                    width: 100
+                },
+                {
+                    title: "Kejadian",
+                    field: "Waktu_Kejadian",
+                    width: 100,
+                    template: "<div class='customClass'> #= (Waktu_Kejadian == null) ? ' ' : kendo.toString(Waktu_Kejadian, '') # </div>",
+                },
+                {
+                    title: "Shift",
+                    field: "Shift",
+                    template: "<div class='customClass'> #= (Shift == null) ? ' ' : kendo.toString(Shift, '') # </div>",
+                    width: 100
+                },
+                {
+                    title: "Reason",
+                    field: "Reason",
+                    template: "<div class='customClass'> #= (Reason == null) ? ' ' : kendo.toString(Reason, '') # </div>",
+                    width: 200
+                },
+                {
+                    title: "Status Approval",
+                    field: "Status_Approval",
+                    template: "<div class='customClass'> #= (Status_Approval == null) ? ' ' : kendo.toString(Status_Approval, '') # </div>",
+                    width: 100
+                },
+                {
+                    title: "RFID No",
+                    field: "RFIDNo",
+                    template: "<div class='customClass'> #= (RFIDNo == null) ? ' ' : kendo.toString(RFIDNo, '') # </div>",
+                    width: 100
+                }],
+                toolbar: $("#template_toolbar").html(),
+                dataBound: function () {
+                    detailExportPromises = [];
+                    o.initAfter();
+
+                    var grid = this;
+                    grid.tbody.find("tr[role='row']").each(function () {
+                        var model = grid.dataItem(this);
+                        if (model.EditButton == 'X') {
+                            $(this).find(".k-grid-Update").hide();
+                            $(this).find(".k-grid-Delete").hide();
+                        } else {
+                            $(this).find(".k-grid-Update").show();
+                            $(this).find(".k-grid-Delete").show();
+                        }
+
+                        if (model.ApproveButton == 'X') {
+                            $(this).find(".k-grid-Approve").hide();
+                            $(this).find(".k-grid-Reject").hide();
+                        } else {
+                            $(this).find(".k-grid-Approve").show();
+                            $(this).find(".k-grid-Reject").show();
+                        }
+
+                        if (model.DownloadButton == 'X') {
+                            $(this).find(".k-grid-Download").hide();
+                        } else {
+                            $(this).find(".k-grid-Download").show();
+                        }
+                    });
+                },
+                excelExport: function (e) {
+                    e.preventDefault();
+                    console.log(e.data);
+                    var workbook = e.workbook;
+
+                    detailExportPromises = [];
+
+                    var masterData = e.data;
+
+                    for (var rowIndex = 0; rowIndex < masterData.length; rowIndex++) {
+                        exportChildData(masterData[rowIndex].LDK_No, rowIndex);
+                    }
+
+                    $.when.apply(null, detailExportPromises)
+                    .then(function () {
+                        var detailExports = $.makeArray(arguments);
+
+                        detailExports.sort(function (a, b) {
+                            return a.masterRowIndex - b.masterRowIndex;
+                        });
+
+                        workbook.sheets[0].columns.unshift({
+                            width: 30
+                        });
+
+                        for (var i = 0; i < workbook.sheets[0].rows.length; i++) {
+                            workbook.sheets[0].rows[i].cells.unshift({});
+                        }
+
+                        for (var i = detailExports.length - 1; i >= 0; i--) {
+                            var masterRowIndex = detailExports[i].masterRowIndex + 1;
+
+                            var sheet = detailExports[i].sheet;
+
+                            for (var ci = 0; ci < sheet.rows.length; ci++) {
+                                if (sheet.rows[ci].cells[0].value) {
+                                    sheet.rows[ci].cells.unshift({});
+                                }
+                            }
+
+                            [].splice.apply(workbook.sheets[0].rows, [masterRowIndex + 1, 0].concat(sheet.rows));
+                        }
+
+                        kendo.saveAs({
+                            dataURI: new kendo.ooxml.Workbook(workbook).toDataURL(),
+                            fileName: "LDK.xlsx"
+                        });
+                    });
+                },
+            });
+
+            $("#TypeNG").kendoDropDownList({
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "NGType" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                    console.log(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                }
+            }).data("kendoDropDownList");
+
+            $("#ShopId").kendoComboBox({
+                dataValueField: "ShopId",
+                dataTextField: "ViewValue",
+                filter: 'contains',
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "AppLDKShop", Plant: "" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                }
+            }).data("kendoComboBox");
+
+            $("#DeptId").kendoComboBox({
+                cascadeFrom: "ShopId",
+                autoBind: false,
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                filter: 'contains',
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "Dept", Plant: "" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                    console.log(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                }
+            }).data("kendoComboBox");
+
+            $("#Shift").kendoDropDownList({
+                dataSource:
+                    [{ id: 'Shift A', name: "Shift A" },
+                    { id: 'Shift B', name: "Shift B" }],
+                dataValueField: "id",
+                dataTextField: "name"
+            }).data("kendoDropDownList");
+
+            $("#WaktuKejadian").kendoDateTimePicker({
+                format: 'dd-MM-yyyy HH:mm:ss'
+            });
+
+            o.dom.$gridPart.kendoGrid({
+                dataSource: o.fn.getSource.call(o, ''),
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+                height:275,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            contains: "Contains",
+                            eq: "Equal to",
+                            neq: "Not equal to"
+                        },
+                    }
+                },
+                editable: true,
+                columns: [
+                {
+                    title: "",
+                    width: 50,
+                    command: [{
+                        name: "Delete",
+                        text: "<i class='fa fa-trash-o btnDeleteRow' style='font-size:18px;color:#800000;'></i>"
+                    }]
+                },
+                {
+                    field: "PartNumber",
+                    title: "Part No.",
+                    template: "<div class='customClass'> #= (PartNumber == null) ? ' ' : kendo.toString(PartNumber, '') # </div>",
+                    width: 200,
+                    editor: function (container, options) {
+                        $('<input name="' + options.field + '"/>').appendTo(container).kendoComboBox({
+                            autoWidth: true,
+                            dataSource: {
+                                transport: {
+                                    read: function (options) {
+                                        $.ajax({
+                                            method: 'post',
+                                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                            url: "@myurl" + 'Dropdown/INQ',
+                                            dataType: 'text',
+                                            data: JSON.stringify({ Ftype: "PartLDK" })
+                                        }).done(function (data, textStatus, jqXHR) {
+                                            try {
+                                                var result = JSON.parse(data);
+                                            }
+                                            catch (e) {
+                                                swal.fire('Error', 'Error loading grid', 'error');
+                                                options.success({ data: [] });
+                                                return;
+                                            }
+                                            options.success(result);
+                                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                            options.success({ data: [] });
+                                        });
+                                    }
+                                }
+                            },
+                            filter: "contains",
+                            autoWidth: true,
+                            dataTextField: 'ViewValue',
+                            dataValueField: 'IdValue',
+                            select: function (e) {
+                                if (e.item == null) e.preventDefault();
+                            }
+                        });
+                    },
+                },
+                {
+                    field: "Qty",
+                    title: "Qty",
+                    template: "<div class='customClass'> #= (Qty == null) ? ' ' : kendo.toString(Qty, '') # </div>",
+                    width: 50,
+                    editor: function (container, options) {
+                        $('<input name="' + options.field + '"/>').appendTo(container).kendoNumericTextBox({
+                            autoWidth: true,
+                            min: 1
+                        });
+                    },
+                }],
+                toolbar: $("#template_toolbar_part").html()
+            });
+
+            var dataSource = new kendo.data.DataSource({
+                transport: {
+                    read: function (options) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'LDK/INQd',
+                            dataType: 'text',
+                            data: JSON.stringify({
+                                LDK_No: ''
+                            })
+                        }).done(function (data, textStatus, jqXHR) {
+                            try {
+                                var result = JSON.parse(data);
+                            }
+                            catch (e) {
+                                swal.fire('Error', 'Error loading grid', 'error');
+                                options.success({ data: [] });
+                                return;
+                            }
+                            options.success(result);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            options.success({ data: [] });
+                        });
+                    },
+                },
+                schema: {
+                    model: {
+                        id: "LDK_No",
+                        fields: {
+                            LDK_No: { type: "string" },
+                            PartNumber: { type: "string" },
+                            PartDescription: { type: "string" },
+                            PartName: { type: "string" },
+                            Qty: { type: "string" }
+                        }
+                    }
+                }
+            });
+
+            dataSource.read();
+
+            function exportChildData(LDK_No, rowIndex) {
+                var deferred = $.Deferred();
+
+                detailExportPromises.push(deferred);
+
+                var rows = [{
+                    cells: [
+                        { value: "LDK_No" },
+                        { value: "PartNumber" },
+                        { value: "PartName" },
+                        { value: "PartDescription" },
+                        { value: "Qty" }
+                    ]
+                }];
+
+                dataSource.filter({ field: "LDK_No", operator: "eq", value: LDK_No });
+
+                var exporter = new kendo.ExcelExporter({
+                    columns: [{
+                        field: "PartNumber"
+                    }, {
+                        field: "PartName"
+                    }, {
+                        field: "PartDescription"
+                    }, {
+                        field: "Qty"
+                    }],
+                    dataSource: dataSource
+                });
+
+                exporter.workbook().then(function (book, data) {
+                    deferred.resolve({
+                        masterRowIndex: rowIndex,
+                        sheet: book.sheets[0]
+                    });
+                });
+            }
+
+            function detailInit(e) {
+                $("<div/>").appendTo(e.detailCell).kendoGrid({
+                    dataSource: {
+                        transport: {
+                            read: function (options) {
+                                $.ajax({
+                                    method: 'post',
+                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    url: "@myurl" + 'LDK/INQd',
+                                    dataType: 'text',
+                                    data: JSON.stringify({
+                                        LDK_No: e.data.LDK_No
+                                    })
+                                }).done(function (data, textStatus, jqXHR) {
+                                    try {
+                                        var result = JSON.parse(data);
+                                    }
+                                    catch (e) {
+                                        swal.fire('Error', 'Error loading grid', 'error');
+                                        options.success({ data: [] });
+                                        return;
+                                    }
+                                    options.success(result);
+                                }).fail(function (jqXHR, textStatus, errorThrown) {
+                                    swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                    options.success({ data: [] });
+                                });
+                            },
+                        },
+                        schema: {
+                            model: {
+                                id: "LDK_No",
+                                fields: {
+                                    LDK_No: { type: "string" },
+                                    PartNumber: { type: "string" },
+                                    PartDescription: { type: "string" },
+                                    PartName: { type: "string" },
+                                    Qty: { type: "string" }
+                                }
+                            }
+                        },
+                        pageSize: 10
+                    },
+                    excelExport: function (e) {
+                        e.preventDefault();
+                    },
+                    scrollable: true,
+                    sortable: true,
+                    pageable: true,
+                    columns: [
+                        { field: "LDK_No", hidden: true },
+                        { field: "PartNumber", title: "Part No." },
+                        { field: "PartName", title: "Part Name" },
+                        { field: "PartDescription", title: "Part Desc." },
+                        { field: "Qty", title: "Qty" }
+                    ]
+                }).addClass("nested-grid-class");
+            }
+        },
+        initAfter: function () {
+            var o = this;
+            if (o.initAfterCalled) return;
+            o.initAfterCalled = true;
+            
+            o.dom.Type_NG = $("#Type_NG");
+            o.dom.TglKejadian = $("#TglKejadian");
+
+            o.dom.Type_NG.kendoComboBox({
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "NGType" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                    console.log(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                },
+                change: function () { 
+                    o.data.Type_NG = this.value();
+                }
+            });
+
+            o.dom.TglKejadian.kendoDatePicker({
+                format: 'dd MMM yyyy',
+                value: o.data.TglKejadian,
+                change: function () {
+                    if (this.value()) o.data.TglKejadian = kendo.toString(this.value(), 'yyyy-MM-dd');
+                    else o.data.TglKejadian = '';
+                }
+            });
+        }
+    };
+
+    $(function () {
+        AppD.init();
+    });
+
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- LDK -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+    @if (Context.Session.GetString("add_LDK") == "True")
+    {
+        <button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+            <i class="k-icon k-i-plus"></i>
+        </button>
+    }
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+        &nbsp;&nbsp;
+        <input class="k-input" type="text" id="LDK_No" placeholder="LDK No." style='width:200px;text-align:center;' />&nbsp;
+        <input type="text" id="Type_NG" placeholder="Type NG" />&nbsp;
+        <input type="date" id="TglKejadian" placeholder="Tgl Kejadian" />&nbsp;
+        <button data-toggle="tooltip" title="Search" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnSearch">
+            <i class="fa fa-search"></i>
+        </button>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar_part">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Part Info -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+        <button data-toggle="tooltip" title="Add" type="button"
+            class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnAdd">
+            <i class="k-icon k-i-plus"></i>
+        </button>
+    </div>
+</script>

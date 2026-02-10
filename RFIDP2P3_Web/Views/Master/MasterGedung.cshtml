@@ -1,0 +1,383 @@
+﻿@{
+	ViewData["Title"] = "Master Gedung";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+		height: 30px;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-5">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Master Gedung</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Plant</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="PlantID" style="width:100%" required />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Gedung Name</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="BuildingName" />
+								</div>
+							</div>
+							<div class="clearfix"></div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var IUType = 'I';
+	var BuildingId = '';
+
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+			o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.inputs = {};
+			o.dom.inputs.$inputPlantID = $("#PlantID");
+			o.dom.inputs.$inputBuildingName = $("#BuildingName");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this;
+				IUType = 'I';
+				BuildingId = "";
+				o.dom.inputs.$inputBuildingName.val('');
+				o.dom.inputs.$inputPlantID.data("kendoDropDownList").value('');
+				o.dom.inputs.$inputPlantID.data("kendoDropDownList").enable(true);
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnDelete: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: 'Delete?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterGedung/DEL',
+							dataType: 'text',
+							data: JSON.stringify({
+								BuildingId: di.BuildingId
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpdate: function (e) {
+				var o = this;
+				IUType = 'U';
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				BuildingId = di.BuildingId;
+				o.dom.inputs.$inputBuildingName.val(di.BuildingName);
+				o.dom.inputs.$inputPlantID.data("kendoDropDownList").value(di.PlantID);
+				o.dom.inputs.$inputPlantID.data("kendoDropDownList").enable(false);
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnSave: function (e) {
+				var o = this;
+				var PlantID = $("#PlantID").data('kendoDropDownList').value();
+				var BuildingName = $("#BuildingName").val();
+
+				if(PlantID != '' & BuildingName != ''){
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterGedung/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									BuildingId: BuildingId,
+									BuildingName: BuildingName,
+									PlantID: PlantID,
+									IUType: IUType,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				}else{
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+				}
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Gedung.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterGedung/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "PIC_ID",
+							fields: {
+								PlantID: { type: "string" },
+								PlantName: { type: "string" },
+								BuildingId: { type: "string" },
+								BuildingName: { type: "string" },
+								LastUpdate: { type: "string" },
+								UserUpdate: { type: "string" },
+								Remarks: { type: "string" },
+
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("edit_master_gedung") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Update",
+							text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("del_master_gedung") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Delete",
+							text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "PlantID",
+					title: "Plant",
+					width: 50
+				},
+				{
+					field: "PlantName",
+					title: "Plant Name",
+					width: 150
+				},
+				{
+					title: "Building",
+					columns:[
+					{
+						field: "BuildingId",
+						title: "ID",
+						width: 100,
+					},
+					{
+						field: "BuildingName",
+						title: "Name",
+						width: 100,
+					}]
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "UserUpdate",
+						title: "User",
+						width: 100
+					},
+					{
+						field: "LastUpdate",
+						title: "Date",
+						width: 100
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+			});
+
+			$("#PlantID").kendoDropDownList({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "Plant", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				}
+			}).data("kendoDropDownList");
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Gedung -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_master_gedung") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

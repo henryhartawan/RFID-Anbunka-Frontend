@@ -1,0 +1,968 @@
+﻿@{
+    ViewData["Title"] = "Andon Monitoring Stock";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+    Layout = "~/Views/Shared/_LayoutAndon.cshtml";
+}
+
+<style>
+
+
+    #Build {
+        position: absolute;
+        bottom: 5px;
+        border: solid 1px white;
+        left: 59vw;
+    }
+
+    #GridTittle {
+        text-align: center;
+        font-size: 5vh;
+        font-weight: bold;
+    }
+
+    .page-main {
+        overflow: auto;
+        padding: 0 !important;
+        font-weight: bold;
+        overflow-x: auto;
+    }
+
+    .customClass {
+        text-align: center;
+        font-size: 1.7vw;
+    }
+
+    .customClass0 {
+        text-align: center;
+        font-size: 1.4vw;
+    }
+
+    .customClass00 {
+        text-align: left;
+        font-size: 1.4vw;
+    }
+
+    .k-grid-content {
+        overflow: auto;
+        overflow-x: auto;
+    }
+
+    .k-grid-header {
+        padding: 0 !important;
+    }
+
+    .k-grid {
+        border-color: #fafafa;
+        font-size: 14px;
+        font-weight: bolder;
+    }
+
+        .k-grid th {
+            font-size: 1.4vw;
+        }
+
+        .k-grid td {
+            font-size: 14px;
+        }
+
+    .AndonHeader {
+        background-color: #42f5bf;
+    }
+
+    .flex {
+        display: flex;
+        text-align: center;
+    }
+
+    .customClass1 {
+        font-size: 30px;
+    }
+
+    .customClass3 {
+        text-align: center;
+        height: 60px;
+        margin-top: 10px;
+    }
+
+        .customClass3 .sym {
+            font-size: 40px;
+        }
+
+        .customClass3 .stat {
+            font-size: 20px;
+        }
+
+    .custClass1 {
+        font-size: 17px;
+    }
+
+    .k-grid-content .k-alt {
+        background-color: #b3cccc;
+    }
+
+    #grdDua .k-grid-content .k-alt {
+        background-color: #F2D063;
+    }
+
+    .progress1 {
+        width: 60px;
+        overflow: hidden;
+    }
+
+    .progress0 {
+        max-width: 60px;
+        overflow: hidden;
+    }
+
+    .C0 {
+        max-width: 60px;
+        overflow: hidden;
+    }
+
+    #Notes {
+        width: 100vw;
+        background-color: #000000;
+        color: #ffffff;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    #top {
+        position: absolute;
+        top: -25px;
+    }
+
+</style>
+
+<div class="page-main" id="top" style="height:100%;">
+    <div class="page-content">
+        <div id="gridBuffer" style="margin-top:0px; margin-bottom:5px;width:99%;"></div>
+        <div class="" id="gridDetail">
+        </div>
+
+        <div id="Notes" style="display:none;">
+            <strong>Last Pairing Process</strong>
+        </div>
+        <div id="grdDua" style="margin-top:1px; margin-bottom:5px;width:99%;"></div>
+
+    </div>
+</div>
+
+<script>
+    var gedung = localStorage['gedungP3'] != undefined ? localStorage['gedungP3'] : ""; 
+    var shift = ""; var intr = 1; var tab = 0;
+    const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const months = ["Januari", "Pebruari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    var d = new Date(); var preID = "";
+    var hari = days[d.getDay()];
+    var bulan = months[d.getMonth()];
+    var tahun = d.getFullYear();
+    var tanggal = d.getDate() + " " + bulan + " " + tahun;
+    var dateDefault = new Date();
+    var tabGrid1 = '0';
+
+    var hour = d.getHours();
+    hour = hour > 9 ? hour : '0' + hour;
+    var minute = d.getMinutes();
+    minute = minute > 9 ? minute : '0' + minute;
+    var jam = hour + ':' + minute;
+
+    $("#Period_From").kendoDatePicker({
+        format: 'dd/MM/yyyy',
+        value: dateDefault,
+        //change: o.eventHandlers.onChangeDate.bind(o)
+    });
+    $("#Period_To").kendoDatePicker({
+        format: 'dd/MM/yyyy',
+        value: dateDefault,
+        //change: o.eventHandlers.onChangeDate.bind(o)
+    });
+
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$grid = $("#gridBuffer");
+            o.dom.inputs = {};
+            o.dom.inputs.$inputMaterialNo = $("#MaterialNo");
+            o.dom.inputs.$inputJobNo = $("#JobNo");
+            o.dom.inputs.$inputMaterialName = $("#MaterialName");
+            o.dom.inputs.$inputMaterialDescription = $("#MaterialDescription");
+            o.dom.inputs.$inputQtyPerBox = $("#QtyPerBox");
+        },
+        data: {},
+        dom: {},
+        eventHandlers: {
+
+            onClickBtnCreate: function () {
+                var o = this;
+                getShop('X');
+                $("#myModalLabel").html("Add New Part");
+                o.dom.inputs.$inputMaterialNo.val('');
+                o.dom.inputs.$inputJobNo.val('');
+                o.dom.inputs.$inputMaterialName.val('');
+                o.dom.inputs.$inputMaterialDescription.val('');
+                o.dom.inputs.$inputQtyPerBox.val('');
+
+                var modal = document.getElementById("myModal");
+                modal.style.display = "block";
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+                var cancel = document.getElementById("btnCancel");
+                cancel.onclick = function () {
+                    modal.style.display = "none";
+                }
+            },
+            onClickBtnUpdate: function (e) {
+                var o = this;
+
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+                $("#myModalLabel").html("Edit Part");
+                o.dom.inputs.$inputMaterialNo.val(di.MaterialNo);
+                o.dom.inputs.$inputJobNo.val(di.JobNo);
+                o.dom.inputs.$inputMaterialName.val(di.MaterialName);
+                o.dom.inputs.$inputMaterialDescription.val(di.MaterialDescription);
+                o.dom.inputs.$inputQtyPerBox.val(di.QtyPerBox);
+
+                var modal = document.getElementById("myModal");
+                modal.style.display = "block";
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+                var cancel = document.getElementById("btnCancel");
+                cancel.onclick = function () {
+                    modal.style.display = "none";
+                }
+            }
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+        },
+        initAfter: function () {
+
+            //$("thead th").css('height', '20px');
+            $("#BuildingID").kendoDropDownList({
+                template: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                valueTemplate: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                optionLabel: "select building...",
+                dataValueField: "IdValue",
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    //swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                },
+                change: function (e) {
+                    var value = this.value();
+                    value = value == null ? '' : value;
+                    if (value != '') {
+                        localStorage['gedungP3'] = value;
+                    }
+                    intr = 0;
+                }
+            }).data("kendoDropDownList");
+            gedung = localStorage['gedungP3'] != undefined ? localStorage['gedungP3'] : gedung;
+            $("#BuildingID").data("kendoDropDownList").value(gedung);
+        }
+    };
+
+    $(function () {
+        $("#hari").html(hari);
+        $("#tanggal").html(tanggal);
+
+        $.ajax({
+            method: 'post',
+            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            url: "@myurl" + 'Andon/Shift',
+            dataType: 'text',
+            data: JSON.stringify({ Plant: 'P3' })
+        }).done(function (data, textStatus, jqXHR) {
+            try {
+                var result = JSON.parse(data);
+                shift = result[0].shift;
+            }
+            catch (e) {
+                return;
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+        });
+
+        $("#shift").html(" " + shift);
+        $("#jamx").html('&nbsp;' + jam);
+        AppD.init(); isiGrid();
+    });
+
+    function isiGrid() {
+        $("#gridBuffer").html("");
+        $("#gridBuffer").kendoGrid({
+            height: 800,
+            excel: {
+                fileName: "Andon Bufferxlsx",
+                allPages: true,
+                filterable: true
+            },
+            dataSource: {
+                transport: {
+                    read: function (options) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'Andon/AndonStock',
+                            dataType: 'text',
+                            data: JSON.stringify({ tabGrid: tabGrid1, gedung: gedung })
+                        }).done(function (data, textStatus, jqXHR) {
+                            try {
+                                var result = JSON.parse(data);
+                                let tmp = result.length > 0 ? result[0].tabGrid : 0;
+                                tabGrid1 = tmp.toString();
+                            }
+                            catch (e) {
+                                //swal.fire('Error', 'Error loading grid', 'error');
+                                options.success({ data: [] });
+                                return;
+                            }
+                            options.success(result);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            options.success({ data: [] });
+                        });
+                    }
+                },
+                schema: {
+                    model: {
+                        id: "PartNumber",
+                        fields: {
+                            No: { type: "string" },
+                            PartNumber: { type: "string" },
+                            PartDesc: { type: "string" },
+                            PartName: { type: "string" },
+                            PrcBlank: { type: "string" },
+                            PrcVaccum: { type: "string" },
+                            PrcOut: { type: "string" },
+                            StockBlank: { type: "string" },
+                            StockVaccum: { type: "string" },
+                            StockEnd: { type: "string" },
+                            PrcStatus: { type: "string" },
+                            StockEstCasting: { type: "string" },
+                            StockEstEngine: { type: "string" },
+                            StockPalletP3Unit: { type: "string" },
+                            StockPalletP3Day: { type: "string" },
+                            StockPalletP2Unit: { type: "string" },
+                            StockPalletP2Day: { type: "string" },
+                            MaxkEstCasting: { type: "string" },
+                            MaxEstEngine: { type: "string" },
+                            ProgressCasting: { type: "string" },
+                            ProgressEngine: { type: "string" },
+                            PartStockMax: { type: "string" },
+                            PartStockMin2: { type: "string" },
+                            PartStockMax2: { type: "string" },
+                            StockEnd2: { type: "string" },
+                            CycleTime2: { type: "string" },
+                            Efficiency2: { type: "string" },
+                            PartStockDay2: { type: "string" },
+
+
+                        }
+                    }
+                },
+                //pageSize: 20
+            },
+            columns: [
+                {
+                    field: "No",
+                    title: "No.",
+                    width: 30,
+                    template: "<div class='customClass0'> #= (No == null) ? ' ' : kendo.toString(No, '') # </div>",
+                },
+
+                {
+                    field: "PartName",
+                    title: "Part Desc",
+                    width: 120,
+                    template: "<div class='customClass00'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+                    attributes: { 'style': "text-align: left;" },
+                },
+                {
+                    title: "Process",
+                    columns: [
+                        {
+                            field: "PrcBlank",
+                            title: "Blank",
+                            width: 40,
+                            template: "<div class='customClass'> #= (PrcBlank == null) ? ' ' : kendo.toString(PrcBlank, '') # </div>",
+                        },
+                        {
+                            field: "PrcVaccum",
+                            title: "Vac",
+                            width: 40,
+                            template: "<div class='customClass'> #= (PrcVaccum == null) ? ' ' : kendo.toString(PrcVaccum, '') # </div>",
+                        },
+                        {
+                            field: "PrcOut",
+                            title: "Out",
+                            width: 40,
+                            template: "<div class='customClass'> #= (PrcOut == null) ? ' ' : kendo.toString(PrcOut, '') # </div>",
+                        }
+                    ]
+                },
+                {
+                    title: "Stock (PC)",
+                    columns: [
+                        {
+                            field: "StockBlank",
+                            title: "Blank",
+                            width: 40,
+                            template: "<div class='customClass'> #= (StockBlank == null) ? ' ' : kendo.toString(StockBlank, '') # </div>",
+                        },
+                        {
+                            field: "StockVaccum",
+                            title: "Vac",
+                            width: 40,
+                            template: "<div class='customClass'> #= (StockVaccum == null) ? ' ' : kendo.toString(StockVaccum, '') # </div>",
+                        },
+                        {
+                            field: "StockEnd",
+                            title: "End<br>Stock",
+                            width: 40,
+                            template: "<div class='customClass'> #= (StockEnd == null) ? ' ' : kendo.toString(StockEnd, '') # </div>",
+                        }
+                    ]
+                },
+                {
+                    field: "PrcStatus",
+                    title: "Status",
+                    width: 60,
+                    template: "<div class='customClass0'> #= (PrcStatus == null) ? ' ' : kendo.toString(PrcStatus, '') # </div>",
+                    attributes: { 'style': "background-color: #=PrcStatus=='SHORTAGE'? 'red':PrcStatus=='OK'?'green':'yellow'#;border-bottom:solid 1px white;" },
+
+                },
+                {
+                    title: "Stock Estimation",
+                    columns: [
+                        {
+                            field: "StockEstCasting",
+                            title: "Casting<br>(Day)",
+                            width: 55,
+                            template: "<div class='C0'> <div class='custClass1 progress0'> </div></div>",
+                        },
+                        {
+                            field: "StockEstEngine",
+                            title: "Engine<br>(Hour)",
+                            width: 55,
+                            template: "<div class='C0'><div class='custClass1 progress1'></div></div>",
+                        }]
+                },
+                {
+                    title: "Stock Pallet",
+                    columns: [
+                        {
+                            title: "Plant 3",
+                            columns: [
+                                {
+                                    field: "StockPalletP3Unit",
+                                    title: "Unit",
+                                    width: 40,
+                                    template: "<div class='customClass'> #= (StockPalletP3Unit == null) ? ' ' : kendo.toString(StockPalletP3Unit, '') # </div>",
+                                },
+                                {
+                                    field: "StockPalletP3Day",
+                                    title: "Day",
+                                    width: 40,
+                                    template: "<div class='customClass'> #= (StockPalletP3Day == null) ? ' ' : kendo.toString(StockPalletP3Day, '') # </div>",
+                                }]
+                        },
+                        {
+                            title: "Plant 2",
+                            columns: [
+                                {
+                                    field: "StockPalletP2Unit",
+                                    title: "Unit",
+                                    width: 40,
+                                    template: "<div class='customClass'> #= (StockPalletP2Unit == null) ? ' ' : kendo.toString(StockPalletP2Unit, '') # </div>",
+                                },
+                                {
+                                    field: "StockPalletP2Day",
+                                    title: "Day",
+                                    width: 40,
+                                    template: "<div class='customClass'> #= (StockPalletP2Day == null) ? ' ' : kendo.toString(StockPalletP2Day, '') # </div>",
+                                }]
+                        }
+                    ]
+                }
+
+            ],
+            toolbar: $("#template_toolbar").html()
+            ,
+            dataBound: function (e) {
+                var grid = this;
+
+                grid.tbody.find(".progress0").each(function (e) {
+
+                    let row = $(this).closest("tr");
+                    let model = grid.dataItem(row);
+                    let stMax = model.PartStockMax == '' ? '0' : model.PartStockMax = null? '0':model.PartStockMax.replace(',', '.');
+                    let stEd = model.StockEnd == '' ? '0' : model.StockEnd = null?'0':model.StockEnd.replace(',', '.');
+                    let stDay = model.PartStockDay.replace(',', '.');
+                    $(this).kendoProgressBar({//.replace(',','.')
+                        max: parseFloat(parseFloat(stMax) / parseFloat(stDay)).toFixed(2),
+                        value: parseFloat(parseFloat(stEd) / parseFloat(stDay)).toFixed(2)
+                        //value: (((parseFloat(model.StockEnd) * parseFloat(model.MaxEstEngine)) / 60 / parseFloat(model.MaxkEstCasting)) / 910).toFixed(2)
+                        //MaxEstEngine = CycleTime, MaxkEstCasting =Efficiency
+                    })
+
+
+                });
+                grid.tbody.find(".progress1").each(function (e) {//PartStockMax
+                    let row = $(this).closest("tr");
+                    let model = grid.dataItem(row);
+
+                    console.log("#");
+                    $(this).kendoProgressBar({
+                        max: parseFloat((model.PartStockMax2 * model.CycleTime2) / 3600 * model.Efficiency2 / 100).toFixed(2),
+                        value: parseFloat((model.StockEnd2 * model.CycleTime2) / 3600 * model.Efficiency2/100).toFixed(2)
+                        //value: ((parseFloat(model.PrcOut) * parseFloat(model.MaxEstEngine)) / 3600 * parseFloat(model.MaxkEstCasting)).toFixed(2)
+                    })
+
+                });
+
+                $("#hari").html(hari);
+                $("#tanggal").html(tanggal);
+                $("#shift").html(" " + shift);
+                $("#jamx").html('&nbsp;' + jam);
+                $(".AndonHeader").css('background-color', '#00FFCC');
+                $("#gridBuffer tbody tr").css('height', '3vh');
+                $("#gridBuffer thead th").css('background-color', '#4472C4');
+                $("#gridBuffer thead th").css('font-weight', 'bold');
+
+                $("#gridBuffer thead th").css('vertical-align', 'middle');
+                $("#gridBuffer thead tr").css('vertical-align', 'middle');
+                $("#gridBuffer thead th").css('color', '#ffffff');
+                //$("tbody th").css('font-size', '14px');
+
+                $("#GridTittle").html("Andon Monitoring Stock");
+                $("#BuildingID").kendoDropDownList({
+                    template: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                    valueTemplate: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                    optionLabel: "select building...",
+                    dataValueField: "IdValue",
+                    dataSource: {
+                        transport: {
+                            read: function (options) {
+                                $.ajax({
+                                    method: 'post',
+                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    url: "@myurl" + 'DropDown/INQ',
+                                    dataType: 'text',
+                                    data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
+                                }).done(function (data, textStatus, jqXHR) {
+                                    try {
+                                        var result = JSON.parse(data);
+                                    }
+                                    catch (e) {
+                                        //swal.fire('Error', 'Error loading grid', 'error');
+                                        options.success({ data: [] });
+                                        return;
+                                    }
+                                    options.success(result);
+                                }).fail(function (jqXHR, textStatus, errorThrown) {
+                                    //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                    options.success({ data: [] });
+                                });
+                            }
+                        }
+                    },
+                    change: function (e) {
+                        var value = this.value();
+                        value = value == null ? '' : value;
+                        if (value != '') {
+                            localStorage['gedungP3'] = value;
+                        }
+                        intr = 0;
+                        // Use the value of the widget
+                    }
+                }).data("kendoDropDownList");
+                gedung = localStorage['gedungP3'] != undefined ? localStorage['gedungP3'] : gedung;
+                $("#BuildingID").data("kendoDropDownList").value(gedung);
+                $("#BuildingID").prop("display", "block");
+            }
+        });
+    }
+    function isiGrid1() {
+        $("#gridBuffer").html("");
+        $("#gridBuffer").kendoGrid({
+            height: 235,
+            excel: {
+                fileName: "Andon Bufferxlsx",
+                allPages: true,
+                filterable: true
+            },
+            dataSource: {
+                transport: {
+                    read: function (options) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'Andon/AndonPairingStockHeader',
+                            dataType: 'text',
+                            data: JSON.stringify({ gedung: gedung })
+                        }).done(function (data, textStatus, jqXHR) {
+                            try {
+                                var result = JSON.parse(data);
+                            }
+                            catch (e) {
+                                //swal.fire('Error', 'Error loading grid', 'error');
+                                options.success({ data: [] });
+                                return;
+                            }
+                            options.success(result);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            options.success({ data: [] });
+                        });
+                    }
+                },
+                schema: {
+                    model: {
+                        id: "MaterialNo",
+                        fields: {
+                            PalletId: { type: "string" },
+                            PartName: { type: "string" },
+                            PartQty: { type: "string" },
+                            PairingStatus: { type: "string" },
+                            Arrow: { type: "string" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                {
+                    field: "PalletId",
+                    title: "PALET ID",
+                    width: 200,
+                    template: "<div class='customClass1'> #= (PalletId == null) ? ' ' : kendo.toString(PalletId, '') #</div>",
+                },
+                {
+                    field: "Arrow",
+                    title: "P",
+                    width: 25,
+                    template: "<div class='customArrow'>#= (Arrow == null) ? ' ' : kendo.toString(Arrow, '') #</div>",
+
+                },
+                {
+                    field: "PartName",
+                    title: "PART NAME",
+                    width: 120,
+                    template: "<div class='customClass1'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+                },
+                {
+                    field: "PartQty",
+                    title: "QTY (PC)",
+                    width: 80,
+                    template: "<div class='customClass1'> #= (PartQty == null) ? ' ' : kendo.toString(PartQty, '') # </div>",
+                },
+                {
+                    field: "PairingStatus",
+                    title: "STATUS",
+                    width: 80,
+                    //template: "<div class='customClass1'> #= (PairingStatus == null) ? ' ' : kendo.toString(PairingStatus, '') # </div>",
+                    template: "<div class='customClass3'>  <div class='sym'> #= (PairingStatus == 'FAILED') ? '<br><strong>X</strong><br>': '✓' #</div> <div  class='stat'>#=kendo.toString(PairingStatus, '')#</div></div>",
+                    attributes: { 'style': "#=PairingStatus=='FAILED'?'background-color: red;':'background-color: green;font-size:20px;height:42px;'#" },
+                },
+
+            ],
+            toolbar: $("#template_toolbar").html()
+            ,
+            dataBound: function (e) {
+                $("#hari").html(hari);
+                $("#tanggal").html(tanggal);
+                $("#shift").html(" " + shift);
+                $("#jamx").html('&nbsp;' + jam);
+
+                // $("#gridBuffer tbody tr").css('height', '100px');
+                $("#gridBuffer tbody tr").css('font-size', '42px');
+                $("#gridBuffer thead th").css('background-color', '#007399');
+                $("#gridBuffer thead th").css('color', '#ffffff');
+                $("#gridBuffer thead th").css('font-weight', 'bold');
+                $("#gridBuffer thead th").css('vertical-align', 'middle');
+                $("#gridBuffer thead tr").css('vertical-align', 'middle');
+                //$(".AndonHeader").css('background-color', '#42f5bf');
+                $("#GridTittle").html("ANDON STATUS PAIRING - PROSES");
+                // $("#BuildingID").prop("display","none");
+                $("#BuildingID").kendoDropDownList({
+                    template: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                    valueTemplate: '<span>#:data.Plant# - #:data.IdValue# - #:data.ViewValue#</span>',
+                    optionLabel: "select building...",
+                    dataValueField: "IdValue",
+                    dataSource: {
+                        transport: {
+                            read: function (options) {
+                                $.ajax({
+                                    method: 'post',
+                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    url: "@myurl" + 'DropDown/INQ',
+                                    dataType: 'text',
+                                    data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
+                                }).done(function (data, textStatus, jqXHR) {
+                                    try {
+                                        var result = JSON.parse(data);
+                                    }
+                                    catch (e) {
+                                        //swal.fire('Error', 'Error loading grid', 'error');
+                                        options.success({ data: [] });
+                                        return;
+                                    }
+                                    options.success(result);
+                                }).fail(function (jqXHR, textStatus, errorThrown) {
+                                    //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                    options.success({ data: [] });
+                                });
+                            }
+                        }
+                    },
+                    change: function (e) {
+                        var value = this.value();
+                        value = value == null ? '' : value;
+                        if (value != '') {
+                            localStorage['gedungP3'] = value;
+                        }
+                        intr = 0;
+                        // Use the value of the widget
+                    }
+                }).data("kendoDropDownList");
+                gedung = localStorage['gedungP3'] != undefined ? localStorage['gedungP3'] : gedung;
+                $("#BuildingID").data("kendoDropDownList").value(gedung);
+            }
+        });
+
+        $("#grdDua").html("");
+        $("#grdDua").kendoGrid({
+            excel: {
+                fileName: "Andon Bufferxlsx",
+                allPages: true,
+                filterable: true
+            },
+            dataSource: {
+                transport: {
+                    read: function (options) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'Andon/AndonPairingStockList',
+                            dataType: 'text',
+                            data: JSON.stringify({ gedung: gedung })
+                        }).done(function (data, textStatus, jqXHR) {
+                            try {
+                                var result = JSON.parse(data);
+                            }
+                            catch (e) {
+                                //swal.fire('Error', 'Error loading grid', 'error');
+                                options.success({ data: [] });
+                                return;
+                            }
+                            options.success(result);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            options.success({ data: [] });
+                        });
+                    }
+                },
+                schema: {
+                    model: {
+                        id: "MaterialNo",
+                        fields: {
+                            PalletId: { type: "string" },
+                            PartName: { type: "string" },
+                            PartQty: { type: "string" },
+                            PairingStatus: { type: "string" },
+                            Arrow: { type: "string" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                {
+                    field: "PalletId",
+                    title: "PALET ID",
+                    width: 200,
+                    template: "<div class='customClass1'> #= (PalletId == null) ? ' ' : kendo.toString(PalletId, '') # </div>",
+                },
+                {
+                    field: "Arrow",
+                    title: "P",
+                    width: 25,
+                    template: "<div class='customArrow'>#= (Arrow == null) ? ' ' : kendo.toString(Arrow, '') #</div>",
+
+                },
+                {
+                    field: "PartName",
+                    title: "PART NAME",
+                    width: 120,
+                    template: "<div class='customClass1'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+                },
+                {
+                    field: "PartQty",
+                    title: "QTY (PC)",
+                    width: 80,
+                    template: "<div class='customClass1'> #= (PartQty == null) ? ' ' : kendo.toString(PartQty, '') # </div>",
+                },
+                {
+                    field: "PairingStatus",
+                    title: "STATUS",
+                    width: 80,
+                    template: "<div class='customClass3'>  <div class='sym'> #= (PairingStatus == 'FAILED') ? '<strong>X</strong>': '✓' #</div> <div  class='stat'>#=kendo.toString(PairingStatus, '')#</div></div>",
+                    attributes: { 'style': "border-bottom:solid 2px white;#=PairingStatus=='FAILED'?'background-color: red;':'background-color: green;font-size:20px;'#" },
+
+                },
+
+            ]
+            ,
+            dataBound: function (e) {
+
+                $("#grdDua tbody tr").css('height', '60px');
+                $("#grdDua tbody tr").css('font-size', '42px');
+                $("#grdDua thead th").css('background-color', '#007399');
+                $("#grdDua thead th").css('color', '#ffffff');
+                $("#grdDua thead th").css('font-weight', 'bold');
+                $("#grdDua thead th").css('vertical-align', 'middle');
+                $("#grdDua thead tr").css('vertical-align', 'middle');
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        var intervalDate = setInterval(function () {
+            d = new Date();
+            hari = days[d.getDay()];
+            bulan = months[d.getMonth()];
+            tahun = d.getFullYear();
+            tanggal = d.getDate() + " " + bulan + " " + tahun;
+
+            hour = d.getHours();
+            hour = hour > 9 ? hour : '0' + hour;
+            minute = d.getMinutes();
+            minute = minute > 9 ? minute : '0' + minute;
+            jam = hour + ':' + minute;
+            if (intr % 15 == 0) {
+                isiGrid();
+                //$("#gridDetail").hide();
+                $("#gridBuffer").show();
+                $("#Notes").hide();
+                $("#grdDua").hide();
+
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    url: "@myurl" + 'Andon/Shift',
+                    dataType: 'text',
+                    data: JSON.stringify({ Plant: 'P3' })
+                }).done(function (data, textStatus, jqXHR) {
+                    try {
+                        var result = JSON.parse(data);
+                        shift = result[0].shift;
+                    }
+                    catch (e) {
+                        //swal.fire('Error', 'Error loading grid', 'error');
+
+                        return;
+                    }
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+
+                });
+
+                $("#shift").html(" " + shift);
+            } else if (intr > 1) {
+
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    url: "@myurl" + 'Andon/AndonPairingCek',
+                    dataType: 'text',
+                    data: JSON.stringify({ param: 'bufferstock', gedung: gedung })
+                }).done(function (data, textStatus, jqXHR) {
+                    try {
+                        if (data != "[]") {
+                            let jsn = JSON.parse(data);
+                            if (preID != jsn[0]['PalletId']) {
+                                preID = jsn[0]['PalletId'];
+                                isiGrid1();
+                                //$("#gridBuffer").hide();
+                                $("#grdDua").show();
+                                $("#Notes").show();
+                                intr = 1;
+                            }
+
+                        }
+                    }
+                    catch (e) {
+                        //swal.fire('Error', 'Error loading grid', 'error');
+                        return;
+                    }
+                    // options.success(result);
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    //swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                });
+            }
+            intr++;
+        }, 1000);
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <div id="Build">
+             <input type="text" id="BuildingID" style="width:200px;" /></div>
+    <div class="toolbar AndonHeader">
+          <div style="width:10vw;">
+           <img src="../../img/icon1.png" height="67px"/>
+         </div>
+         <div style="width:65vw;font-weight:bold;" id="GridTittle">Andon Monitoring Stock</div>
+         <div style="width:25vw;border-left:solid 1px;">
+             <table id="tbHead" >
+                 <tr>
+                     <td style="font-weight:bold;font-size:2vh;text-align:center;margin-top:0px;margin-top:0px;" id="hari"></td>
+                     <td style="font-weight:bold;font-size:2vh;text-align:center;margin-top:0px;margin-bottom:0px;" id="shift"></td>
+                 </tr>
+                 <tr>
+                     <td style="font-weight:bold;font-size:2vh;text-align:center;margin-top:0px;margin-top:0px;" id="tanggal"></td>
+                     <td style="font-weight:bold;font-size:2vh;text-align:center;margin-top:0px;margin-bottom:0px;" id="jamx"></td>
+                 </tr>
+
+             </table>
+        </div>
+    </div>
+</script>

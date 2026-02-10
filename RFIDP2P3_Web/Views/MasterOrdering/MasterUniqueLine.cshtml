@@ -1,0 +1,463 @@
+﻿@{
+	ViewData["Title"] = "Master Unique per Line";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	.k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+		height: 30px;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-5">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Master Unique per Line</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<div class="panel">
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Line</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="Line" style="width:100%" required />
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Unique Number</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="UniqueNumber" style="width:100%" required />
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var IUType = 'I';
+
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+			o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+			o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+			o.dom.$grid.on('click', '.btnActive', o.eventHandlers.onClickBtnActive.bind(o));
+			o.dom.$grid.on('click', '.btnDeactive', o.eventHandlers.onClickBtnActive.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$editor = $("#editor");
+			o.dom.$grid = $("#grid");
+			o.dom.$btnSave = $("#btnSave");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnCreate: function () {
+				var o = this;
+				IUType = 'I';
+
+				$("#Line").data('kendoComboBox').value('');
+				$("#Line").data("kendoComboBox").enable(true);
+				$("#UniqueNumber").data('kendoComboBox').value('');
+				$("#UniqueNumber").data("kendoComboBox").enable(true);
+
+				o.dom.$editor.modal('show');
+			},
+			onClickBtnDelete: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: 'Delete?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterUniqueLine/DEL',
+							dataType: 'text',
+							data: JSON.stringify({
+								UniqueLineID: di.UniqueLineID
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnActive: function (e) {
+				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+				swal.fire({
+					title: di.UniqueLineStatus == 'Active' ? 'Deactivate?' : 'Activate?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$.ajax({
+							method: 'post',
+							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							url: "@myurl"+'MasterUniqueLine/ACT',
+							dataType: 'text',
+							data: JSON.stringify({
+								UniqueLineID: di.UniqueLineID,
+								UserLogin: "@Context.Session.GetString("PIC_ID")"
+							})
+						}).done(function (data, textStatus, jqXHR) {
+							if (data !== 'success') {
+								swal.fire('', data, 'error');
+								return;
+							}
+							swal.fire({ title: 'Success', text: di.UniqueLineStatus == 'Active' ? 'Data Inactive' : 'Data Active', icon: 'success', timer: 2000, showConfirmButton: false });
+						}).fail(function (jqXHR, textStatus, errorThrown) {
+							swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							o.dom.$grid.data('kendoGrid').dataSource.read();
+						});
+					}
+				});
+			},
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnSave: function (e) {
+				var o = this;
+
+				var Line = $("#Line").data('kendoComboBox').value();
+				var UniqueNumber = $("#UniqueNumber").data('kendoComboBox').value();
+
+				if(Line != '' && UniqueNumber != ''){
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MasterUniqueLine/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									LineOrderCode: Line,
+									UniqueNumber: UniqueNumber,
+									IUType: IUType,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								if (data !== 'success') {
+									swal.fire('Error', data, 'error');
+									return;
+								}
+								o.dom.$editor.modal('hide');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				}else{
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+				}
+			}
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Master Unique per Line.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'MasterUniqueLine/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							id: "UniqueLineID",
+							fields: {
+								UniqueLineID: { type: "string" },
+								Line: { type: "string" },
+								FinishGoods: { type: "string" },
+								UniqueLineStatus: { type: "string" },
+								LastUpdate: { type: "string" },
+								UserUpdate: { type: "string" },
+								Remarks: { type: "string" },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				@if (Context.Session.GetString("del_master_unique_line") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Delete",
+							text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+						}]
+					},
+					</text>
+				}
+				@if (Context.Session.GetString("edit_master_unique_line") == "True")
+				{
+					<text>
+					{
+						width: 50,
+						command: [{
+							name: "Active",
+							text: "<i class='fa fa-check btnActive' style='font-size:18px;color:#008000;'></i>"
+						},{
+							name: "Deactive",
+							text: "<i class='fa fa-times btnDeactive' style='font-size:18px;color:#ff0000;'></i>"
+						}]
+					},
+					</text>
+				}
+				{
+					field: "UniqueLineID",
+					title: "ID",
+					width: 100
+				},
+				{
+					field: "Line",
+					title: "Line",
+					width: 100,
+					template: "<div class='customClass'> #= (Line == null) ? ' ' : kendo.toString(Line, '') # </div>",
+				},
+				{
+					field: "FinishGoods",
+					title: "Finish Goods",
+					width: 150,
+					template: "<div class='customClass'> #= (FinishGoods == null) ? ' ' : kendo.toString(FinishGoods, '') # </div>",
+				},
+				{
+					field: "UniqueLineStatus",
+					title: "Status",
+					width: 100
+				},
+				{
+					title: "Last Update",
+					columns: [
+					{
+						field: "UserUpdate",
+						title: "User",
+						width: 100
+					},
+					{
+						field: "LastUpdate",
+						title: "Date",
+						width: 150
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e){
+					var grid = this;
+
+					grid.tbody.find("tr[role='row']").each(function(){
+						var model = grid.dataItem(this);
+						if(model.UniqueLineStatus == 'Active'){
+							$(this).find(".k-grid-Active").hide();
+							$(this).find(".k-grid-Deactive").show();
+						}else{
+							$(this).find(".k-grid-Active").show();
+							$(this).find(".k-grid-Deactive").hide();
+						}
+					});
+				}
+			});
+
+			$("#Line").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+				}
+			}).data("kendoComboBox");
+
+			$("#UniqueNumber").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "FinishGoods", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+				}
+			}).data("kendoComboBox");
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Unique per Line -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+	@if (Context.Session.GetString("add_master_unique_line") == "True")
+	{
+		<button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+			<i class="k-icon k-i-plus"></i>
+		</button>
+		@* <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button> *@
+	}
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+	</div>
+</script>

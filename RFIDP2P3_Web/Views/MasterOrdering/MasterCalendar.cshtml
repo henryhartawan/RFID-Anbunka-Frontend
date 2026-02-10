@@ -1,0 +1,645 @@
+﻿@{
+    ViewData["Title"] = "Master Calendar";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+    #grid {
+        width: 90% !important;
+        height: 546px !important;
+    }
+
+    .fc-toolbar-title {
+        margin-left:5px !important;
+        margin-bottom: 0px !important;
+    }
+
+    .k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+        height: 30px;
+    }
+</style>
+
+<div class="page-main">
+    <div class="page-content padding-5 col-md-12">
+        <div class="col-md-12" style="margin-top:10px;margin-bottom:2px;">
+            <label class="col-sm-1 control-label" style="font-size:18px;font-weight:bold;">Line</label>
+            <div class="col-sm-11">
+                <input type="text" class="" id="LineOrder" style="width:100%;height:30px;" required />
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div id="calendar" style="background-color:white;"></div>
+        </div>
+        <div class="col-md-5">
+            <div id="grid" style="margin-top:0px; margin-bottom:5px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalTitle">Master Calendar</h4>
+            </div>
+            <div class="modal-body margin-bottom-0 padding-bottom-0">
+                <div class="panel">
+                    <div class="panel-body">
+                        <form class="form-horizontal">
+                            <div class="form-group form-material col-md-6" style="height:37px;">
+                                <label class="col-sm-3 control-label">Line</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="" id="Line" style="width:100%" required />
+                                </div>
+                            </div>
+                            <div class="form-group form-material col-md-6" style="height:37px;">
+                                <label class="col-sm-3 control-label">Date</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="" id="CalendarDate" style="width:100%" />
+                                </div>
+                            </div>
+                            <div class="form-group form-material col-md-6" style="height:37px;">
+                                <label class="col-sm-3 control-label">Shift</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="" id="Shift" style="width:100%" />
+                                </div>
+                            </div>
+                            <div class="form-group form-material col-md-6" style="height:37px;">
+                                <label class="col-sm-3 control-label">Status</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="" id="CalendarStatus" style="width:100%" />
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+                <button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+    <div class="" role="document" style="padding-left:25vw;">
+        <div class="modal-content" style="width:50vw">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalTitle">Upload Master Calendar</h4>
+            </div>
+            <div class="modal-body margin-bottom-0 padding-bottom-0">
+                <form id="formUpload" enctype="multipart/form-data">
+                    <span>Download template <a href="../../templates/Master Calendar.xlsx" style="color:#0099ff" download="Template Master Calendar.xlsx">here</a></span>
+                    <input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+                <button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var IUType = 'I';
+    var exCore = '';
+    var lineOrder = ' ';
+    var MonthYear = kendo.toString(new Date(), "yyyyMM");
+    var calendarEl = document.getElementById('calendar');
+    var calendar;
+
+
+    function getData(){
+        var result;
+
+        $.ajax({
+            method: 'post',
+            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            url: "@myurl"+'MasterCalendar/Cal',
+            dataType: 'text',
+            data: JSON.stringify({
+                LineOrderCode: lineOrder,
+                MonthYear: MonthYear
+            })
+        }).done(function (data, textStatus, jqXHR) {
+            try {
+                result = JSON.parse(data);
+            }
+            catch (e) {
+                swal.fire('Error', 'Error loading calendar', 'error');
+                options.success({ data: [] });
+                return;
+            }
+
+            calendar.removeAllEvents();
+            calendar.addEventSource(result);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+        });
+    }
+
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+            o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
+
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+            o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+
+            o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+            o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$editor = $("#editor");
+            o.dom.$grid = $("#grid");
+            o.dom.inputs = {};
+            o.dom.inputs.$inputLine = $("#Line");
+            o.dom.inputs.$inputDate = $("#CalendarDate");
+            o.dom.inputs.$inputShift = $("#Shift");
+            o.dom.inputs.$inputStatus = $("#CalendarStatus");
+            o.dom.$editorUpload = $("#editorUpload");
+            o.dom.$btnSaveUpload = $("#btnSaveUpload");
+            o.dom.$btnSave = $("#btnSave");
+        },
+        data: {},
+        dom: {},
+        eventHandlers: {
+            onClickBtnDelete: function (e) {
+                var o = this;
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+                swal.fire({
+                    title: 'Delete?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl"+'MasterCalendar/DEL',
+                            dataType: 'text',
+                            data: JSON.stringify({
+                                ExCore: di.ExCore
+                            })
+                        }).done(function (data, textStatus, jqXHR) {
+                            if (data !== 'success') {
+                                swal.fire('', data, 'error');
+                                return;
+                            }
+                            swal.fire({ title: 'Success', text: 'Data deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+                            getData();
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                        }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                            o.dom.$grid.data('kendoGrid').dataSource.read();
+                            getData();
+                        });
+                    }
+                });
+            },
+            onClickBtnExcel: function () {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').saveAsExcel();
+            },
+            onClickBtnUpdate: function (e) {
+                var o = this;
+                IUType = 'U';
+                var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+                exCore = di.ExCore;
+
+                o.dom.inputs.$inputLine.data("kendoComboBox").value(di.LineOrderCode);
+                o.dom.inputs.$inputLine.data("kendoComboBox").enable(false);
+                o.dom.inputs.$inputDate.data("kendoDatePicker").value(di.CalendarDate);
+                o.dom.inputs.$inputDate.data("kendoDatePicker").enable(false);
+                o.dom.inputs.$inputShift.data("kendoDropDownList").value(di.Shift);
+                o.dom.inputs.$inputStatus.data("kendoDropDownList").value(di.CalendarStat);
+                o.dom.inputs.$inputStatus.data("kendoDropDownList").enable(false);
+
+                o.dom.$editor.modal('show');
+            },
+            onClickBtnSave: function (e) {
+                var o = this;
+                var Line = $("#Line").data('kendoComboBox').value();
+                var CalendarDate = kendo.toString($("#CalendarDate").data('kendoDatePicker').value(), 'yyyy-MM-dd');
+                var Shift = $("#Shift").data("kendoDropDownList").value();
+                var Status = $("#CalendarStatus").data("kendoDropDownList").value();
+
+                if(Line != '' && CalendarDate != '' && CalendarDate != null && Shift != ''){
+                    swal.fire({
+                        title: "Save?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'MasterCalendar/INS',
+                                dataType: 'text',
+                                data: JSON.stringify({
+                                    ExCore: exCore,
+                                    LineOrderCode: Line,
+                                    CalendarDate: CalendarDate,
+                                    Shift: Shift,
+                                    CalendarStatus: Status,
+                                    IUType: IUType,
+                                    UserLogin: "@Context.Session.GetString("PIC_ID")"
+                                })
+                            }).done(function (data, textStatus, jqXHR) {
+                                if (data !== 'success') {
+                                    swal.fire('Error', data, 'error');
+                                    return;
+                                }
+                                o.dom.$editor.modal('hide');
+                                swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                                getData();
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                                o.dom.$grid.data('kendoGrid').dataSource.read();
+                                getData();
+                            });
+                        }
+                    });
+                }else{
+                    swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning'});
+                }
+            },
+            onClickBtnUpload: function () {
+                var o = this;
+                $("#fileUpload").data('kendoUpload').clearAllFiles();
+                o.dom.$editorUpload.modal('show');
+            },
+            onClickBtnSaveUpload: function () {
+                var o = this;
+                swal.fire({
+                    title: 'Upload Master Calendar?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let formData = new FormData();
+                        let files = $("#fileUpload").data('kendoUpload').getFiles();
+                        let file = files[0].rawFile;
+                        formData.append('file', file);
+
+                        $.ajax({
+                            url: "@myurl" + "MasterCalendar/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
+                            headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            type: 'post',
+                            data: formData,
+                            contentType: false,
+                            processData: false
+                        }).done(function (data, textStatus, jqXHR) {
+                            var remarks = data[0].Remarks;
+                            if(remarks != '') {
+                                swal.fire({ title: 'Warning', text: remarks, icon: 'warning'});
+                            } else {
+                                o.dom.$editorUpload.modal('hide');
+                                swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
+                                $("#fileUpload").data('kendoUpload').clearAllFiles();
+                                getData();
+                            }
+                        }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                            $("#grid").data('kendoGrid').dataSource.read();
+                            $("#fileUpload").data('kendoUpload').clearAllFiles();
+                            getData();
+                        });
+                    }
+                });
+            },
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+            o.dom.$grid.kendoGrid({
+                excel: {
+                    fileName: "Master Calendar.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl"+'MasterCalendar/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({
+                                    LineOrderCode: lineOrder,
+                                    MonthYear: MonthYear
+                                })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    },
+                    schema: {
+                        model: {
+                            id: "ExCore",
+                            fields: {
+                                ExCore: { type: "string" },
+                                Line: { type: "string" },
+                                DateView: { type: "string" },
+                                Shift: { type: "string" },
+                                CalendarStatus: { type: "string" },
+                                LastUpdate: { type: "string" },
+                                UserUpdate: { type: "string" },
+                                Remarks: { type: "string" },
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            contains: "Contains",
+                            eq: "Equal to",
+                            neq: "Not equal to"
+                        }
+                    }
+                },
+                pageable: {
+                    refresh: true,
+                    input: true,
+                    numeric: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [
+                @if (Context.Session.GetString("edit_master_calendar") == "True")
+                {
+                    <text>
+                    {
+                        width: 50,
+                        command: [{
+                            name: "Update",
+                            text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+                        }]
+                    },
+                    </text>
+                }
+                @if (Context.Session.GetString("del_master_calendar") == "True")
+                {
+                    <text>
+                    {
+                        width: 50,
+                        command: [{
+                            name: "Delete",
+                            text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+                        }]
+                    },
+                    </text>
+                }
+                {
+                    field: "ExCore",
+                    title: "ID",
+                    width: 50
+                },
+                {
+                    field: "Line",
+                    title: "Line",
+                    width: 150,
+                    template: "<div class='customClass'> #= (Line == null) ? ' ' : kendo.toString(Line, '') # </div>",
+                },
+                {
+                    field: "DateView",
+                    title: "Date",
+                    width: 100,
+                },
+                {
+                    field: "Shift",
+                    title: "Shift",
+                    width: 100,
+                },
+                {
+                    field: "CalendarStatus",
+                    title: "Status",
+                    width: 100
+                },
+                {
+                    title: "Last Update",
+                    columns: [
+                    {
+                        field: "UserUpdate",
+                        title: "User",
+                        width: 100
+                    },
+                    {
+                        field: "LastUpdate",
+                        title: "Date",
+                        width: 150
+                    }]
+                }],
+                toolbar: $("#template_toolbar").html()
+            });
+
+            $("#Line").kendoComboBox({
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                filter: "contains",
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                },
+                change: function(){
+                    if (this.value() && this.selectedIndex == -1) {
+                        this.text("");
+                        this.value(null);
+                    }
+                }
+            }).data("kendoComboBox");
+
+            $("#CalendarDate").kendoDatePicker({
+                format: "dd/MM/yyyy"
+            });
+
+            $("#Shift").kendoDropDownList({
+                dataSource: [
+                    { id: "Day", name: "Day"},
+                    { id: "Night", name: "Night"},
+                ],
+                dataValueField: "id",
+                dataTextField: "name",
+            }).data("kendoDropDownList");
+
+            $("#CalendarStatus").kendoDropDownList({
+                dataSource: [
+                    { id: "1", name: "ON"},
+                    { id: "0", name: "OFF"},
+                ],
+                dataValueField: "id",
+                dataTextField: "name",
+            }).data("kendoDropDownList");
+
+            $("#fileUpload").kendoUpload({
+                multiple: false,
+                validation: {
+                    allowedExtensions: [".xls", "xlsx"]
+                }
+            });
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    right: 'prevYear,prev,next,nextYear'
+                },
+                showNonCurrentDates: false,
+                dayMaxEvents: 1,
+                dateClick: function(info) {
+                    IUType = 'I';
+                    exCore = '';
+                    o.dom.inputs.$inputLine.data("kendoComboBox").value(lineOrder);
+                    o.dom.inputs.$inputDate.data("kendoDatePicker").value(info.date);
+                    o.dom.inputs.$inputDate.data("kendoDatePicker").enable(false);
+                    o.dom.inputs.$inputShift.data("kendoDropDownList").value('');
+                    o.dom.inputs.$inputStatus.data("kendoDropDownList").enable(false);
+
+                    if(lineOrder != '' && lineOrder != ' ') o.dom.inputs.$inputLine.data("kendoComboBox").enable(false);
+                    else o.dom.inputs.$inputLine.data("kendoComboBox").enable(true);
+
+                    var hari = info.date.getDay();
+                    if(hari == 0 || hari == 6) o.dom.inputs.$inputStatus.data("kendoDropDownList").value(1);
+                    else o.dom.inputs.$inputStatus.data("kendoDropDownList").value(0);
+
+                    o.dom.$editor.modal('show');
+                },
+                datesSet: function(info) {
+                    MonthYear = kendo.toString(info.start, 'yyyyMM');
+                    $("#grid").data('kendoGrid').dataSource.read();
+
+                    getData();
+                }
+            });
+
+            calendar.render();
+
+            getData();
+        }
+    };
+
+    $(function () {
+        AppD.init();
+
+        $("#LineOrder").kendoComboBox({
+            dataValueField: "IdValue",
+            dataTextField: "ViewValue",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: function (options) {
+                        $.ajax({
+                            method: 'post',
+                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            url: "@myurl" + 'DropDown/INQ',
+                            dataType: 'text',
+                            data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+                        }).done(function (data, textStatus, jqXHR) {
+                            try {
+                                var result = JSON.parse(data);
+                            }
+                            catch (e) {
+                                swal.fire('Error', 'Error loading grid', 'error');
+                                options.success({ data: [] });
+                                return;
+                            }
+                            options.success(result);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            options.success({ data: [] });
+                        });
+                    }
+                }
+            },
+            change: function(){
+                if (this.value() && this.selectedIndex == -1) {
+                    this.text("");
+                    this.value(null);
+                } else {
+                    lineOrder = this.value();
+                    $("#grid").data('kendoGrid').dataSource.read();
+                    getData();
+                }
+            }
+        }).data("kendoComboBox");
+
+        $("#LineOrder").data('kendoComboBox').value('');
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Calendar -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+    @if (Context.Session.GetString("add_master_calendar") == "True")
+    {
+        <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+            <i class="k-icon k-i-upload"></i>
+        </button>
+    }
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+    </div>
+</script>

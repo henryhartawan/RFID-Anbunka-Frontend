@@ -1,0 +1,149 @@
+﻿@{
+    ViewData["Title"] = "Monitor Pallet";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+    <div class="page-content padding-10">
+        <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<script>
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$grid = $("#grid");
+        },
+        data: {},
+        dom: {},
+        eventHandlers: {
+            onClickBtnExcel: function () {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').saveAsExcel();
+            }
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+            o.dom.$grid.kendoGrid({
+                excel: {
+                    fileName: "Monitoring Pallet.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'MonitorPallet/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({AndonType: 'Dummy'})
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                    console.log(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    },
+                    schema: {
+                        model: {
+                            id: "MaterialNo",
+                            fields: {
+                                PalletID: { type: "string" },
+                                PalletType: { type: "string" },
+                                PartNumber: { type: "string" },
+                                PalletStatus: { type: "string" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            contains: "Contains",
+                            eq: "Equal to",
+                            neq: "Not equal to"
+                        }
+                    }
+                },
+                pageable: {
+                    refresh: true,
+                    input: true,
+                    numeric: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [
+                {
+                    field: "PalletID",
+                    title: "ID Pallet",
+                    width: 120
+                },
+                {
+                    field: "PalletType",
+                    title: "Type",
+                    width: 80
+                },
+                {
+                    field: "PartNumber",
+                    title: "Part No",
+                    width: 120
+                },
+                {
+                    field: "PalletStatus",
+                    title: "Status",
+                    width: 80
+                }],
+                toolbar: $("#template_toolbar").html(),
+            });
+        }
+    };
+
+    $(function () {
+        AppD.init();
+    });
+
+    $(document).ready(function () {
+        var intervalDate = setInterval(function () {
+            AppD.init();
+        }, 10000);
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Monitoring Pallet -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+    </div>
+</script>
