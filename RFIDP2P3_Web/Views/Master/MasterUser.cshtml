@@ -59,6 +59,13 @@
 										<input type="text" class="" id="SupplierCode" style="width:100%" />
 									</div>
 								</div>
+								<div class="form-group form-material col-md-12" id="fg-email">
+									<label class="col-sm-3 control-label">Email</label>
+									<div class="col-sm-9">
+										<input type="email" class="form-control" id="Email" style="width:100%" onkeyup="checkVal()"/>
+										<span class="help-block" id="err-email" style="display: none;">Format email tidak valid</span>
+									</div>
+								</div>
 							</div>
 							<div class="col-md-6">
 								<div class="form-group form-material col-md-12">
@@ -85,6 +92,17 @@
 										<input type="text" class="" id="SectionId" style="width:100%" />
 									</div>
 								</div>
+								<div class="form-group form-material col-md-12">
+									<label class="col-sm-3 control-label">Require MFA</label>
+									<div class="col-sm-9">
+										<div class="checkbox checkbox-styled checkbox-primary">
+											<label>
+												<input type="checkbox" id="RequireMfa" checked><span></span>
+												Yes
+											</label>
+										</div>
+									</div>
+								</div>
 							</div>
 							<div>
 								<label class="col-sm-12" id="valid" style="color:red;font-weight:bold;"></label>
@@ -107,7 +125,7 @@
 	function checkVal() {
 		var errormsg = '';
 		var Password = $("#Password").val();
-
+		
 		if (Password != '') {
 			const pattern1 = /[A-Z]/;
 			const pattern2 = /[a-z]/;
@@ -128,6 +146,25 @@
 		} else {
 			document.getElementById("valid").innerHTML = "";
 			document.getElementById("btnSave").disabled = false;
+		}
+
+		//validasi email
+		var Email = $("#Email").val();
+
+		var isEmailValid = true;
+		if (Email != '') {
+			const emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+			if (!emailPattern.test(Email)) {
+				isEmailValid = false;
+				$("#fg-email").addClass("has-error");
+				$("#err-email").show();
+			} else {
+				$("#fg-email").removeClass("has-error");
+				$("#err-email").hide();
+			}
+		} else {
+			$("#fg-email").removeClass("has-error");
+			$("#err-email").hide();
 		}
 	}
 
@@ -156,6 +193,8 @@
 			o.dom.inputs.$inputDeptId = $("#DeptId");
 			o.dom.inputs.$inputSectionId = $("#SectionId");
 			o.dom.inputs.$inputSupplier= $("#SupplierCode");
+			o.dom.inputs.$inputEmail= $("#Email");
+			o.dom.inputs.$RequireMfa = $("#RequireMfa");
 			o.dom.$btnSave = $("#btnSave");
 		},
 		data: {},
@@ -167,6 +206,7 @@
 				o.dom.inputs.$inputUserID.val('');
 				o.dom.inputs.$inputName.val('');
 				o.dom.inputs.$inputPassword.val('');
+				o.dom.inputs.$inputEmail.val('');
 				o.dom.inputs.$inputUserGroup.data("kendoComboBox").value('');
 				o.dom.inputs.$inputPlantID.data("kendoDropDownList").value('');
 				o.dom.inputs.$inputBuildingId.data("kendoDropDownList").value('');
@@ -174,6 +214,7 @@
 				o.dom.inputs.$inputSectionId.data("kendoComboBox").value('');
 				o.dom.inputs.$inputSupplier.data("kendoComboBox").value('');
 
+				o.dom.inputs.$RequireMfa.prop('checked', true);
                 document.getElementById("User_Id").disabled = false;
 				$("#Password").attr("placeholder", "");
 
@@ -226,6 +267,7 @@
 
 				o.dom.inputs.$inputUserID.val(di.PIC_ID);
 				o.dom.inputs.$inputName.val(di.PIC_Name);
+				o.dom.inputs.$inputEmail.val(di.Email);
 				o.dom.inputs.$inputPassword.val('');
 				o.dom.inputs.$inputUserGroup.data("kendoComboBox").value(di.UserGroup_Id);
 				o.dom.inputs.$inputPlantID.data("kendoDropDownList").value(di.PlantID);
@@ -233,6 +275,8 @@
 				o.dom.inputs.$inputDeptId.data("kendoComboBox").value(di.DeptId);
 				o.dom.inputs.$inputSectionId.data("kendoComboBox").value(di.SectionId);
 				o.dom.inputs.$inputSupplier.data("kendoComboBox").value(di.SupplierCode);
+
+				o.dom.inputs.$RequireMfa.prop('checked', di.RequireMfa === true);
 
                 document.getElementById("User_Id").disabled = true;
 				$("#Password").attr("placeholder", "Leave this blank to keep password");
@@ -250,6 +294,7 @@
 				var UID = $("#User_Id").val();
 				var Name = $("#Name").val();
 				var Password = $("#Password").val();
+				var Email = $("#Email").val();
 				var UserGroup = $("#UserGroup_Id").data("kendoComboBox").value();
 				var PlantID = $("#PlantID").data("kendoDropDownList").value();
 				var BuildingId = $("#BuildingId").data("kendoDropDownList").value();
@@ -257,12 +302,14 @@
 				var SectionId = $("#SectionId").data("kendoComboBox").value();
 				var Supplier = $("#SupplierCode").data("kendoComboBox").value();
 
+				var RequireMfa = o.dom.inputs.$RequireMfa.prop('checked');
+
 				var allowedEmptyLocationGroups = ['001', '002', '024', '025', '026'];
 
 				if (UID == '' || Name == '' || UserGroup == '' || (IUType == 'I' && Password == '') ||
 				  (!allowedEmptyLocationGroups.includes(UserGroup) &&
 					(PlantID == '' || BuildingId == '' || DeptId == '' || SectionId == '')) ||
-				  ((UserGroup == '024' || UserGroup == '025') && Supplier == '')
+				  ((UserGroup == '024' || UserGroup == '025') && Supplier == '' && Email == '')
 				) {
 					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
 				} else {
@@ -282,6 +329,7 @@
 									PIC_ID: UID,
 									PIC_Name: Name,
 									password: Password,
+									Email: Email,
 									UserGroup_Id: UserGroup,
 									PlantID: PlantID,
 									DeptId: DeptId,
@@ -289,6 +337,7 @@
 									BuildingId: BuildingId,
 									SupplierCode: Supplier,
 									IUType: IUType,
+									RequireMfa: RequireMfa,
 									UserLogin: "@Context.Session.GetString("PIC_ID")"
 								})
 							}).done(function (data, textStatus, jqXHR) {
@@ -366,7 +415,9 @@
 								DeptName: { type: "string" },
 								SectionName: { type: "string" },
 								BuildingName: { type: "string" },
-								Supplier: { type: "string" }
+								Supplier: { type: "string" },
+								Email: { type: "string" },
+								RequireMfa: { type: "boolean" }
 							}
 						}
 					},
@@ -466,6 +517,19 @@
 					title: "Supplier",
 					width: 150,
 					template: "<div class='customClass'> #= (Supplier == null) ? ' ' : kendo.toString(Supplier, '') # </div>",
+				},
+				{
+					field: "Email",
+					title: "Email",
+					width: 150,
+					template: "<div class='customClass'> #= (Email == null) ? ' ' : kendo.toString(Email, '') # </div>",
+				},
+				{
+					field: "RequireMfa",
+					title: "MFA",
+					template: "<div class='customClass'> #= RequireMfa ? 'Yes' : 'No' # </div>",
+					width: 100,
+					hidden: true,
 				}],
 				toolbar: $("#template_toolbar").html()
 			});

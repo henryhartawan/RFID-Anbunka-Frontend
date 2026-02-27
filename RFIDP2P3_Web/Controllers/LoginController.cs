@@ -7,10 +7,28 @@ namespace RFIDP2P3_Web.Controllers
 {
     public class LoginController : Controller
     {
+        private readonly IConfiguration _config;
+        
+        public LoginController(IConfiguration config)
+        {
+            _config = config;
+        }
+        
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetString("PIC_ID") == null) return View();
-            else return RedirectToAction("Index", "Home");
+            var picId = HttpContext.Session.GetString("PIC_ID");
+            var mfaVerified = HttpContext.Session.GetString("SESSION_MFA_VERIFIED");
+            
+            ViewBag.Message = null;
+            ViewBag.User = null;
+            
+            if (string.IsNullOrEmpty(picId) || mfaVerified == "false")
+            {
+                ViewData["myurl"] = _config.GetValue<string>("Path:URL");
+                return View();
+            }
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -56,7 +74,18 @@ namespace RFIDP2P3_Web.Controllers
                             HttpContext.Session.SetString("edit_" + privilege.Menu_Id, privilege.checkedbox_edit);
                             HttpContext.Session.SetString("del_" + privilege.Menu_Id, privilege.checkedbox_del);
                         }
-                        return RedirectToAction("Index", "Home");
+                        
+                        bool requireMfa = userLogin.MFAStatus?.ToLower() == "true";
+                        if (requireMfa)
+                        {
+                            HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "false");
+                            return RedirectToAction("Index", "LoginMFA");
+                        }
+                        else
+                        {
+                            HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "true");
+                            return RedirectToAction("Index", "Home");
+                        }
                     }
                 }
             }

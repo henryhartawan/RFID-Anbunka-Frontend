@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null;
+    var myurl = ViewData["myurl"]?.ToString();
+    var user = Context.Session.GetString("PIC_Name") ?? "User";
+}
+
+@model RFIDP2P3_Web.Models.User
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>RFID - Login</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="stylesheet" href="~/css/login.css"/>
+</head>
+
+<body>
+<div class="login-container">
+    <div id="loadingSpinner" style="display:none;" class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <h2 id="dynamicTitle">Two-factor authentication @user.ToUpper()</h2>
+
+    <form id="formAuth" class="login-form" method="post">
+        <div class="form-group">
+            <label for="auth">Enter the code from your authenticator app:</label>
+            <input type="text" id="authCode" name="auth" required>
+            <div class="version" id="auth_Message"></div>
+            <div class="version">
+                First time? <a href="#" class="setupAuth">Set up your authenticator here.</a><br/>
+                Go Back to login? <a href="@Url.Action("Logout", "Login")">← Go Back.</a>
+            </div>
+        </div>
+        <button id="btnLogin" type="submit" class="login-btn login" value="LOGIN">Log In</button>
+    </form>
+
+    <form id="formRegister" class="login-form" method="post" style="display:none;">
+        <div class="form-group">
+            <label for="validationCode">We'll send code to your email: <b id="validationEmail">youremail@example.com</b></label>
+            <a href="#" id="btnResend" class="resendCode">Resend Code</a>
+            <input type="text" id="validationCode" name="validationCode" required>
+            <div class="version" id="otp_Message"></div>
+            <a href="#" class="setupAuth">← Go Back</a>
+        </div>
+        <button type="submit" id="btnValidate" class="login-btn validate" value="Validate">Validate</button>
+    </form>
+
+    <form id="formSecret" class="login-form" method="post" style="display:none;">
+        <div class="form-group">
+            <div>Use the authenticator app "Scan Barcode" feature below:</div>
+            <img id="imageSecret" class="cent"/>
+        </div>
+        <div><b>You cannot see this barcode again.</b> Make sure to add it now.</div>
+        <button type="submit" class="login-btn confirm" value="Confirm">Confirm</button>
+    </form>
+
+    <form id="formError" class="login-form" method="post" style="display:none;">
+        <div class="form-group">
+            <label id="errorMessage" class="center"></label>
+            <a href="#" class="setupAuth">← Go Back</a>
+        </div>
+    </form>
+
+    <div class="copyright center">&copy; 2025 - PT. Astra Daihatsu Motor </div>
+    <div class="version center">Version 1.0.0</div>
+</div>
+
+<script>
+    window.config = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+                        baseUrl = myurl,
+                        userId = Context.Session.GetString("PIC_ID") ?? "",
+                        userName = Context.Session.GetString("PIC_Name") ?? "",
+                        checkAuthUrl = Url.Action("CheckAuth", "LoginMFA")
+                    }));
+</script>
+
+<script src="~/js/jquery-3.7.1.min.js"></script>
+<script src="~/js-obf/auth-handler.js"></script>
+
+</body>
+</html>
