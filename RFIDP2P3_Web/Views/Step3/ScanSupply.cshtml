@@ -1,0 +1,191 @@
+﻿@{
+	ViewData["Title"] = "Scan Supply";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div class="col-xs-12" style="height:70vh;">
+			<div id="myModal" class="modal">
+				<div class="modal-content">
+					<span class="close">&times;</span>
+					<div id="qr-reader"></div>
+					<div id="qr-reader-results"></div>
+				</div>
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+			<div class="col-xs-12 col-md-8">
+				<div class="col-xs-12">
+					<h2><b>Scan Supply</b></h2>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Kanban No</label>
+					<input type="text" id="Kanban_No" onclick="this.select()" class="form-control" autofocus>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Part Address (Ex Core)</label>
+					<input type="text" id="ExCore" onclick="this.select()" class="form-control">
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Message</label>
+					<input type="text" id="Message" class="form-control" style="color:red;" disabled>
+				</div>
+				@if (Context.Session.GetString("add_ScanSupply") == "True")
+				{
+					<div class="col-xs-12" style="padding-bottom:10px;">
+						<button type="button" class="btn btn-primary" id="btnSubmit" style="width:100%;">Submit</button>
+					</div>
+				}
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var AppD = {
+		attachEvents: function() {
+			var o = this;
+			o.dom.$Kanban.on('input', o.eventHandlers.onChangeKanban.bind(o));
+			o.dom.$ExCore.on('input', o.eventHandlers.onChangeExcore.bind(o));
+			o.dom.$Kanban.on('click', o.eventHandlers.onClickFocus.bind(o));
+			o.dom.$ExCore.on('click', o.eventHandlers.onClickFocus.bind(o));
+			o.dom.btnSubmit.on('click', o.eventHandlers.onClickBtnSubmit.bind(o));
+		},
+		cacheDom: function() {
+			var o = this;
+
+			o.dom.$Kanban = $("#Kanban_No");
+			o.dom.$ExCore = $("#ExCore");
+			o.dom.btnSubmit = $("#btnSubmit");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onChangeKanban: function(e) {
+				var o = this;
+				var kanban = $("#Kanban_No").val();
+				var excore = $("#ExCore").val();
+				$("#Message").val('');
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'ScanSupply/CheckKanban',
+					dataType: 'text',
+					data: JSON.stringify({
+						Kanban_No: kanban,
+						ExCore: excore,
+						UserLogin: "@Context.Session.GetString("PIC_ID")"
+					})
+				}).done(function(data, textStatus, jqXHR) {
+					var result = data.split('~');
+
+					if(kanban != '') {
+						if(result[0] == 'Error') {
+							$("#Message").val(result[1]);
+						} else {
+							$("#Message").val('');
+						}
+					} else {
+						$("#Message").val('');
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+				});
+			},
+			onChangeExcore:function(e){
+				var o = this;
+				var kanban = $("#Kanban_No").val();
+				var excore = $("#ExCore").val();
+				$("#Message").val('');
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'ScanSupply/CheckExcore',
+					dataType: 'text',
+					data: JSON.stringify({
+						Kanban_No: kanban,
+						ExCore: excore,
+						UserLogin: "@Context.Session.GetString("PIC_ID")"
+					})
+				}).done(function(data, textStatus, jqXHR) {
+					var result = data.split('~');
+
+					if(excore != '') {
+						if(result[0] == 'Error') {
+							$("#Message").val(result[1]);
+						} else {
+							$("#Message").val('');
+						}
+					} else {
+						$("#Message").val('');
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+				});
+			},
+			onClickBtnSubmit: function(){
+				var o = this;
+				var kanban = $("#Kanban_No").val();
+				var excore = $("#ExCore").val();
+				var msg = $("#Message").val();
+
+				if (kanban != '' && excore != '' && msg == '' && kanban.length > 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'ScanSupply/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									Kanban_No: kanban,
+									ExCore: excore,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function(data, textStatus, jqXHR) {
+								$("#Kanban_No").val('');
+								$("#ExCore").val('');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							});
+						}
+					});
+				}
+			},
+			onClickFocus(e){$(e.target).select();},
+		},
+		init: function() {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function() {
+			var o = this;
+
+			$("#Kanban_No").val('');
+			$("#ExCore").val('');
+			$("#Message").val('');
+			$("#Kanban_No").select();
+		},
+	};
+
+	$(function() {
+		AppD.init();
+	});
+</script>

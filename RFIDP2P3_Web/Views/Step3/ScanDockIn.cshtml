@@ -1,0 +1,375 @@
+﻿@{
+	ViewData["Title"] = "Scan Dock In";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+	#qr-reader {
+		margin-top: 30px;
+	}
+
+	#qr-reader__filescan_input {
+		margin-left: 43%;
+		margin-bottom: 30px;
+	}
+
+	#myModal {
+		display: none;
+		position: absolute;
+		z-index: 9;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgb(0, 0, 0);
+		background-color: rgba(0, 0, 0, 0.4);
+	}
+
+	#myModal .modal-content {
+		background-color: #fefefe;
+		margin: auto;
+		padding: 20px;
+		border: 1px solid #888;
+		width: 80%;
+		height: 81vh;
+	}
+
+	.close {
+		color: #aaaaaa;
+		float: right;
+		font-size: 28px;
+		font-weight: bold;
+	}
+
+	.close:hover,
+	.close:focus {
+		color: #000;
+		text-decoration: none;
+		cursor: pointer;
+	}
+</style>
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div class="col-xs-12">
+			<div id="myModal" class="modal">
+				<div class="modal-content">
+					<span class="close">&times;</span>
+					<div id="qr-reader"></div>
+					<div id="qr-reader-results"></div>
+				</div>
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+			<div class="col-xs-12 col-md-8">
+				<div class="col-xs-8">
+					<h2><b>Trip Note Dock In</b></h2>
+				</div>
+				<div class="col-xs-4" style="padding-top:20px;">
+					<button type="button" class="btn btn-success" onclick="location.href='@Url.Action("ScanDockOut", "Step3")'" style="width:100%; white-space: normal;">Go To Scan Dock Out</button>
+				</div>
+				<div class="col-xs-11" style="padding-bottom:10px;padding-right:0px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Trip Note</label>
+					<input type="text" id="TN_No" onclick="this.select()" class="form-control" autofocus>
+				</div>
+				<div class="col-xs-1" style="padding-top:20px;padding-left:0px;">
+					<button data-toggle="tooltip" title="Scan TN" type="button" class="camera col-sm-1 btn ink-reaction btn-floating-action btn-xs btn-info" id="btnTN">
+						<i class="fa fa-camera" style="font-size:10pt;"></i>
+					</button>
+				</div>
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Message</label>
+					<input type="text" id="Message" class="form-control" style="color:red;" disabled>
+				</div>
+				@if (Context.Session.GetString("add_ScanDockIn") == "True")
+				{
+					<div class="col-xs-12" style="padding-bottom:10px;">
+						<button type="button" class="btn btn-primary" id="btnSubmit" style="width:100%;">Submit</button>
+					</div>
+				}
+				<div class="col-xs-12" style="padding-bottom:10px;">
+					<div id="grid1" style="margin-left:0px;margin-top:0px;"></div>
+				</div>
+			</div>
+			<div class="col-xs-0 col-md-2"></div>
+		</div>
+	</div>
+</div>
+
+<script src="~/js/jslib-html5-camera-photo.min.js"></script>
+<script src="~/js/qrcode.min.js"></script>
+
+<script>
+	var AppD = {
+		attachEvents: function() {
+			var o = this;
+			o.dom.$btnTN.on('click', o.eventHandlers.onClickBtnTN.bind(o));
+			o.dom.inputs.$inputTN.on('input', o.eventHandlers.onChangeTNNo.bind(o));
+			o.dom.inputs.$inputTN.on('click', o.eventHandlers.onClickFocus.bind(o));
+			o.dom.btnSubmit.on('click', o.eventHandlers.onClickBtnSubmit.bind(o));
+		},
+		cacheDom: function() {
+			var o = this;
+			o.dom.inputs = {};
+			o.dom.inputs.$inputTN = $("#TN_No");
+
+			o.dom.$btnTN = $("#btnTN");
+			o.dom.$grid = $("#grid1");
+			o.dom.btnSubmit = $("#btnSubmit");
+		},
+		data: {},
+		dom: {},
+		eventHandlers: {
+			onClickBtnTN: function() {
+				var modal = document.getElementById("myModal");
+				modal.style.display = "block";
+
+				Html5Qrcode.getCameras().then(devices => {
+					if (devices && devices.length) {
+						var cameraId = devices[0].id;
+					}
+				}).catch(err => {
+
+				});
+
+				function onScanSuccess(decodedText, decodedResult) {
+
+				}
+
+				function onScanFailure(error) {
+					console.warn(`Code scan error = ${error}`);
+				}
+
+				const html5QrCode = new Html5Qrcode("qr-reader");
+				const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+					if (decodedText !== decodedResult) {
+						decodedResult = decodedText;
+
+						document.getElementById("TN_No").value = decodedResult;
+						$("#TN_No").trigger("input");
+						html5QrCode.stop().then((ignore) => {
+
+						}).catch((err) => {
+
+						});
+						document.getElementById("myModal").style.display = "none";
+					}
+				};
+				const config = {
+					fps: 10,
+					qrbox: {
+						width: 700,
+						height: 350
+					}
+				};
+
+				html5QrCode.start({
+					facingMode: "environment"
+				}, config, qrCodeSuccessCallback);
+
+				html5QrcodeScanner.render(onScanSuccess);
+			},
+			onClickBtnSubmit: function(){
+				var o = this;
+				var tnno = $("#TN_No").val();
+				var msg = $("#Message").val();
+
+				if (tnno != '' && msg == '' && tnno.length > 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'ScanDockIn/INS',
+								dataType: 'text',
+								data: JSON.stringify({
+									TN_No: tnno,
+									UserLogin: "@Context.Session.GetString("PIC_ID")"
+								})
+							}).done(function(data, textStatus, jqXHR) {
+								$("#TN_No").val('');
+								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								o.dom.$grid.data('kendoGrid').dataSource.read();
+							});
+						}
+					});
+				}
+			},
+			onChangeTNNo:function(e){
+				var o = this;
+				var tnno = $("#TN_No").val();
+				$("#Message").val('');
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					url: "@myurl"+'ScanDockIn/CheckTN',
+					dataType: 'text',
+					data: JSON.stringify({
+						Type: 'ScanDockIn',
+						TN_No: tnno
+					})
+				}).done(function(data, textStatus, jqXHR) {
+					var result = data.split('~');
+
+					if(tnno != '') {
+						if(result[0] == 'Error') {
+							$("#Message").val(result[1]);
+						} else {
+							$("#Message").val('');
+						}
+					} else {
+						$("#Message").val('');
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+				});
+			},
+			onClickFocus(e){$(e.target).select();},
+		},
+		init: function() {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function() {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				height:225,
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'ScanDockIn/INQ',
+								dataType: 'text',
+								data: {}
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								TN_No: { type: "string" },
+								DockCode: { type: "string" },
+								RouteCode: { type: "string" },
+								Trip: { type: "string" },
+								DeliveryTime: { type: "string" },
+								ScanInADMDate: { type: "string" },
+								Status: { type: "string" },
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				editable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					field: "TN_No",
+					title: "Trip No",
+					width: 100,
+				},
+				{
+					field: "DockCode",
+					title: "Dock",
+					width: 80
+				},
+				{
+					field: "RouteCode",
+					title: "Route",
+					width: 80
+				},
+				{
+					field: "Trip",
+					title: "Trip",
+					width: 50
+				},
+				{
+					field: "DeliveryTime",
+					title: "Delv. Time",
+					width: 100
+				},
+				{
+					field: "ScanInADMDate",
+					title: "Gate In",
+					width: 100
+				},
+				{
+					field: "Status",
+					title: "Status",
+					width: 100
+				}]
+			});
+
+			$("#TN_No").val('');
+			$("#Message").val('');
+			$("#TN_No").select();
+		},
+	};
+
+	$(function() {
+		AppD.init();
+	});
+
+	var modal = document.getElementById("myModal");
+	var span = document.getElementsByClassName("close")[0];
+	span.onclick = function() {
+		modal.style.display = "none";
+	}
+	window.onclick = function(event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
+	}
+</script>

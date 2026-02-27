@@ -1,0 +1,6 @@
+﻿@{
+    ViewData["Title"] = "Andon Timeline Delivery";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+    string myxapi = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:XAPI").Value;
+    Layout = "~/Views/Shared/_LayoutAndon.cshtml";
+}

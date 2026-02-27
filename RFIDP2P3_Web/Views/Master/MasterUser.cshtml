@@ -44,13 +44,19 @@
 								<div class="form-group form-material col-md-12">
 									<label class="col-sm-3 control-label">Plant</label>
 									<div class="col-sm-9">
-										<input type="text" class="" id="PlantID" style="width:100%" required />
+										<input type="text" class="" id="PlantID" style="width:100%" />
 									</div>
 								</div>
 								<div class="form-group form-material col-md-12">
 									<label class="col-sm-3 control-label">Department</label>
 									<div class="col-sm-9">
-										<input type="text" class="" id="DeptId" style="width:100%" required />
+										<input type="text" class="" id="DeptId" style="width:100%" />
+									</div>
+								</div>
+								<div class="form-group form-material col-md-12" id="divSupp">
+									<label class="col-sm-3 control-label">Supplier Code</label>
+									<div class="col-sm-9">
+										<input type="text" class="" id="SupplierCode" style="width:100%" />
 									</div>
 								</div>
 							</div>
@@ -70,13 +76,13 @@
 								<div class="form-group form-material col-md-12">
 									<label class="col-sm-3 control-label">Building</label>
 									<div class="col-sm-9">
-										<input type="text" class="" id="BuildingId" style="width:100%" required />
+										<input type="text" class="" id="BuildingId" style="width:100%" />
 									</div>
 								</div>
 								<div class="form-group form-material col-md-12">
 									<label class="col-sm-3 control-label">Section</label>
 									<div class="col-sm-9">
-										<input type="text" class="" id="SectionId" style="width:100%" required />
+										<input type="text" class="" id="SectionId" style="width:100%" />
 									</div>
 								</div>
 							</div>
@@ -149,6 +155,7 @@
 			o.dom.inputs.$inputBuildingId = $("#BuildingId");
 			o.dom.inputs.$inputDeptId = $("#DeptId");
 			o.dom.inputs.$inputSectionId = $("#SectionId");
+			o.dom.inputs.$inputSupplier= $("#SupplierCode");
 			o.dom.$btnSave = $("#btnSave");
 		},
 		data: {},
@@ -165,10 +172,12 @@
 				o.dom.inputs.$inputBuildingId.data("kendoDropDownList").value('');
 				o.dom.inputs.$inputDeptId.data("kendoComboBox").value('');
 				o.dom.inputs.$inputSectionId.data("kendoComboBox").value('');
+				o.dom.inputs.$inputSupplier.data("kendoComboBox").value('');
 
                 document.getElementById("User_Id").disabled = false;
 				$("#Password").attr("placeholder", "");
 
+				$("#divSupp").hide();
 				o.dom.$editor.modal('show');
 			},
 			onClickBtnDelete: function (e) {
@@ -223,9 +232,16 @@
 				o.dom.inputs.$inputBuildingId.data("kendoDropDownList").value(di.BuildingId);
 				o.dom.inputs.$inputDeptId.data("kendoComboBox").value(di.DeptId);
 				o.dom.inputs.$inputSectionId.data("kendoComboBox").value(di.SectionId);
+				o.dom.inputs.$inputSupplier.data("kendoComboBox").value(di.SupplierCode);
 
                 document.getElementById("User_Id").disabled = true;
 				$("#Password").attr("placeholder", "Leave this blank to keep password");
+
+				if(di.UserGroup_Id == '024' || di.UserGroup_Id == '025') {
+					$("#divSupp").show();
+				} else {
+					$("#divSupp").hide();
+				}
 
 				o.dom.$editor.modal('show');
 			},
@@ -239,9 +255,17 @@
 				var BuildingId = $("#BuildingId").data("kendoDropDownList").value();
 				var DeptId = $("#DeptId").data("kendoComboBox").value();
 				var SectionId = $("#SectionId").data("kendoComboBox").value();
+				var Supplier = $("#SupplierCode").data("kendoComboBox").value();
 
-				if (UID != '' && Name != '' && UserGroup != '' && PlantID != '' && BuildingId != '' && DeptId != ''
-					&& SectionId != '' && ((IUType == 'I' && Password != '') || (IUType == 'U'))) {
+				var allowedEmptyLocationGroups = ['001', '002', '024', '025', '026'];
+
+				if (UID == '' || Name == '' || UserGroup == '' || (IUType == 'I' && Password == '') ||
+				  (!allowedEmptyLocationGroups.includes(UserGroup) &&
+					(PlantID == '' || BuildingId == '' || DeptId == '' || SectionId == '')) ||
+				  ((UserGroup == '024' || UserGroup == '025') && Supplier == '')
+				) {
+					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
+				} else {
 					swal.fire({
 						title: "Save?",
 						icon: 'warning',
@@ -263,6 +287,7 @@
 									DeptId: DeptId,
 									SectionId: SectionId,
 									BuildingId: BuildingId,
+									SupplierCode: Supplier,
 									IUType: IUType,
 									UserLogin: "@Context.Session.GetString("PIC_ID")"
 								})
@@ -280,8 +305,6 @@
 							});
 						}
 					});
-				} else {
-					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
 				}
 			}
 		},
@@ -342,7 +365,8 @@
 								PlantName: { type: "string" },
 								DeptName: { type: "string" },
 								SectionName: { type: "string" },
-								BuildingName: { type: "string" }
+								BuildingName: { type: "string" },
+								Supplier: { type: "string" }
 							}
 						}
 					},
@@ -423,17 +447,25 @@
 				{
 					field: "DeptName",
 					title: "Dept",
-					width: 100
+					width: 150,
+					template: "<div class='customClass'> #= (DeptName == null) ? ' ' : kendo.toString(DeptName, '') # </div>",
 				},
 				{
 					field: "SectionName",
 					title: "Section",
-					width: 100
+					width: 150,
+					template: "<div class='customClass'> #= (SectionName == null) ? ' ' : kendo.toString(SectionName, '') # </div>",
 				},
 				{
 					field: "BuildingName",
 					title: "Gedung",
 					width: 100
+				},
+				{
+					field: "Supplier",
+					title: "Supplier",
+					width: 150,
+					template: "<div class='customClass'> #= (Supplier == null) ? ' ' : kendo.toString(Supplier, '') # </div>",
 				}],
 				toolbar: $("#template_toolbar").html()
 			});
@@ -480,6 +512,12 @@
 							this.text("");
 							this.value("");
 						}
+					}
+
+					if(this.value() == '024' || this.value() == '025') {
+						$("#divSupp").show();
+					} else {
+						$("#divSupp").hide();
 					}
 				}
 			}).data("kendoComboBox");
@@ -664,6 +702,46 @@
 			
 			plant.bind("cascade", cascade);
 			dept.bind("cascade", cascade);
+
+			$("#SupplierCode").kendoComboBox({
+				dataValueField: "IdValue",
+				dataTextField: "ViewValue",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'DropDown/INQ',
+								dataType: 'text',
+								data: JSON.stringify({ Ftype: "Supplier", Plant: "" })
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								options.success({ data: [] });
+							});
+						}
+					}
+				},
+				change: function(){
+					if (this.value() && this.selectedIndex == -1) {
+						this.text("");
+						this.value(null);
+					}
+				}
+			}).data("kendoComboBox");
+
+			$("#divSupp").hide();
 		}
 	};
 

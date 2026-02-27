@@ -1,0 +1,422 @@
+﻿@{
+	ViewData["Title"] = "Print Part Address";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div id="qr_code" style="display:none;"></div>
+
+<div class="page-main">
+    <div class="page-content padding-5">
+        <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<script>
+    var datas;
+
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+            o.dom.$grid.on('click', '#btnPrint', o.eventHandlers.onClickBtnPrint.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$grid = $("#grid");
+        },
+        data: {
+            Line: '',
+            JobNo: ''
+        },
+        dom: {},
+        eventHandlers: {
+            onClickBtnExcel: function () {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').saveAsExcel();
+            },
+            onClickBtnPrint: function (e) {
+                if(datas.length > 0) {
+                    swal.fire({
+                        title: "Print Part Address?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        showLoaderOnConfirm: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        preConfirm: () => {
+                            return new Promise((resolve) => {
+                                setTimeout(() => {
+                                    var x;
+                                    var y = 2.5;
+                                    var count = 0;
+
+                                    var pdf = new jsPDF({
+                                        orientation: "p",
+                                        unit: "mm",
+                                        format: "a4"
+                                    });
+
+                                    for(let i = 0; i < datas.length; i++) {
+                                        x = 2.5;
+                                        count++;
+
+                                        if(count == 8) {
+                                            count = 1;
+                                            y = 2.5;
+
+                                            pdf.addPage({
+                                                orientation: "p",
+                                                unit: "mm",
+                                                format: "a4"
+                                            });
+                                        }
+
+                                        pdf.setLineDash([0], 1);
+                                        pdf.setLineWidth(0.3);
+
+                                        pdf.rect(x, y, 25, 5);
+                                        pdf.setFontSize(8);
+                                        pdf.setFontStyle("bold");
+                                        pdf.setTextColor(0, 0, 0);
+
+                                        pdf.text("POSISI", x + 12.5, y + 3.5, "center");
+
+                                        x += 25;
+                                        pdf.rect(x, y, 60, 5);
+                                        pdf.text("JOB NUMBER", x + 30, y + 3.5, "center");
+
+                                        x += 60;
+                                        pdf.rect(x, y, 25, 5);
+                                        pdf.text("QR CODE", x + 12.5, y + 3.5, "center");
+
+                                        x += 25;
+                                        pdf.rect(x, y, 95, 5);
+                                        pdf.text("PART NAME", x + 47.5, y + 3.5, "center");
+
+                                        x = 2.5;
+                                        y += 5;
+                                        pdf.rect(x, y, 25, 25);
+
+                                        x += 7.5;
+                                        pdf.setFillColor(0, 0, 0);
+                                        pdf.rect(x, y + 2, 10, 14.5, "F");
+                                        pdf.triangle(x - 5, y + 16, x + 5, y + 22.5, x + 15, y + 16, "F")
+
+                                        x += 17.5;
+                                        pdf.rect(x, y, 60, 25);
+                                        pdf.setFontSize(35);
+                                        pdf.text(datas[i].JobNo, x + 30, y + 16, "center");
+
+                                        x += 60;
+                                        pdf.rect(x, y, 25, 32.5);
+
+                                        $("#qr_code").html("");
+                                        $('#qr_code').qrcode(datas[i].ExCore);
+                                        var canvas = document.querySelector("#qr_code canvas");
+                                        var img = canvas.toDataURL("image/jpeg", 1);
+                                        pdf.addImage(img, 'png', x + 2.5, y + 6, 20, 20);
+
+                                        x += 25;
+                                        pdf.rect(x, y, 95, 7.5);
+                                        pdf.setFontSize(10);
+                                        pdf.text(datas[i].PartName, x + 47.5, y + 5, "center");
+
+                                        y += 7.5;
+                                        pdf.rect(x, y, 47.5, 5);
+                                        pdf.setFontSize(8);
+                                        pdf.text("PART NO", x + 23.75, y + 3.5, "center");
+                                        pdf.rect(x + 47.5, y, 23.75, 5);
+                                        pdf.text("LAYER", x + 59.375, y + 3.5, "center");
+                                        pdf.rect(x + 71.25, y, 23.75, 5);
+                                        pdf.text("MAX CAP", x + 83.125, y + 3.5, "center");
+
+                                        y += 5;
+                                        pdf.rect(x, y, 47.5, 7.5);
+                                        pdf.setFontSize(10);
+                                        pdf.text(datas[i].PartNumber, x + 23.75, y + 5, "center");
+                                        pdf.rect(x + 47.5, y, 23.75, 7.5);
+                                        pdf.text((datas[i].Layer).toString(), x + 59.375, y + 5, "center");
+                                        pdf.rect(x + 71.25, y, 23.75, 7.5);
+                                        pdf.text((datas[i].MaxCapacity).toString(), x + 83.125, y + 5, "center");
+
+                                        y += 7.5;
+                                        pdf.rect(x, y, 47.5, 5);
+                                        pdf.setFontSize(8);
+                                        pdf.text("SUPPLIER", x + 23.75, y + 3.5, "center");
+                                        pdf.rect(x + 47.5, y, 23.75, 5);
+                                        pdf.text("HOLE", x + 59.375, y + 3.5, "center");
+                                        pdf.rect(x + 71.25, y, 23.75, 5);
+                                        pdf.text("LAST UPDATE", x + 83.125, y + 3.5, "center");
+
+                                        y += 5;
+                                        pdf.rect(x, y, 47.5, 7.5);
+                                        pdf.setFontSize(10);
+                                        pdf.text(datas[i].SupplierAlias, x + 23.75, y + 5, "center");
+                                        pdf.rect(x + 47.5, y, 23.75, 7.5);
+                                        pdf.text((datas[i].Hole).toString(), x + 59.375, y + 5, "center");
+                                        pdf.rect(x + 71.25, y, 23.75, 7.5);
+                                        pdf.text(datas[i].LastUpdate, x + 83.125, y + 5, "center");
+
+                                        x = 2.5;
+                                        pdf.rect(x, y, 85, 7.5);
+                                        pdf.text(datas[i].ExCore, x + 42.5, y + 5, "center");
+
+                                        x = 0;
+                                        y += 10;
+
+                                        pdf.setLineDash([1], 1);
+                                        pdf.line(0, y, 210, y);
+
+                                        y += 2.5;
+                                    }
+
+                                    pdf.save('Print Part Address.pdf');
+                                    Swal.close();
+                                }, 100);
+                            });
+                        }
+                    });
+                } else {
+                    swal.fire('No Data', '', 'warning');
+                }
+            },
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Print Part Address.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'PrintPartAddress/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									LineOrderCode: o.data.Line,
+									JobNo: o.data.JobNo
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+                                    datas = result;
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								ExCore: { type: "string" },
+								DockCode: { type: "string" },
+								SupplierName: { type: "string" },
+								JobNo: { type: "string" },
+								PartNumber: { type: "string" },
+								PartName: { type: "string" },
+								Layer: { type: "number" },
+								Hole: { type: "number" },
+								MaxCapacity: { type: "number" }
+							}
+						}
+					},
+					pageSize: 20
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					field: "LineOrderCode",
+					title: "Line",
+					width: 80
+				},
+				{
+					field: "JobNo",
+					title: "Job No.",
+					width: 80
+				},
+				{
+					field: "PartNumber",
+					title: "Part No.",
+					width: 100
+				},
+				{
+					field: "PartName",
+					title: "Part Namer",
+					width: 200
+				},
+				{
+					field: "Layer",
+					title: "Layer",
+					width: 80
+				},
+				{
+					field: "Hole",
+					title: "Hole",
+					width: 80
+				},
+				{
+					field: "MaxCapacity",
+					title: "Max Cap.",
+					width: 80
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function(e) {
+					o.initAfter();
+				}
+			});
+        },
+        initAfter: function () {
+            var o = this;
+            if (o.initAfterCalled) return;
+            o.initAfterCalled = true;
+            o.dom.Line = $("#LineOrderCode");
+			o.dom.JobNo = $("#JobNo");
+
+            o.dom.Line.kendoComboBox({
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                filter: "contains",
+                value: o.data.Line,
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+                                data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                },
+                change: function(){
+                    o.data.Line = this.value();
+
+                    if (this.value() && this.selectedIndex == -1) {
+                        this.text("");
+                        this.value(null);
+                    }
+
+                    o.dom.$grid.data('kendoGrid').dataSource.read();
+                }
+            });
+
+			o.dom.JobNo.kendoMultiSelect({
+                dataValueField: "IdValue",
+                dataTextField: "ViewValue",
+                filter: "contains",
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                url: "@myurl" + 'DropDown/INQ',
+                                dataType: 'text',
+								data: JSON.stringify({ Ftype: "JobNo", Plant: "" })
+                            }).done(function (data, textStatus, jqXHR) {
+                                try {
+                                    var result = JSON.parse(data);
+                                }
+                                catch (e) {
+                                    swal.fire('Error', 'Error loading grid', 'error');
+                                    options.success({ data: [] });
+                                    return;
+                                }
+                                options.success(result);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                                options.success({ data: [] });
+                            });
+                        }
+                    }
+                },
+				value: o.data.JobNo,
+                change: function () {
+					o.data.JobNo = this.value() != null ? this.value().join('; ') : '';
+                    o.dom.$grid.data('kendoGrid').dataSource.read();
+                },
+                tagMode: "none",
+                clearButton: false
+            });
+        }
+    };
+
+    $(function () {
+        AppD.init();
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Print Part Address -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+        &nbsp;&nbsp;
+        <button data-toggle="tooltip" title="Print" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnPrint">
+            <i class="k-icon k-i-print"></i>
+        </button>
+        &nbsp;&nbsp;
+        <input id="LineOrderCode" placeholder="Line" />
+        &nbsp;&nbsp;
+        <input type="text" id="JobNo" placeholder="Job No." style="width:200px;" />
+    </div>
+</script>

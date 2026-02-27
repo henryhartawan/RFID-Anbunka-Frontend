@@ -1226,6 +1226,125 @@
 						</ul>
 					</li>
 				}
+				@if (
+					Context.Session.GetString("read_StockFlowGeneral") == "True" ||
+					Context.Session.GetString("read_master_warehouse") == "True" ||
+					Context.Session.GetString("read_PrintPartAddress") == "True" ||
+					Context.Session.GetString("read_ScanSupply") == "True" ||
+					Context.Session.GetString("read_SupplyMonitoring") == "True" ||
+					Context.Session.GetString("read_ScanDriver") == "True" ||
+					Context.Session.GetString("read_ScanInADM") == "True" ||
+					Context.Session.GetString("read_ManualCalling") == "True" ||
+					Context.Session.GetString("read_ScanDockIn") == "True" ||
+					Context.Session.GetString("read_ScanDockOut") == "True" ||
+					Context.Session.GetString("read_ScanOutADM") == "True" ||
+					Context.Session.GetString("read_AndonTimelineDelivery") == "True")
+				{
+					<li class="gui-folder">
+						<a>
+							<div class="gui-icon"><i class="fa fa-barcode"></i></div>
+							<span class="title">Step 3</span>
+						</a>
+						<ul>
+						@if (Context.Session.GetString("read_StockFlowGeneral") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="StockFlowGeneral" class="@getClass("Step3", "StockFlowGeneral")">
+									<span class="title">Stock Flow General</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_master_warehouse") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="MasterWarehouse" class="@getClass("Step3", "MasterWarehouse")">
+									<span class="title">Master Warehouse</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_PrintPartAddress") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="PrintPartAddress" class="@getClass("Step3", "PrintPartAddress")">
+									<span class="title">Print Part Address</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanSupply") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanSupply" class="@getClass("Step3", "ScanSupply")">
+									<span class="title">Scan Supply</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_SupplyMonitoring") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="SupplyMonitoring" class="@getClass("Step3", "SupplyMonitoring")">
+									<span class="title">Supply Monitoring</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanDriver") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanDriver" class="@getClass("Step3", "ScanDriver")">
+									<span class="title">Scan Driver</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanInADM") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanInADM" class="@getClass("Step3", "ScanInADM")">
+									<span class="title">Scan In ADM</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ManualCalling") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ManualCalling" class="@getClass("Step3", "ManualCalling")">
+									<span class="title">Manual Calling</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanDockIn") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanDockIn" class="@getClass("Step3", "ScanDockIn")">
+									<span class="title">Scan Dock In</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanDockOut") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanDockOut" class="@getClass("Step3", "ScanDockOut")">
+									<span class="title">Scan Dock Out</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanOutADM") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanOutADM" class="@getClass("Step3", "ScanOutADM")">
+									<span class="title">Scan Out ADM</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_AndonTimelineDelivery") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="AndonTimelineDelivery" class="@getClass("Step3", "AndonTimelineDelivery")">
+									<span class="title">Andon Timeline Delivery</span>
+								</a>
+							</li>
+						}
+						</ul>
+					</li>
+				}
 				</ul>
 				<div class="menubar-foot-panel">
 					<small class="no-linebreak hidden-folded">
@@ -1364,10 +1483,14 @@
 			});
 		}
 
+		var canEdit = "@Context.Session.GetString("edit_LDK")";
+
 		$(document).ready(function () {
-			resized(0);
-			loadNotifications();
-			setInterval(loadNotifications, 10000);
+			if (canEdit == "True") {
+				resized(0);
+				loadNotifications();
+				setInterval(loadNotifications, 10000);
+			}
 		});
 	</script>
 

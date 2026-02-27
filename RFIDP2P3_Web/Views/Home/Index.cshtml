@@ -1,7 +1,91 @@
 ﻿@{
     ViewData["Title"] = "Home";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
 }
 
-<div style="background-color:white;width:100%;height:100%">
-    <img src="~/img/bgdaihatsu.svg" style="display:block;margin-left:auto;margin-right:auto;max-width:100%;max-height:90vh;">
+<div class="page-main">
+    <div class="page-content padding-5">
+        <div class="col-xs-12" style="background-color:white;width:100%;height:90vh">
+            <h3 class="modal-title" style="padding-left: 10px; padding-top:15px">
+                <b>Hi @Context.Session.GetString("PIC_Name"), welcome to ICS</b>
+            </h3>
+            @if (Context.Session.GetString("UserGroup_Id") != "025")
+            {
+                <img src="~/img/bgdaihatsu.svg" style="display:block;margin-left:auto;margin-right:auto;max-width:100%;max-height:100%;">
+            }
+            else
+            {
+                <div class="col-xs-12 col-md-6">
+                    <h4>Current Trip : <label id="currTrip"></label></h4>
+                </div>
+                <div class="col-xs-12 col-md-6">
+                    <div id="qr_code"></div>
+                </div>
+                <div class="col-xs-12" style="text-align:center;">
+                    <button type="button" class="btn btn-success" onclick="location.href='@Url.Action("ScanDriver", "Step3")'" style="width:50%; white-space: normal;">SCAN TRIPNOTE</button>
+                </div>
+                <br/>
+                <div class="col-xs-12" style="text-align:center;">
+                    <button type="button" class="btn btn-warning" onclick="location.href='@Url.Action("Logout", "Login")'" style="width:50%; white-space: normal;">LOGOUT</button>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<script>
+    var usergroup = "@Context.Session.GetString("UserGroup_Id")";
+
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+        },
+        cacheDom: function () {
+            var o = this;
+        },
+        data: {},
+        dom: {},
+        eventHandlers: {},
+        fn: {
+            getTrip: function() {
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    url: "@myurl"+'Home/INQ',
+                    dataType: 'text',
+                    data: JSON.stringify({
+                        PIC_ID: "@Context.Session.GetString("PIC_ID")"
+                    })
+                }).done(function(data, textStatus, jqXHR) {
+                    var result = data;
+                    $("#currTrip").html(result);
+
+                    $("#qr_code").html("");
+                    if(result != '') $('#qr_code').qrcode({width:100, height:100, text: result});
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                    console.log(jqXHR);
+                }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                    o.dom.$grid.data('kendoGrid').dataSource.read();
+                });
+            }
+        },
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+
+            if(usergroup == '025') {
+                o.fn.getTrip.call(o);
+            }
+        }
+    };
+
+    $(function () {
+        AppD.init();
+    });
+</script>
