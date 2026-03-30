@@ -104,5 +104,25 @@ namespace RFIDP2P3_Web.Controllers
             if (HttpContext.Session.GetString("PIC_ID") != null) return View();
             else return RedirectToAction("Index", "Login");
         }
+        public IActionResult MasterCustomerOrder()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
+        public IActionResult MasterSuffixToUnique()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
+        public IActionResult AddMasterCalendar()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
+        public IActionResult MasterOEETTFuture()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
     }
 }

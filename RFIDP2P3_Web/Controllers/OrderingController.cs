@@ -114,5 +114,10 @@ namespace RFIDP2P3_Web.Controllers
             if (HttpContext.Session.GetString("PIC_ID") != null) return View();
             else return RedirectToAction("Index", "Login");
         }
+        public IActionResult UploadStockEngine()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
     }
 }

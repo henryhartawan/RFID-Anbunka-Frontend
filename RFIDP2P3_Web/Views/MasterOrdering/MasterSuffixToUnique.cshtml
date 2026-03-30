@@ -1,0 +1,633 @@
+﻿@{
+    ViewData["Title"] = "Master Suffix to Unique";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+    .k-dropdown-wrap .k-input, .k-numeric-wrap .k-input, .k-picker-wrap .k-input {
+       height: 30px;
+    }
+</style>
+
+<div class="page-main">
+    <div class="page-content padding-5">
+       <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<div class="modal fade modal-primary" id="editor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="" role="document">
+       <div class="modal-content">
+          <div class="modal-header">
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+             </button>
+             <h4 class="modal-title" id="myModalTitle">Master Suffix to Unique</h4>
+          </div>
+          <div class="modal-body margin-bottom-0 padding-bottom-0">
+             <div class="panel">
+                <div class="panel-body">
+                   <form class="form-horizontal">
+                      <div class="col-md-12">
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Suffix ID</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="SuffixId" disabled placeholder="(Auto Generated)"/>
+                            </div>
+                         </div>
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Unique Code</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="UniqueCode"/>
+                            </div>
+                         </div>
+                      </div>
+                      <div class="col-md-12">
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Suffix</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="SuffixCode"/>
+                            </div>
+                         </div>
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Model Group</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="ModelGroup" disabled/>
+                            </div>
+                         </div>
+                      </div>
+                      <div class="col-md-12">
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Line Order Code</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="LineOrderCode"/>
+                            </div>
+                         </div>
+                      </div>
+                      <div class="clearfix"></div>
+                   </form>
+                </div>
+             </div>
+          </div>
+          <div class="modal-footer">
+             <button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+             <button type="button" class="btn btn-primary" id="btnSave">Submit</button>
+          </div>
+       </div>
+    </div>
+</div>
+
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+   <div class="" role="document" style="padding-left:25vw;">
+      <div class="modal-content" style="width:50vw">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalTitle">Upload Master Suffix to Upload</h4>
+         </div>
+         <div class="modal-body margin-bottom-0 padding-bottom-0">
+            <form id="formUpload" enctype="multipart/form-data">
+               <span>Download template <a href="../../templates/Master Suffix to Unique.xlsx" style="color:#0099ff" download="Template Master Suffix to Unique.xlsx">here</a></span>
+               <input type="file" name="file" id="fileUpload" accept=".xls,.xlsx" />
+            </form>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+            <button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<script>
+    var IUType = 'I';
+
+    var AppD = {
+       attachEvents: function () {
+          var o = this;
+          o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
+
+          o.dom.$grid.on('click', '#btnCreate', o.eventHandlers.onClickBtnCreate.bind(o));
+          o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+          o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+
+          o.dom.$grid.on('click', '.btnUpdate', o.eventHandlers.onClickBtnUpdate.bind(o));
+          o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
+
+          $("#btnSaveUpload").on('click', o.eventHandlers.onClickSubmitUpload.bind(o));
+       },
+       cacheDom: function () {
+          var o = this;
+          o.dom.$editor = $("#editor");
+          o.dom.$uploadModal = $("#editorUpload");
+          o.dom.$grid = $("#grid");
+          o.dom.$btnSave = $("#btnSave");
+
+          o.dom.inputs = {};
+          o.dom.inputs.$inpuSuffixId = $("#SuffixId");
+          o.dom.inputs.$inpuSuffixCode = $("#SuffixCode");
+          o.dom.inputs.$inputLineOrder = $("#LineOrderCode");
+          o.dom.inputs.$inputUniqueCode= $("#UniqueCode");
+          o.dom.inputs.$inputModelGroup = $("#ModelGroup");
+       },
+       data: {},
+       dom: {},
+       eventHandlers: {
+          onClickBtnCreate: function () {
+             var o = this;
+             IUType = 'I';
+
+             o.dom.inputs.$inpuSuffixId.val('');
+             o.dom.inputs.$inpuSuffixCode.val('');
+             o.dom.inputs.$inputModelGroup.val('');
+
+             var cbUnique = o.dom.inputs.$inputUniqueCode.data("kendoComboBox");
+             cbUnique.value('');
+             cbUnique.enable(true);
+
+             var cbLine = o.dom.inputs.$inputLineOrder.data("kendoComboBox");
+             cbLine.value('');
+             cbLine.enable(true);
+             
+             o.dom.$editor.modal('show');
+          },
+          onClickBtnUpload: function () {
+             var o = this;
+             var upload = $("#fileUpload").data("kendoUpload");
+             if (upload) {
+                upload.clearAllFiles();
+             }
+             o.dom.$uploadModal.modal('show');
+          },
+          onClickSubmitUpload: function() {
+             var o = this;
+             var upload = $("#fileUpload").data("kendoUpload");
+             var files = upload.getFiles();
+
+             if(files.length === 0){
+                swal.fire({ title: 'Warning', text: 'Please select an Excel file first', icon: 'warning'});
+                return;
+             }
+
+             swal.fire({
+                title: "Upload Data?",
+                text: "Are you sure you want to upload this Excel file?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Upload it',
+                cancelButtonText: 'Cancel'
+             }).then((result) => {
+                if (result.isConfirmed) {
+                   
+                   var formData = new FormData();
+                   formData.append("file", files[0].rawFile);
+                   formData.append("UserLogin", "@Context.Session.GetString("PIC_ID")");
+
+                   swal.fire({
+                      title: 'Uploading Data...',
+                      text: 'Please wait while we process your Excel file.',
+                      allowOutsideClick: false,
+                      didOpen: () => {
+                         swal.showLoading();
+                      }
+                   });
+
+                   $.ajax({
+                      method: 'post',
+                      headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                      url: "@myurl" + 'MasterSuffixToUnique/UploadExcel',
+                      data: formData,
+                      processData: false,
+                      contentType: false,
+                      success: function (response) {
+                         if (response === 'success') {
+                            o.dom.$uploadModal.modal('hide');
+                            swal.fire({ title: 'Success', text: 'Data uploaded successfully!', icon: 'success', timer: 2000, showConfirmButton: false });
+                            o.dom.$grid.data('kendoGrid').dataSource.read();
+
+                            upload.clearAllFiles();
+                         } else {
+                            swal.fire('Upload Failed', response, 'error');
+                         }
+                      },
+                      error: function (jqXHR, textStatus, errorThrown) {
+                         var errorMsg = jqXHR.responseText !== '' ? jqXHR.responseText : 'Failed to connect to server.';
+
+                         var formattedError = errorMsg.replace(/\n/g, '<br/>');
+
+                         swal.fire({
+                            title: 'Upload Cancelled!',
+                            html: '<div style="text-align: left; font-size: 14px;">' + formattedError + '</div>',
+                            icon: 'error'
+                         });
+
+                         upload.clearAllFiles();
+                      }
+                   });
+                }
+             });
+          },
+          onClickBtnDelete: function (e) {
+             var o = this;
+             var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+             swal.fire({
+                title: 'Delete Data?',
+                text: "Data will be permanently deleted!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Delete it'
+             }).then((result) => {
+                if (result.isConfirmed) {
+                   $.ajax({
+                      method: 'post',
+                      headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                      url: "@myurl" + 'MasterSuffixToUnique/DEL',
+                      dataType: 'text',
+                      data: JSON.stringify({
+                         SuffixId: di.SuffixId,
+                         UserLogin: "@Context.Session.GetString("PIC_ID")"
+                      })
+                   }).done(function (data, textStatus, jqXHR) {
+                      if (data !== 'success') {
+                         swal.fire('Error', data, 'error');
+                         return;
+                      }
+                      swal.fire({ title: 'Success', text: 'Data permanently deleted', icon: 'success', timer: 2000, showConfirmButton: false });
+                   }).fail(function (jqXHR, textStatus, errorThrown) {
+                      swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                   }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                      o.dom.$grid.data('kendoGrid').dataSource.read();
+                   });
+                }
+             });
+          },
+          onClickBtnExcel: function () {
+             var o = this;
+             o.dom.$grid.data('kendoGrid').saveAsExcel();
+          },
+          onClickBtnUpdate: function (e) {
+             var o = this;
+             IUType = 'U';
+             var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
+
+             o.dom.inputs.$inpuSuffixId.val(di.SuffixId);
+             o.dom.inputs.$inpuSuffixCode.val(di.SuffixCode);
+             o.dom.inputs.$inputModelGroup.val(di.ModelGroup);
+
+             var cbUnique = o.dom.inputs.$inputUniqueCode.data("kendoComboBox");
+             if (cbUnique) {
+                cbUnique.value(di.UniqueCode);
+                cbUnique.enable(false);
+             }
+
+             var cbLine = o.dom.inputs.$inputLineOrder.data("kendoComboBox");
+             if (cbLine) {
+                cbLine.value(di.LineOrderCode);
+                cbLine.enable(false);
+             }
+
+             o.dom.$editor.modal('show');
+          },
+          onClickBtnSave: function (e) {
+             var o = this;
+             var suffixId = o.dom.inputs.$inpuSuffixId.val();
+             var suffixCode = o.dom.inputs.$inpuSuffixCode.val();
+             var uniqueCode = o.dom.inputs.$inputUniqueCode.data("kendoComboBox").value();
+             var lineOrderCode = o.dom.inputs.$inputLineOrder.data("kendoComboBox").value();
+             var modelGroup = o.dom.inputs.$inputModelGroup.val();
+
+             if(suffixCode != '' && uniqueCode != '' && lineOrderCode != ''){
+                swal.fire({
+                   title: "Save Data?",
+                   icon: 'warning',
+                   showCancelButton: true,
+                   confirmButtonText: 'Yes'
+                }).then((result) => {
+                   if (result.isConfirmed) {
+                      $.ajax({
+                         method: 'post',
+                         headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                         url: "@myurl" + 'MasterSuffixToUnique/INS',
+                         dataType: 'text',
+                         data: JSON.stringify({
+                            SuffixId: suffixId,
+                            SuffixCode: suffixCode,
+                            UniqueCode: uniqueCode,
+                            LineOrderCode: lineOrderCode,
+                            ModelGroup: modelGroup,
+                            IUType: IUType,
+                            UserLogin: "@Context.Session.GetString("PIC_ID")"
+                         })
+                      }).done(function (data, textStatus, jqXHR) {
+                         if (data !== 'success') {
+                            swal.fire('Error', data, 'error');
+                            return;
+                         }
+                         o.dom.$editor.modal('hide');
+                         swal.fire({ title: 'Success', text: 'Data saved successfully', icon: 'success', timer: 2000, showConfirmButton: false });
+                      }).fail(function (jqXHR, textStatus, errorThrown) {
+                         swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                      }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+                         o.dom.$grid.data('kendoGrid').dataSource.read();
+                      });
+                   }
+                });
+             } else {
+                swal.fire({ title: 'Warning', text: 'Please fill Suffix Code, Unique Code, and Line Order Code', icon: 'warning'});
+             }
+          },
+       },
+       init: function () {
+          var o = this;
+          o.cacheDom();
+          o.attachEvents();
+          o.initElements();
+       },
+       initElements: function () {
+          var o = this;
+
+          o.dom.$grid.kendoGrid({
+             excel: {
+                fileName: "Master Suffix To Unique.xlsx",
+                allPages: true,
+                filterable: true
+             },
+             dataSource: {
+                transport: {
+                   read: function (options) {
+                      $.ajax({
+                         method: 'post',
+                         headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                         url: "@myurl" + 'MasterSuffixToUnique/INQ',
+                         dataType: 'text',
+                         data: {}
+                      }).done(function (data, textStatus, jqXHR) {
+                         try {
+                            var result = JSON.parse(data);
+                         }
+                         catch (e) {
+                            swal.fire('Error', 'Error loading grid', 'error');
+                            options.success({ data: [] });
+                            return;
+                         }
+                         options.success(result);
+                      }).fail(function (jqXHR, textStatus, errorThrown) {
+                         swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                         options.success({ data: [] });
+                      });
+                   }
+                },
+                schema: {
+                   model: {
+                      id: "SuffixId",
+                      fields: {
+                         SuffixId: { type: "string" },
+                         SuffixCode: { type: "string" },
+                         UniqueCode: { type: "string" },
+                         LineOrderCode: { type: "string" },
+                         ModelGroup: { type: "string" },
+                         CreatedBy: { type: "string" },
+                         CreatedDate: { type: "string" },
+                         UpdatedBy: { type: "string" },
+                         UpdatedDate: { type: "string" }
+                      }
+                   }
+                },
+                pageSize: 20
+             },
+             scrollable: true,
+             sortable: true,
+             resizable: true,
+             reorderable: true,
+             filterable: {
+                extra: false,
+                operators: {
+                   string: {
+                      contains: "Contains",
+                      eq: "Equal to",
+                      neq: "Not equal to"
+                   }
+                }
+             },
+             pageable: {
+                refresh: true,
+                input: true,
+                numeric: true,
+                pageSizes: true,
+                buttonCount: 5
+             },
+             columns: [
+             @if (Context.Session.GetString("edit_MasterSuffixToUnique") == "True")
+             {
+                <text>
+                {
+                   width: 50,
+                   command: [{
+                      name: "Update",
+                      text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
+                   }]
+                },
+                </text>
+             }
+             @if (Context.Session.GetString("del_MasterSuffixToUnique") == "True")
+             {
+                <text>
+                {
+                   width: 50,
+                   command: [{
+                      name: "Delete",
+                      text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
+                   }]
+                },
+                </text>
+             } {
+                field: "SuffixId",
+                title: "ID",
+                width: 100,
+                hidden: true
+             }, {
+                field: "LineOrderCode",
+                title: "Line Order Code",
+                width: 120,
+                template: "<div class='customClass'> #= (LineOrderCode == null) ? ' ' : kendo.toString(LineOrderCode, '') # </div>",
+             }, {
+                field: "ModelGroup",
+                title: "Model Group",
+                width: 200,
+                template: "<div class='customClass'> #= (ModelGroup == null) ? ' ' : kendo.toString(ModelGroup, '') # </div>",
+             }, {
+                field: "UniqueCode",
+                title: "Unique Code",
+                width: 120,
+                template: "<div class='customClass'> #= (UniqueCode == null) ? ' ' : kendo.toString(UniqueCode, '') # </div>",
+             }, {
+                field: "SuffixCode",
+                title: "Suffix",
+                width: 120,
+                template: "<div class='customClass'> #= (SuffixCode == null) ? ' ' : kendo.toString(SuffixCode, '') # </div>",
+             }, {
+                title: "Create",
+                columns: [
+                {
+                   field: "CreatedBy",
+                   title: "By",
+                   width: 120,
+                   template: "<div class='customClass'> #= (CreatedBy == null) ? ' ' : kendo.toString(CreatedBy, '') # </div>",
+                }, {
+                   field: "CreatedDate",
+                   title: "Date",
+                   width: 160,
+                   template: "<div class='customClass'> #= (CreatedDate == null) ? ' ' : kendo.toString(CreatedDate, '') # </div>",
+                }]
+             }, {
+                title: "Update",
+                columns: [
+                   {
+                      field: "UpdatedBy",
+                      title: "By",
+                      width: 120,
+                      template: "<div class='customClass'> #= (UpdatedBy == null) ? ' ' : kendo.toString(UpdatedBy, '') # </div>",
+                   }, {
+                      field: "UpdatedDate",
+                      title: "Date",
+                      width: 160,
+                      template: "<div class='customClass'> #= (UpdatedDate == null) ? ' ' : kendo.toString(UpdatedDate, '') # </div>",
+                   }]
+             }],
+             toolbar: $("#template_toolbar").html()
+          });
+
+          $("#LineOrderCode").width("100%").kendoComboBox({
+             dataValueField: "IdValue",
+             dataTextField: "ViewValue",
+             filter: "contains",
+             dataSource: {
+                transport: {
+                   read: function (options) {
+                      $.ajax({
+                         method: 'post',
+                         headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                         url: "@myurl" + 'DropDown/INQ',
+                         dataType: 'text',
+                         data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })
+                      }).done(function (data, textStatus, jqXHR) {
+                         try {
+                            var result = JSON.parse(data);
+                         }
+                         catch (e) {
+                            swal.fire('Error', 'Error loading grid', 'error');
+                            options.success({ data: [] });
+                            return;
+                         }
+                         options.success(result);
+                      }).fail(function (jqXHR, textStatus, errorThrown) {
+                         swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                         options.success({ data: [] });
+                      });
+                   }
+                }
+             },
+             change: function(){
+                if (this.value() && this.selectedIndex == -1) {
+                   this.text("");
+                   this.value(null);
+                }
+             }
+          }).data("kendoComboBox");
+
+          $("#UniqueCode").width("100%").kendoComboBox({
+             dataValueField: "IdValue",
+             dataTextField: "ViewValue",
+             filter: "contains",
+             dataSource: {
+                transport: {
+                   read: function (options) {
+                      $.ajax({
+                         method: 'post',
+                         headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                         url: "@myurl" + 'DropDown/INQ',
+                         dataType: 'text',
+                         data: JSON.stringify({ Ftype: "UniqueModel", Plant: "" })
+                      }).done(function (data, textStatus, jqXHR) {
+                         try {
+                            var result = JSON.parse(data);
+                         }
+                         catch (e) {
+                            swal.fire('Error', 'Error loading grid', 'error');
+                            options.success({ data: [] });
+                            return;
+                         }
+                         options.success(result);
+                      }).fail(function (jqXHR, textStatus, errorThrown) {
+                         swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                         options.success({ data: [] });
+                      });
+                   }
+                }
+             },
+             change: function(){
+                var dataItem = this.dataItem();
+
+                if (this.value() && this.selectedIndex == -1) {
+                   this.text("");
+                   this.value(null);
+                   AppD.dom.inputs.$inputModelGroup.val("");
+                }
+                else if (dataItem) {
+                   AppD.dom.inputs.$inputModelGroup.val(dataItem.Model);
+                }
+                else {
+                   AppD.dom.inputs.$inputModelGroup.val("");
+                }
+             }
+          }).data("kendoComboBox");
+
+          $("#fileUpload").kendoUpload({
+             multiple: false,
+             validation: {
+                allowedExtensions: [".xls", ".xlsx"],
+                maxFileSize: 5242880
+             },
+             select: function(e) {
+                $.each(e.files, function (index, value) {
+                   if (value.extension.toLowerCase() !== ".xls" && value.extension.toLowerCase() !== ".xlsx") {
+                      e.preventDefault();
+                      swal.fire({ title: 'Invalid File', text: 'Please upload a valid Excel file (.xls or .xlsx)', icon: 'error' });
+                   }
+                   else if (value.size > 5242880) {
+                      e.preventDefault();
+                      swal.fire({ title: 'File Too Large', text: 'Excel file size cannot exceed 5MB.', icon: 'error' });
+                   }
+                });
+             }
+          });
+       }
+    };
+
+    $(function () {
+       AppD.init();
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Suffix to Unique -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+
+       <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+          <i class="k-icon k-i-excel"></i>
+       </button>
+       
+       @if (Context.Session.GetString("add_master_suffix") == "True" || Context.Session.GetString("add_master_finish_goods") == "True")
+       {
+          <button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+          <i class="k-icon k-i-plus"></i>
+       </button>
+       
+          <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+          <i class="k-icon k-i-upload"></i>
+       </button>
+       }
+    </div>
+</script>
