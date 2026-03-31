@@ -1238,7 +1238,10 @@
 					Context.Session.GetString("read_ScanDockIn") == "True" ||
 					Context.Session.GetString("read_ScanDockOut") == "True" ||
 					Context.Session.GetString("read_ScanOutADM") == "True" ||
-					Context.Session.GetString("read_AndonTimelineDelivery") == "True")
+					Context.Session.GetString("read_AndonTimelineDelivery") == "True" ||
+					Context.Session.GetString("read_ScanBoxLabel") == "True" ||
+					Context.Session.GetString("read_ReprintSKID") == "True" ||
+					Context.Session.GetString("read_MonitoringSKID") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1339,6 +1342,30 @@
 							<li>
 								<a asp-controller="Step3" asp-action="AndonTimelineDelivery" class="@getClass("Step3", "AndonTimelineDelivery")">
 									<span class="title">Andon Timeline Delivery</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ScanBoxLabel") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ScanBoxLabel" class="@getClass("Step3", "ScanBoxLabel")">
+									<span class="title">Scan Box Label</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ReprintSKID") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="ReprintSKID" class="@getClass("Step3", "ReprintSKID")">
+									<span class="title">Reprint SKID</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_MonitoringSKID") == "True")
+						{
+							<li>
+								<a asp-controller="Step3" asp-action="MonitoringSKID" class="@getClass("Step3", "MonitoringSKID")">
+									<span class="title">Monitoring SKID</span>
 								</a>
 							</li>
 						}

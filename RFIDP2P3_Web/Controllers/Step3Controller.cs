@@ -63,5 +63,20 @@ namespace RFIDP2P3_Web.Controllers
         {
             return View();
         }
+        public IActionResult ScanBoxLabel()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
+        public IActionResult ReprintSKID()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
+        public IActionResult MonitoringSKID()
+        {
+            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
+            else return RedirectToAction("Index", "Login");
+        }
     }
 }

@@ -4,3 +4,256 @@
     string myxapi = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:XAPI").Value;
     Layout = "~/Views/Shared/_LayoutAndon.cshtml";
 }
+
+<style>
+    body {
+        background: #e5e5e5;
+    }
+
+    .line-label {
+        background: #cfcfcf;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: bold;
+        border-radius: 10px;
+    }
+
+    .timeline-card {
+        width: 140px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-right: 20px;
+        flex: 0 0 auto;
+    }
+
+    .card-green {
+        background: #00ff00;
+        text-align: center;
+        padding: 10px;
+        line-height: 1.2;
+    }
+
+    .card-gray {
+        background: #cfcfcf;
+        text-align: center;
+        padding: 10px;
+        line-height: 1.2;
+    }
+
+    .status-delay {
+        background: red;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .status-ontime {
+        background: #1e5f0a;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .status-advance {
+        background: #32a854;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .status-wait {
+        background: #8c8c8c;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .timeline-row {
+        margin-top: 25px;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .col-md-10 {
+        overflow-x: hidden;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+    }
+
+    .cards-container {
+        display: flex;
+        flex-wrap: nowrap;
+        min-width: max-content;
+    }
+
+    .timeline-wrapper {
+        height: 85vh;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+    }
+</style>
+
+<div class="page-main" id="top" style="height:100%;">
+    <div class="page-content">
+        <div class="col-md-12" style="padding-left:0; background-color:cyan;">
+            <div class="row align-items-center">
+                <div class="col-md-2" style="padding-left:0; padding-bottom:0;">
+                    <img src="../../img/icon1.png" style="height:78.85px;" />
+                </div>
+                <div class="col-md-8" style="text-align:center;"><label style="font-size:40px;font-weight:bold;">Andon Timeline Delivery</label></div>
+                <div class="col-md-2" style="text-align:center;padding:0px;">
+                    <div class="col-md-12" style="height:39.425px;padding:0px;"><label id="labHari" style="font-weight:bold;font-size:18px;"></label></div>
+                    <div class="col-md-7" style="height:39.425px;padding:0px;"><label id="labTanggal" style="font-weight:bold;font-size:18px;"></label></div>
+                    <div class="col-md-5" style="height:39.425px;padding:0px;"><label id="labJam" style="font-weight:bold;font-size:18px;"></label></div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid timeline-wrapper" id="timelineWrapper">
+            <div id="timelineContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getData(){
+        $.ajax({
+            method: 'post',
+            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            url: "@myurl"+'AndonTimelineDelivery/INQ',
+            dataType: 'text',
+            data: {}
+        }).done(function (data, textStatus, jqXHR) {
+            try {
+                var result = JSON.parse(data);
+            }
+            catch (e) {
+                swal.fire('Error', 'Error loading data', 'error');
+                console.log(data);
+                return;
+            }
+
+            generateTimeline(result);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+            console.log(jqXHR);
+        });
+    }
+
+    function getStatusClass(status){
+        if(status === "DELAY") return "status-delay";
+        else if(status === "ON_TIME") return "status-ontime";
+        else if(status === "ADVANCE") return "status-advance";
+        else return "status-wait";
+    }
+
+    function groupByDock(data){
+        let result = {};
+
+        data.forEach(item => {
+            if(!result[item.DockCode]){
+                result[item.DockCode] = [];
+            }
+
+            result[item.DockCode].push(item);
+        })
+
+        return result;
+    }
+
+    function getBodyClass(status){
+        if(status === "WAIT") return "card-gray";
+        else return "card-green";
+    }
+
+    function generateTimeline(timelineData){
+        let container = document.getElementById("timelineContainer");
+        container.innerHTML = "";
+
+        let grouped = groupByDock(timelineData);
+        
+        Object.keys(grouped).forEach(dock => {
+            let schedules = grouped[dock];
+            let row = document.createElement("div");
+            row.className = "row timeline-row col-md-12";
+
+            let labelCol = `
+            <div class="col-md-2">
+                <div class="line-label">${dock}</div>
+            </div>
+            `;
+            
+            let cardsHTML = "";
+            
+            schedules.forEach(item => {
+                cardsHTML += `
+                <div class="timeline-card">
+                    <div class="${getBodyClass(item.ScanStatus)}">
+                        <div>${item.TimeArrival}</div><br>
+                        <div>${item.Transporter}</div>
+                        <div>${item.RouteCode}</div>
+                        <div>${item.CycleArrival}</div><br>
+                        <div>${item.ActualTime}</div>
+                    </div>
+                    <div class="${getStatusClass(item.DeliveryStatus)}">
+                        ${item.DeliveryStatus.replace("WAIT","&nbsp;").replace("_"," ")}
+                    </div>
+                </div>
+                `;
+            });
+            
+            let cardsCol = `
+            <div class="col-md-10 d-flex">
+                <div class="cards-container">
+                    ${cardsHTML}
+                </div>
+            </div>
+            `;
+            
+            row.innerHTML = labelCol + cardsCol;
+            
+            container.appendChild(row);
+        });
+
+        var date = new Date();
+        $("#labHari").html(date.toLocaleDateString("id-ID", {
+            weekday: "long"
+        }));
+        $("#labTanggal").html(kendo.toString(date, 'dd/MM/yyyy'));
+        $("#labJam").html(kendo.toString(date, 'HH:mm'));
+    }
+
+    getData();
+    setInterval(() => {
+        let container = document.getElementById("timelineContainer");
+        container.innerHTML = "";
+        getData();
+    }, 30000);
+    
+    function autoScrollY(){
+        let container = document.getElementById("timelineWrapper")
+
+        if(container.scrollTop + container.clientHeight >= container.scrollHeight - 5){
+            container.scrollTop = 0
+        } else {
+            container.scrollTop += 110
+        }
+    }
+
+    function autoScrollX(){
+        let containers = document.querySelectorAll(".col-md-10");
+
+        containers.forEach(container => {
+            if(container.scrollLeft + container.clientWidth >= container.scrollWidth - 5){
+                container.scrollLeft = 0;
+            }else{
+                container.scrollLeft += 100;
+            }
+        });
+    }
+
+    setInterval(autoScrollX, 2500);
+    setInterval(autoScrollY, 5000);
+</script>

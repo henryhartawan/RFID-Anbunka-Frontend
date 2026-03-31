@@ -1,0 +1,323 @@
+﻿@{
+	ViewData["Title"] = "Monitoring SKID";
+	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+	<div class="page-content padding-10">
+		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+	</div>
+</div>
+
+<style>
+	.k-grid .k-group-footer td.no-padding-footer {
+		padding: 0 !important;
+		border-left: 1px solid #ccc;
+	}
+</style>
+
+<script>
+	var AppD = {
+		attachEvents: function () {
+			var o = this;
+			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+		},
+		cacheDom: function () {
+			var o = this;
+			o.dom.$grid = $("#grid");
+		},
+		data: {
+			DeliveryDate: kendo.toString(new Date(), 'yyyy-MM-dd'),
+		},
+		dom: {},
+		eventHandlers: {
+			onClickBtnExcel: function () {
+				var o = this;
+				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+		},
+		init: function () {
+			var o = this;
+			o.cacheDom();
+			o.attachEvents();
+			o.initElements();
+		},
+		initElements: function () {
+			var o = this;
+
+			o.dom.$grid.kendoGrid({
+				excel: {
+					fileName: "Monitoring SKID.xlsx",
+					allPages: true,
+					filterable: true
+				},
+				dataSource: {
+					transport: {
+						read: function (options) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl" + 'MonitoringSKID/INQ',
+								dataType: 'text',
+								data: JSON.stringify({
+									DeliveryDate: o.data.DeliveryDate
+								})
+							}).done(function (data, textStatus, jqXHR) {
+								try {
+									var result = JSON.parse(data);
+								}
+								catch (e) {
+									swal.fire('Error', 'Error loading grid', 'error');
+									console.log(data);
+									options.success({ data: [] });
+									return;
+								}
+								options.success(result);
+							}).fail(function (jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+								options.success({ data: [] });
+							});
+						}
+					},
+					schema: {
+						model: {
+							fields: {
+								PI_No: { type: "string" },
+								DN_No: { type: "string" },
+								ExCore: { type: "string" },
+								Job_No: { type: "string" },
+								KanbanSeq: { type: "string" },
+								Groups: { type: "string" },
+								SKID_ID: { type: "string" },
+								PI_No_Act: { type: "string" },
+								DN_No_Act: { type: "string" },
+								ExCore_Act: { type: "string" },
+								Job_No_Act: { type: "string" },
+								KanbanSeq_Act: { type: "string" },
+								Qty_PI_No_Act: { type: "number" },
+								Qty_Groups_Act: { type: "number" }
+							}
+						}
+					},
+					pageSize: 20,
+					batch: true,
+					group:[
+						{
+							field: "PI_No",
+							aggregates: [
+								{field: "PI_No", aggregate: "count"},
+								{field: "Qty_PI_No_Act", aggregate: "sum"}
+							]
+						},
+						{
+							field: "Groups",
+							aggregates: [
+								{field: "Groups", aggregate: "count"},
+								{field: "Qty_Groups_Act", aggregate: "sum"}
+							]
+						}
+					]
+				},
+				scrollable: true,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				groupable: false,
+				filterable: {
+					extra: false,
+					operators: {
+						string: {
+							contains: "Contains",
+							eq: "Equal to",
+							neq: "Not equal to"
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					input: true,
+					numeric: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+				{
+					title: "Planning",
+					columns: [
+					{
+						field: "PI_No",
+						title: "PI No.",
+						width: 100,
+						groupFooterTemplate: function(e) {
+							if (e.field === "Groups") {
+								return "<div style='text-align:left;font-size:11px'>" +
+									   "Qty Box/SKID: " +
+									   "</div>";
+							}
+							if (e.field === "PI_No") {
+								return "<div style='text-align:left;font-size:11px'>" +
+									   "Total Qty Box/PI: " +
+									   "</div>";
+							}
+							return "";
+						}
+					},
+					{
+						field: "DN_No",
+						title: "DN No.",
+						width: 100
+					},
+					{
+						field: "ExCore",
+						title: "Ex Core",
+						width: 80
+					},
+					{
+						field: "Job_No",
+						title: "Job No.",
+						width: 70
+					},
+					{
+						field: "KanbanSeq",
+						title: "Seq",
+						width: 40,
+						groupFooterTemplate: function(e) {
+							if (e.field === "Groups") {
+								var plan = e.aggregates.Groups?.count || 0;
+								return "<div style='text-align:right;font-size:11px;font-weight:bold'>" +
+									   plan +
+									   "</div>";
+							}
+							if (e.field === "PI_No") {
+								var plan = e.aggregates.PI_No?.count || 0;
+								return "<div style='text-align:right;font-size:11px;font-weight:bold'>" +
+									   plan +
+									   "</div>";
+							}
+							return "";
+						}
+					},
+					{
+						field: "Groups",
+						hidden: true
+					}]
+				},
+				{
+					title: "Actual",
+					columns: [
+					{
+						field: "SKID_ID",
+						title: "ID SKID",
+						width: 100,
+						attributes: { class: "no-padding-footer" },
+						footerAttributes: { class: "no-padding-footer" },
+						groupFooterTemplate: function(e) {
+							if (e.field === "Groups") {
+								return "<div style='text-align:left;font-size:11px;padding-left: 0.6em;'>" +
+									   "Qty Box/SKID: " +
+									   "</div>";
+							}
+							if (e.field === "PI_No") {
+								return "<div style='text-align:left;font-size:11px;padding-left: 0.6em;'>" +
+									   "Total Qty Box/PI: " +
+									   "</div>";
+							}
+							return "";
+						}
+					},
+					{
+						field: "PI_No_Act",
+						title: "PI No.",
+						width: 100
+					},
+					{
+						field: "DN_No_Act",
+						title: "DN No.",
+						width: 100
+					},
+					{
+						field: "ExCore_Act",
+						title: "Ex Core",
+						width: 80
+					},
+					{
+						field: "Job_No_Act",
+						title: "Job No.",
+						width: 70
+					},
+					{
+						field: "KanbanSeq_Act",
+						title: "Seq",
+						width: 40,
+						groupFooterTemplate: function(e) {
+							if (e.field === "Groups") {
+								var plan = e.aggregates.Groups?.count || 0;
+								var act = e.aggregates.Qty_Groups_Act?.sum || 0;
+
+								var isMismatch = plan !== act;
+
+								return "<div style='text-align:right;font-size:11px;font-weight:bold;" +
+									   (isMismatch ? "color:red;background:#ffe5e5;border-radius:4px;padding:1px 4px;" : "") +
+									   "'>" +
+									   act +
+									   "</div>";
+							}
+							if (e.field === "PI_No") {
+								var plan = e.aggregates.PI_No?.count || 0;
+								var act = e.aggregates.Qty_PI_No_Act?.sum || 0;
+
+								var isMismatch = plan !== act;
+
+								return "<div style='text-align:right;font-size:11px;font-weight:bold;" +
+									   (isMismatch ? "color:red;background:#ffe5e5;border-radius:4px;padding:1px 4px;" : "") +
+									   "'>" +
+									   act +
+									   "</div>";
+							}
+							return "";
+						}
+					}]
+				}],
+				toolbar: $("#template_toolbar").html(),
+				dataBound: function () {
+					o.initAfter();
+				}
+			});
+		},
+		initAfter: function () {
+			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+
+			o.dom.DeliveryDate = $("#DeliveryDate");
+
+			o.dom.DeliveryDate.kendoDatePicker({
+				format: 'yyyy-MM-dd',
+				value: o.data.DeliveryDate,
+				change: function () {
+					o.data.DeliveryDate = this.value() != null ? kendo.toString(this.value(), 'yyyy-MM-dd') : '';
+
+					if(this.value()){
+						o.dom.$grid.data('kendoGrid').dataSource.read();
+					}
+				}
+			});
+		}
+	};
+
+	$(function () {
+		AppD.init();
+	});
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Monitoring SKID -&nbsp;&nbsp;</span>
+	<div class="toolbar">
+		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+			<i class="k-icon k-i-excel"></i>
+		</button>
+		&nbsp;&nbsp;
+		<input type="date" id="DeliveryDate" placeholder="Delivery Date" />
+	</div>
+</script>
