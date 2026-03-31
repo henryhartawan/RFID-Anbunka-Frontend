@@ -17,19 +17,19 @@
 <head>
 	<title>ICS KEP - @ViewData["Title"] </title>
 
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/bootstrap.css" />
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/materialadmin.css" />
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/font-awesome.css" />
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/material-design-iconic-font.css" />
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/libs/rickshaw/rickshaw.css" />
-	<link type="text/css" rel="stylesheet" href="~/css/theme-default/libs/morris/morris.core.css" />
-	<link rel="stylesheet" href="~/lib/KendoUI/styles/kendo.common.min.css" />
-	<link rel="stylesheet" href="~/lib/KendoUI/styles/kendo.default.min.css" />
-	<link rel="stylesheet" href="~/lib/sweetalert2/sweetalert2.min.css" />
-	<link rel="icon" href="~/img/icon.png" />
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/bootstrap.css"/>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/materialadmin.css"/>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/font-awesome.css"/>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/material-design-iconic-font.css"/>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/libs/rickshaw/rickshaw.css"/>
+	<link type="text/css" rel="stylesheet" href="~/css/theme-default/libs/morris/morris.core.css"/>
+	<link rel="stylesheet" href="~/lib/KendoUI/styles/kendo.common.min.css"/>
+	<link rel="stylesheet" href="~/lib/KendoUI/styles/kendo.default.min.css"/>
+	<link rel="stylesheet" href="~/lib/sweetalert2/sweetalert2.min.css"/>
+	<link rel="icon" href="~/img/icon.png"/>
 
 	<script src="~/js/libs/jquery/jquery-1.11.2.min.js"></script>
 	<script src="~/js/libs/jquery/jquery-migrate-1.2.1.min.js"></script>
@@ -58,7 +58,7 @@
 
 	<script src="~/lib/KendoUI/js/kendo.all.min.js"></script>
 	<script src="~/lib/KendoUI/js/jszip.min.js" type="text/javascript"></script>
-	
+
 	<script src="~/js/jspdf.debug.js"></script>
 	<script src="~/js/jquery.qrcode.min.js"></script>
 
@@ -413,75 +413,75 @@
 </head>
 
 <body class="menubar-hoverable header-fixed">
-	<header id="header">
-		<div class="headerbar">
-			<div class="headerbar-left">
-				<ul class="header-nav header-nav-options">
-					<li class="header-nav-brand">
-						<div class="brand-holder">
-							<a asp-controller="Home" asp-action="Index">
-								<span class="text-lg text-bold text-primary">ICS-KEP</span>
-							</a>
-						</div>
-					</li>
-					<li>
-						<a class="btn btn-icon-toggle menubar-toggle" data-toggle="menubar" href="javascript:void(0);">
-							<i class="fa fa-bars"></i>
+<header id="header">
+	<div class="headerbar">
+		<div class="headerbar-left">
+			<ul class="header-nav header-nav-options">
+				<li class="header-nav-brand">
+					<div class="brand-holder">
+						<a asp-controller="Home" asp-action="Index">
+							<span class="text-lg text-bold text-primary">ICS-KEP</span>
 						</a>
-					</li>
-				</ul>
-			</div>
-			<div class="headerbar-right">
-				@if (Context.Session.GetString("edit_LDK") == "True")
-				{
-					<ul class="header-nav header-nav-options">
-						<li>
-							<a asp-controller="LDK" asp-action="Index" data-toggle="tooltip" data-placement="bottom" data-original-title="">
-								LDK <i class="fa fa-bell" style='font-size:17px;color:#0aa89e;'></i><sup class="badge style-danger" id="PendingLDK"></sup>
-							</a>
-						</li>
-					</ul>
-				}
-				<ul class="header-nav header-nav-profile">
-					<li class="dropdown">
-						<a href="javascript:void(0);" class="dropdown-toggle ink-reaction" data-toggle="dropdown">
-							<span class="profile-info">
-								@Context.Session.GetString("PIC_Name")
-								<small>@Context.Session.GetString("UserGroup_Name")</small>
-							</span>
-						</a>
-						<ul class="dropdown-menu animation-dock">
-							<li><a asp-controller="Login" asp-action="Logout"><i class="fa fa-fw fa-power-off text-danger"></i> Logout</a></li>
-						</ul>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</header>
-
-	<div id="base">
-		<div id="menubar" class="menubar-inverse ">
-			<div class="menubar-fixed-panel">
-				<div>
-					<a class="btn btn-icon-toggle btn-default menubar-toggle" data-toggle="menubar" href="javascript:void(0);">
+					</div>
+				</li>
+				<li>
+					<a class="btn btn-icon-toggle menubar-toggle" data-toggle="menubar" href="javascript:void(0);">
 						<i class="fa fa-bars"></i>
 					</a>
-				</div>
-				<div class="expanded">
-					<a asp-controller="Home" asp-action="Index">
-						<span class="text-lg text-bold text-primary">RFIDP2P3</span>
-					</a>
-				</div>
-			</div>
-			<div class="menubar-scroll-panel">
-				<ul id="main-menu" class="gui-controls">
+				</li>
+			</ul>
+		</div>
+		<div class="headerbar-right">
+			@if (Context.Session.GetString("edit_LDK") == "True")
+			{
+				<ul class="header-nav header-nav-options">
 					<li>
-						<a asp-controller="Home" asp-action="Index" class="@getClass("Home", "Index")">
-							<div class="gui-icon"><i class="md md-home"></i></div>
-							<span class="title">Home</span>
+						<a asp-controller="LDK" asp-action="Index" data-toggle="tooltip" data-placement="bottom" data-original-title="">
+							LDK <i class="fa fa-bell" style='font-size:17px;color:#0aa89e;'></i><sup class="badge style-danger" id="PendingLDK"></sup>
 						</a>
 					</li>
-				@if(Context.Session.GetString("read_password") == "True")
+				</ul>
+			}
+			<ul class="header-nav header-nav-profile">
+				<li class="dropdown">
+					<a href="javascript:void(0);" class="dropdown-toggle ink-reaction" data-toggle="dropdown">
+						<span class="profile-info">
+							@Context.Session.GetString("PIC_Name")
+							<small>@Context.Session.GetString("UserGroup_Name")</small>
+						</span>
+					</a>
+					<ul class="dropdown-menu animation-dock">
+						<li><a asp-controller="Login" asp-action="Logout"><i class="fa fa-fw fa-power-off text-danger"></i> Logout</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+</header>
+
+<div id="base">
+	<div id="menubar" class="menubar-inverse ">
+		<div class="menubar-fixed-panel">
+			<div>
+				<a class="btn btn-icon-toggle btn-default menubar-toggle" data-toggle="menubar" href="javascript:void(0);">
+					<i class="fa fa-bars"></i>
+				</a>
+			</div>
+			<div class="expanded">
+				<a asp-controller="Home" asp-action="Index">
+					<span class="text-lg text-bold text-primary">RFIDP2P3</span>
+				</a>
+			</div>
+		</div>
+		<div class="menubar-scroll-panel">
+			<ul id="main-menu" class="gui-controls">
+				<li>
+					<a asp-controller="Home" asp-action="Index" class="@getClass("Home", "Index")">
+						<div class="gui-icon"><i class="md md-home"></i></div>
+						<span class="title">Home</span>
+					</a>
+				</li>
+				@if (Context.Session.GetString("read_password") == "True")
 				{
 					<li>
 						<a asp-controller="Security" asp-action="Index" class="@getClass("Security", "Index")">
@@ -491,20 +491,20 @@
 					</li>
 				}
 				@if (Context.Session.GetString("read_master_user_group") == "True" ||
-					Context.Session.GetString("read_master_user_priv") == "True" ||
-					Context.Session.GetString("read_master_user") == "True" ||
-					Context.Session.GetString("read_master_plant") == "True" ||
-					Context.Session.GetString("read_master_gedung") == "True" ||
-					Context.Session.GetString("read_master_line") == "True" ||
-					Context.Session.GetString("read_master_shop") == "True" ||
-					Context.Session.GetString("read_master_department") == "True" ||
-					Context.Session.GetString("read_master_section") == "True" ||
-					Context.Session.GetString("read_master_shift") == "True" ||
-					Context.Session.GetString("read_master_pallet") == "True" ||
-					Context.Session.GetString("read_master_part") == "True" ||
-					Context.Session.GetString("read_master_gi_p2") == "True" ||
-					Context.Session.GetString("read_master_gi_p3") == "True" ||
-					Context.Session.GetString("read_master_approval_ldk") == "True")
+				     Context.Session.GetString("read_master_user_priv") == "True" ||
+				     Context.Session.GetString("read_master_user") == "True" ||
+				     Context.Session.GetString("read_master_plant") == "True" ||
+				     Context.Session.GetString("read_master_gedung") == "True" ||
+				     Context.Session.GetString("read_master_line") == "True" ||
+				     Context.Session.GetString("read_master_shop") == "True" ||
+				     Context.Session.GetString("read_master_department") == "True" ||
+				     Context.Session.GetString("read_master_section") == "True" ||
+				     Context.Session.GetString("read_master_shift") == "True" ||
+				     Context.Session.GetString("read_master_pallet") == "True" ||
+				     Context.Session.GetString("read_master_part") == "True" ||
+				     Context.Session.GetString("read_master_gi_p2") == "True" ||
+				     Context.Session.GetString("read_master_gi_p3") == "True" ||
+				     Context.Session.GetString("read_master_approval_ldk") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -512,125 +512,125 @@
 							<span class="title">Master</span>
 						</a>
 						<ul>
-						@if (Context.Session.GetString("read_master_user_group") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterUserGroup" class="@getClass("Master", "MasterUserGroup")">
-									<span class="title">Master User Group</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_user_priv") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterPrivilege" class="@getClass("Master", "MasterPrivilege")">
-									<span class="title">Master Privilege</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_user") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterUser" class="@getClass("Master", "MasterUser")">
-									<span class="title">Master User</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_plant") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterPlant" class="@getClass("Master", "MasterPlant")">
-									<span class="title">Master Plant</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_gedung") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterGedung" class="@getClass("Master", "MasterGedung")">
-									<span class="title">Master Gedung</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_line") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterLine" class="@getClass("Master", "MasterLine")">
-									<span class="title">Master Line</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_shop") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterShop" class="@getClass("Master", "MasterShop")">
-									<span class="title">Master Shop</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_department") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterDepartment" class="@getClass("Master", "MasterDepartment")">
-									<span class="title">Master Department</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_section") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterSection" class="@getClass("Master", "MasterSection")">
-									<span class="title">Master Section</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_shift") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterShift" class="@getClass("Master", "MasterShift")">
-									<span class="title">Master Shift</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_pallet") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterPallet" class="@getClass("Master", "MasterPallet")">
-									<span class="title">Master Pallet</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_part") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterPart" class="@getClass("Master", "MasterPart")">
-									<span class="title">Master Part</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_gi_p2") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterGIP2" class="@getClass("Master", "MasterGIP2")">
-									<span class="title">Master GI P2</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_gi_p3") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterGIP3" class="@getClass("Master", "MasterGIP3")">
-									<span class="title">Master GI P3</span>
-								</a>
-							</li>
-						}
-						@if (Context.Session.GetString("read_master_approval_ldk") == "True")
-						{
-							<li>
-								<a asp-controller="Master" asp-action="MasterApprovalLDK" class="@getClass("Master", "MasterApprovalLDK")">
-									<span class="title">Master Approval LDK</span>
-								</a>
-							</li>
+							@if (Context.Session.GetString("read_master_user_group") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterUserGroup" class="@getClass("Master", "MasterUserGroup")">
+										<span class="title">Master User Group</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_user_priv") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterPrivilege" class="@getClass("Master", "MasterPrivilege")">
+										<span class="title">Master Privilege</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_user") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterUser" class="@getClass("Master", "MasterUser")">
+										<span class="title">Master User</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_plant") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterPlant" class="@getClass("Master", "MasterPlant")">
+										<span class="title">Master Plant</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_gedung") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterGedung" class="@getClass("Master", "MasterGedung")">
+										<span class="title">Master Gedung</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_line") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterLine" class="@getClass("Master", "MasterLine")">
+										<span class="title">Master Line</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_shop") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterShop" class="@getClass("Master", "MasterShop")">
+										<span class="title">Master Shop</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_department") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterDepartment" class="@getClass("Master", "MasterDepartment")">
+										<span class="title">Master Department</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_section") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterSection" class="@getClass("Master", "MasterSection")">
+										<span class="title">Master Section</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_shift") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterShift" class="@getClass("Master", "MasterShift")">
+										<span class="title">Master Shift</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_pallet") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterPallet" class="@getClass("Master", "MasterPallet")">
+										<span class="title">Master Pallet</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_part") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterPart" class="@getClass("Master", "MasterPart")">
+										<span class="title">Master Part</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_gi_p2") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterGIP2" class="@getClass("Master", "MasterGIP2")">
+										<span class="title">Master GI P2</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_gi_p3") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterGIP3" class="@getClass("Master", "MasterGIP3")">
+										<span class="title">Master GI P3</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_master_approval_ldk") == "True")
+							{
+								<li>
+									<a asp-controller="Master" asp-action="MasterApprovalLDK" class="@getClass("Master", "MasterApprovalLDK")">
+										<span class="title">Master Approval LDK</span>
+									</a>
+								</li>
 							}
 						</ul>
 					</li>
@@ -655,7 +655,11 @@
 					Context.Session.GetString("read_master_dpr") == "True" ||
 					Context.Session.GetString("read_master_calendar") == "True" ||
 					Context.Session.GetString("read_master_oee_tt") == "True" ||
-					Context.Session.GetString("read_master_param_jam") == "True")
+					Context.Session.GetString("read_master_param_jam") == "True" ||
+					Context.Session.GetString("read_MasterCustomerOrder") == "True" ||
+					Context.Session.GetString("read_MasterSuffixToUnique") == "True"  ||
+					Context.Session.GetString("read_AddMasterCalendar") == "True" ||
+					Context.Session.GetString("read_MasterOEETTFuture") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -823,6 +827,38 @@
 								</a>
 							</li>
 						}
+						@if (Context.Session.GetString("read_MasterCustomerOrder") == "True")
+						{
+						<li>
+							<a asp-controller="MasterOrdering" asp-action="MasterCustomerOrder" class="@getClass("MasterOrdering", "MasterCustomerOrder")">
+								<span class="title">Master Customer Order</span>
+							</a>
+						</li>
+						}
+						@if (Context.Session.GetString("read_MasterSuffixToUnique") == "True")
+						{
+							<li>
+								<a asp-controller="MasterOrdering" asp-action="MasterSuffixToUnique" class="@getClass("MasterOrdering", "MasterSuffixToUnique")">
+									<span class="title">Master Suffix to Unique</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_AddMasterCalendar") == "True")
+						{
+							<li>
+								<a asp-controller="MasterOrdering" asp-action="AddMasterCalendar" class="@getClass("MasterOrdering", "AddMasterCalendar")">
+									<span class="title">Additional Master Calendar</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_MasterOEETTFuture") == "True")
+						{
+						<li>
+							<a asp-controller="MasterOrdering" asp-action="MasterOEETTFuture" class="@getClass("MasterOrdering", "MasterOEETTFuture")">
+								<span class="title">Master OEE TT Future</span>
+							</a>
+						</li>
+						}
 						</ul>
 					</li>
 				}
@@ -984,7 +1020,8 @@
 					Context.Session.GetString("read_TN") == "True" ||
 					Context.Session.GetString("read_GR") == "True" ||
 					Context.Session.GetString("read_ResumeReport") == "True" ||
-					Context.Session.GetString("read_ReportPackingInstruction") == "True")
+					Context.Session.GetString("read_ReportPackingInstruction") == "True" ||
+					Context.Session.GetString("read_UploadStockEngine") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1165,6 +1202,14 @@
 							<li>
 								<a asp-controller="Ordering" asp-action="ReportPackingInstruction" class="@getClass("Ordering", "ReportPackingInstruction")">
 									<span class="title">Report Packing Instruction</span>
+								</a>
+							</li> 
+						}
+						@if (Context.Session.GetString("read_UploadStockEngine") == "True")
+						{
+							<li>
+								<a asp-controller="Ordering" asp-action="UploadStockEngine" class="@getClass("Ordering", "UploadStockEngine")">
+									<span class="title">Upload Initial Stock Engine</span>
 								</a>
 							</li>
 						}

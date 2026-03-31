@@ -28,46 +28,85 @@
 				<div class="panel">
 					<div class="panel-body">
 						<form class="form-horizontal">
-							<div class="form-group form-material col-md-6" style="height:37px;">
+							<div class="form-group form-material col-md-6" >
 								<label class="col-sm-3 control-label">Unique No</label>
 								<div class="col-sm-9">
-									<input type="text" class="form-control" id="UniqueNumber" />
+									<input type="text" class="form-control" id="UniqueNumber"/>
 								</div>
 							</div>
 							<div class="form-group form-material col-md-6">
 								<label class="col-sm-3 control-label">Part No</label>
 								<div class="col-sm-9">
-									<input type="text" class="form-control" id="PartNumber" />
+									<input type="text" class="form-control" id="PartNumber"/>
 								</div>
 							</div>
 							<div class="form-group form-material col-md-6">
 								<label class="col-sm-3 control-label">Part Name</label>
 								<div class="col-sm-9">
-									<input type="text" class="form-control" id="PartName" />
-								</div>
-							</div>
-							<div class="form-group form-material col-md-6" style="height:37px;">
-								<label class="col-sm-3 control-label">Qty/Box</label>
-								<div class="col-sm-9">
-									<input type="text" class="" id="QtyPerBox" style="width:100%;" />
+									<input type="text" class="form-control" id="PartName"/>
 								</div>
 							</div>
 							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Engine Type</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="EgType"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Engine Base</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="EgBase"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Transmission</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="Transmission"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Destination</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="Destination"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Country</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="Country"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Engine Grouping</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control" id="EgGroup"/>
+								</div>
+							</div>
+							<div class="form-group form-material col-md-6">
+								<label class="col-sm-3 control-label">Qty/Box</label>
+								<div class="col-sm-9">
+									<input type="text" class="" id="QtyPerBox" style="width:100%;"/>
+								</div>
+							</div>
+							
+							<div class="clearfix"></div>
+							
+							<div class="form-group form-material col-md-6">
 								<label class="col-sm-3 control-label">UOM</label>
 								<div class="col-sm-9">
-									<input type="text" class="form-control" id="UOM" />
+									<input type="text" class="form-control" id="UOM"/>
 								</div>
 							</div>
-							<div class="form-group form-material col-md-6" style="height:37px;">
+							<div class="form-group form-material col-md-6">
 								<label class="col-sm-3 control-label">Box Type</label>
 								<div class="col-sm-9">
-									<input type="text" class="" id="BoxType" style="width:100%;" />
+									<input type="text" class="" id="BoxType" style="width:100%;"/>
 								</div>
 							</div>
-							<div class="form-group form-material col-md-6" style="height:37px;">
+							<div class="form-group form-material col-md-6">
 								<label class="col-sm-3 control-label">Weight Gross (kg)</label>
 								<div class="col-sm-9">
-									<input type="text" class="" id="WeightGross" style="width:100%;" />
+									<input type="text" class="" id="WeightGross" style="width:100%;"/>
 								</div>
 							</div>
 							<div class="clearfix"></div>
@@ -122,6 +161,13 @@
 				$("#UOM").val('');
 				$("#BoxType").data('kendoComboBox').value('');
 				$("#WeightGross").data('kendoNumericTextBox').value('');
+
+				$("#EgType").val('');
+				$("#EgBase").val('');
+				$("#Transmission").val('');
+				$("#Destination").val('');
+				$("#Country").val('');
+				$("#EgGroup").val('');
 
 				o.dom.$editor.modal('show');
 			},
@@ -214,6 +260,13 @@
 				$("#BoxType").data('kendoComboBox').trigger("change");
 				$("#WeightGross").data('kendoNumericTextBox').value(di.WeightGross.replace(',', '.'));
 
+				$("#EgType").val(di.EngineType);
+				$("#EgBase").val(di.EngineBase);
+				$("#Transmission").val(di.Transmission);
+				$("#Destination").val(di.Destination);
+				$("#Country").val(di.Country);
+				$("#EgGroup").val(di.EngineGrouping);
+
 				o.dom.$editor.modal('show');
 			},
 			onClickBtnSave: function (e) {
@@ -226,9 +279,18 @@
 				var BoxType = $("#BoxType").data('kendoComboBox').value();
 				var WeightGross = $("#WeightGross").val();
 
+				var engineType = $("#EgType").val();
+				var engineBase = $("#EgBase").val();
+				var transmission = $("#Transmission").val();
+				var destination = $("#Destination").val();
+				var country = $("#Country").val();
+				var engineGrouping = $("#EgGroup").val();
+
 				if(UniqueNumber != '' && UniqueNumber != 0 && PartNumber != '' && PartName != '' &&
 				  QtyPerBox != '' && QtyPerBox != 0 && UOM != '' && BoxType != '' && WeightGross != '' &&
-				  WeightGross != 0){
+				  WeightGross != 0 && engineType != '' && engineBase != '' && transmission != '' && destination != '' &&
+				  country != '' && engineGrouping != ''){
+					
 					swal.fire({
 						title: "Save?",
 						icon: 'warning',
@@ -245,6 +307,12 @@
 									UniqueNumber: UniqueNumber,
 									PartNumber: PartNumber,
 									PartName: PartName,
+									EngineType: engineType,
+									EngineBase: engineBase,
+									Transmission: transmission,
+									Destination: destination,
+									Country: country, 
+									EngineGrouping: engineGrouping,
 									QtyPerBox: QtyPerBox,
 									UOM: UOM,
 									BoxType: BoxType,
@@ -318,6 +386,12 @@
 								UniqueNumber: { type: "string" },
 								PartNumber: { type: "string" },
 								PartName: { type: "string" },
+								EngineType: { type: "string" },
+								EngineBase: { type: "string" },
+								Transmission: { type: "string" },
+								Destination: { type: "string" },
+								Country: { type: "string" },
+								EngineGrouping: { type: "string" },
 								QtyPerBox: { type: "string" },
 								UOM: { type: "string" },
 								BoxType: { type: "string" },
@@ -407,6 +481,42 @@
 					title: "Part Name",
 					width: 200,
 					template: "<div class='customClass'> #= (PartName == null) ? ' ' : kendo.toString(PartName, '') # </div>",
+				},
+				{
+					field: "EngineType",
+					title: "Engine Type",
+					width: 100,
+					template: "<div class='customClass'> #= (EngineType == null) ? ' ' : kendo.toString(EngineType, '') # </div>",
+				},
+				{
+					field: "EngineBase",
+					title: "Engine Base",
+					width: 100,
+					template: "<div class='customClass'> #= (EngineBase == null) ? ' ' : kendo.toString(EngineBase, '') # </div>",
+				},
+				{
+					field: "Transmission",
+					title: "Transmission",
+					width: 110,
+					template: "<div class='customClass'> #= (Transmission == null) ? ' ' : kendo.toString(Transmission, '') # </div>",
+				},
+				{
+					field: "Destination",
+					title: "Destination",
+					width: 150,
+					template: "<div class='customClass'> #= (Destination == null) ? ' ' : kendo.toString(Destination, '') # </div>",
+				},
+				{
+					field: "Country",
+					title: "Country",
+					width: 150,
+					template: "<div class='customClass'> #= (Country == null) ? ' ' : kendo.toString(Country, '') # </div>",
+				},
+				{
+					field: "EngineGrouping",
+					title: "Engine Grouping",
+					width: 150,
+					template: "<div class='customClass'> #= (EngineGrouping == null) ? ' ' : kendo.toString(EngineGrouping, '') # </div>",
 				},
 				{
 					field: "QtyPerBox",
