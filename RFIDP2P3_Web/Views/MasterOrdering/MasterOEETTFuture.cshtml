@@ -323,9 +323,12 @@
 		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
 			<i class="k-icon k-i-excel"></i>
 		</button>
-		<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
-			<i class="k-icon k-i-upload"></i>
-		</button>
+		@if (Context.Session.GetString("add_MasterOEETTFuture") == "True")
+		{
+			<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+				<i class="k-icon k-i-upload"></i>
+			</button>
+		}
 	</div>
 	
 	<div style="display: inline-block; margin-left: 20px;">
