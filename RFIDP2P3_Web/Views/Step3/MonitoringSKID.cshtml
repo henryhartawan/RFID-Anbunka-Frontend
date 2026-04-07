@@ -95,8 +95,7 @@
 								ExCore_Act: { type: "string" },
 								Job_No_Act: { type: "string" },
 								KanbanSeq_Act: { type: "string" },
-								Qty_PI_No_Act: { type: "number" },
-								Qty_Groups_Act: { type: "number" }
+								Qty_Act: { type: "number" }
 							}
 						}
 					},
@@ -107,14 +106,14 @@
 							field: "PI_No",
 							aggregates: [
 								{field: "PI_No", aggregate: "count"},
-								{field: "Qty_PI_No_Act", aggregate: "sum"}
+								{field: "Qty_Act", aggregate: "sum"}
 							]
 						},
 						{
 							field: "Groups",
 							aggregates: [
 								{field: "Groups", aggregate: "count"},
-								{field: "Qty_Groups_Act", aggregate: "sum"}
+								{field: "Qty_Act", aggregate: "sum"}
 							]
 						}
 					]
@@ -253,7 +252,7 @@
 						groupFooterTemplate: function(e) {
 							if (e.field === "Groups") {
 								var plan = e.aggregates.Groups?.count || 0;
-								var act = e.aggregates.Qty_Groups_Act?.sum || 0;
+								var act = e.aggregates.Qty_Act?.sum || 0;
 
 								var isMismatch = plan !== act;
 
@@ -265,7 +264,7 @@
 							}
 							if (e.field === "PI_No") {
 								var plan = e.aggregates.PI_No?.count || 0;
-								var act = e.aggregates.Qty_PI_No_Act?.sum || 0;
+								var act = e.aggregates.Qty_Act?.sum || 0;
 
 								var isMismatch = plan !== act;
 
@@ -295,6 +294,7 @@
 			o.dom.DeliveryDate.kendoDatePicker({
 				format: 'yyyy-MM-dd',
 				value: o.data.DeliveryDate,
+				max: new Date(),
 				change: function () {
 					o.data.DeliveryDate = this.value() != null ? kendo.toString(this.value(), 'yyyy-MM-dd') : '';
 

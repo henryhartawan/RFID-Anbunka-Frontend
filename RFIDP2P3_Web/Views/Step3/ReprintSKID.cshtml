@@ -9,11 +9,21 @@
 	</div>
 </div>
 
+<style>
+	.k-grid-header th .k-link {
+		white-space: normal !important;
+		word-wrap: break-word;
+	}
+
+	.k-grid-header th {
+		vertical-align: top !important;
+	}
+</style>
+
 <script>
 	var AppD = {
 		attachEvents: function () {
 			var o = this;
-			o.dom.$btnSave.on('click', o.eventHandlers.onClickBtnSave.bind(o));
 			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
 			o.dom.$grid.on('click', '.btnPrint', o.eventHandlers.onClickBtnPrint.bind(o));
 		},
@@ -21,11 +31,47 @@
 			var o = this;
 			o.dom.$grid = $("#grid");
 		},
-		data: {},
+		data: {
+			DeliveryDate: kendo.toString(new Date(), 'yyyy-MM-dd'),
+		},
 		dom: {},
 		eventHandlers: {
 			onClickBtnPrint: function (e) {
 				var o = this;
+
+				swal.fire({
+					title: 'Success',
+					text: 'Print SKID Label?',
+					icon: 'success',
+					showCancelButton: true,
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'No',
+					showLoaderOnConfirm: true,
+					allowOutsideClick: false,
+					allowEscapeKey: false,
+					preConfirm: () => {
+						return new Promise((resolve) => {
+							setTimeout(() => {
+								$.ajax({
+									method: 'post',
+									headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+									url: "@myurl"+'ScanBoxLabel/PrintSKID',
+									dataType: 'text',
+									data: JSON.stringify({
+										SKID_ID: SKID_ID
+									})
+								}).done(function(data, textStatus, jqXHR) {
+									o.data.skid = JSON.parse(data);
+									swal.close();
+								}).fail(function(jqXHR, textStatus, errorThrown) {
+									swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+									console.log(jqXHR);
+								}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								});
+							}, 1000);
+						});
+					}
+				});
 			},
 			onClickBtnExcel: function () {
 				var o = this;
@@ -55,7 +101,9 @@
 								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
 								url: "@myurl"+'ReprintSKID/INQ',
 								dataType: 'text',
-								data: {}
+								data: JSON.stringify({
+									DeliveryDate: o.data.DeliveryDate
+								})
 							}).done(function (data, textStatus, jqXHR) {
 								try {
 									var result = JSON.parse(data);
@@ -79,12 +127,11 @@
 							id: "SKID_ID",
 							fields: {
 								SKID_ID: { type: "string" },
-								KanbanNo: { type: "string" },
-								DN_No: { type: "string" },
-								Part_No: { type: "string" },
-								ExCore: { type: "string" },
-								Job_No: { type: "string" },
-								Seq: { type: "string" }
+								PI_No: { type: "string" },
+								KanbanNos: { type: "string" },
+								KanbanQty: { type: "number"},
+								ScanBy: { type: "string"},
+								ScanDate: { type: "string"}
 							}
 						}
 					},
@@ -112,41 +159,71 @@
 					buttonCount: 5
 				},
 				columns: [
-				@if (Context.Session.GetString("edit_master_user_group") == "True")
 				{
-						<text>
-						{
-							width: 50,
-							command: [{
-								name: "Update",
-								text: "<i class='fa fa-pencil-square-o btnUpdate' style='font-size:18px;color:#737373;'></i>"
-							}]
-						},
-						</text>
-				}
-				@if (Context.Session.GetString("del_master_user_group") == "True")
+					width: 50,
+					command: [{
+						name: "Print",
+						text: "<i class='fa fa-print btnPrint' style='font-size:18px;color:#737373;'></i>"
+					}]
+				},
 				{
-						<text>
-						{
-							width: 50,
-							command: [{
-								name: "Delete",
-								text: "<i class='fa fa-trash-o btnDelete' style='font-size:18px;color:#800000;'></i>"
-							}]
-						},
-						</text>
-				}
+					field: "SKID_ID",
+					title: "SKID ID",
+					width: 150
+				},
 				{
-					field: "UserGroup_Id",
-					title: "ID",
+					field: "PI_No",
+					title: "PI No.",
 					width: 100
 				},
 				{
-					field: "UserGroup",
-					title: "User Group",
-					width: 950
+					field: "KanbanNos",
+					title: "Kanban No (s)",
+					width: 650
+				},
+				{
+					field: "KanbanQty",
+					title: "Qty per SKID",
+					width: 80
+				},
+				{
+					title: "Scan",
+					columns: [
+					{
+						field: "ScanBy",
+						title: "By",
+						width: 100
+					},
+					{
+						field: "ScanDate",
+						title: "Date",
+						width: 150
+					}]
 				}],
 				toolbar: $("#template_toolbar").html(),
+				dataBound: function () {
+					o.initAfter();
+				}
+			});
+		},
+		initAfter: function () {
+			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+
+			o.dom.DeliveryDate = $("#DeliveryDate");
+
+			o.dom.DeliveryDate.kendoDatePicker({
+				format: 'yyyy-MM-dd',
+				value: o.data.DeliveryDate,
+				max: new Date(),
+				change: function () {
+					o.data.DeliveryDate = this.value() != null ? kendo.toString(this.value(), 'yyyy-MM-dd') : '';
+
+					if(this.value()){
+						o.dom.$grid.data('kendoGrid').dataSource.read();
+					}
+				}
 			});
 		}
 	};
@@ -157,10 +234,12 @@
 </script>
 
 <script type="text/x-kendo-template" id="template_toolbar">
-	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master User Group -&nbsp;&nbsp;</span>
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Reprint SKID -&nbsp;&nbsp;</span>
 	<div class="toolbar">
 		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
 			<i class="k-icon k-i-excel"></i>
 		</button>
+		&nbsp;&nbsp;
+		<input type="date" id="DeliveryDate" placeholder="Delivery Date" />
 	</div>
 </script>

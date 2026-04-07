@@ -18,18 +18,22 @@
 					<h2><b>Receiving</b></h2>
 				</div>
 				<div class="col-xs-12" style="padding-bottom:10px;font-size:18px;">
-					<div class="radio-custom radio-inline col-xs-5" style="text-align:right;">
+					<div class="radio-custom radio-inline col-xs-4" style="text-align:center;">
 						<input type="radio" name="GRType" class="GRType" id="GRType_Full" value="Full" checked style="margin-top:9px;">
 						<label for="GRType_Full"><b>Full</b></label>
 					</div>
-					<div class="radio-custom radio-inline col-xs-5" style="padding-left:50px;">
+					<div class="radio-custom radio-inline col-xs-4" style="text-align:center;padding-left:0;">
 						<input type="radio" name="GRType" class="GRType" id="GRType_Partial" value="Partial" style="margin-top:9px;">
 						<label for="GRType_Partial"><b>Partial</b></label>
 					</div>
+					<div class="radio-custom radio-inline col-xs-3" style="text-align:center;">
+						<input type="radio" name="GRType" class="GRType" id="GRType_SKID" value="SKID" style="margin-top:9px;">
+						<label for="GRType_SKID"><b>SKID</b></label>
+					</div>
 				</div>
 				<div class="col-xs-12" style="padding-bottom:10px;">
-					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">DN No</label>
-					<input type="text" id="DN_No" onclick="this.select()" class="form-control" maxlength="16">
+					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;" id="lblDN">DN No</label>
+					<input type="text" id="DN_No" onclick="this.select()" class="form-control" maxlength="22">
 				</div>
 				<div class="col-xs-12" style="padding-bottom:10px;">
 					<label class="control-label" style="padding-bottom:0px;margin-bottom:0px;">Vendor</label>
@@ -156,13 +160,17 @@
 				var o = this;
 				o.data.Type = e.target.value;
 				
-				if(o.data.Type == 'Partial') $("#divGrid").show();
+				if(o.data.Type == 'Partial' || o.data.Type == 'SKID') $("#divGrid").show();
 				else $("#divGrid").hide();
 
 				$("#DN_No").val('');
 				o.data.DN_No = '';
 				$("#Vendor").val('');
 				$("#Message").val('');
+
+				if(o.data.Type == 'SKID') $("#lblDN").html('SKID ID');
+				else $("#lblDN").html('DN No');
+
 				o.dom.$grid.data('kendoGrid').dataSource.read();
 				o.fn.checkDN.call(o);
 			},
@@ -483,7 +491,7 @@
 				dataBound: function () {
 					var grid = this;
 
-					if (o.data.Type == 'Full') {
+					if (o.data.Type == 'Full' || o.data.Type == 'SKID') {
 						grid.tbody.find("tr").each(function () {
 							var row = $(this);
 							var checkbox = row.find("input.checkbox");
@@ -491,7 +499,8 @@
 							checkbox.prop("checked", true);
 						});
 
-						$("#checkAll").prop("checked", true);
+						if(o.data.DN_No != '') $("#checkAll").prop("checked", true);
+						else $("#checkAll").prop("checked", false);
 					} else {
 						$("#checkAll").prop("checked", false);
 					}

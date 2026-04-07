@@ -112,8 +112,8 @@
 			o.dom.$btnSubmit = $("#btnSubmit");
 		},
 		data: {
-			kanbans: '',
-			kanban: ''
+			kanban: '',
+			skid: []
 		},
 		dom: {},
 		eventHandlers: {
@@ -168,16 +168,72 @@
 			},
 			onClickBtnSubmit: function(){
 				var o = this;
+				var data = {};
+				data.UserLogin = "@Context.Session.GetString("PIC_ID")";
+
+				var grid = o.dom.$grid.data("kendoGrid");
+				var ds = grid.dataSource;
+
+				var sort = ds.sort();
+				var allData = ds.data().toJSON();
+
+				if (sort && sort.length) {
+					allData.sort(function (a, b) {
+						for (var i = 0; i < sort.length; i++) {
+							var field = sort[i].field;
+							var dir = sort[i].dir === "asc" ? 1 : -1;
+
+							if (a[field] > b[field]) return dir;
+							if (a[field] < b[field]) return -dir;
+						}
+						return 0;
+					});
+				}
+
+				data.Kanban = allData.map(function (e) {
+					return {
+						KanbanNo: e.KanbanNo,
+						PI_No: e.PI_No,
+						DN_No: e.DN_No,
+						Part_No: e.Part_No,
+						ExCore: e.ExCore,
+						Job_No: e.Job_No,
+						KanbanSeq: e.KanbanSeq
+					};
+				});
+
+				if (data != null && data.Kanban.length > 0) {
+					swal.fire({
+						title: "Save?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'Yes'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+								method: 'post',
+								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								url: "@myurl"+'ScanBoxLabel/INS',
+								dataType: 'text',
+								data: JSON.stringify(data)
+							}).done(function(data, textStatus, jqXHR) {
+								$("#btnClear").trigger('click');
+								o.fn.printSKID.call(o, data);
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								console.log(jqXHR);
+							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							});
+						}
+					});
+				}
 			},
 			onChangeBoxLabel:function(e){
 				var o = this;
 				var kanban = $("#KanbanNo").val();
 
 				if(kanban.length >= 33){
-					o.data.kanbans += kanban + ' ';
-
-					var output = Array.from(new Set(o.data.kanbans.split(' ')));
-					o.data.kanban = output.join("_");
+					o.data.kanban = kanban;
 					$("#KanbanNo").val('');
 
 					$.ajax({
@@ -191,32 +247,35 @@
 					}).done(function(data, textStatus, jqXHR) {
 						var result = JSON.parse(data);
 
-						if(result.data[0] == null) {
-							swal('', 'No data found', 'error');
-							return;
+						if(result[0].Remarks != 'success'){
+							swal.fire('Error', result[0].Remarks, 'error');
+						} else {
+							var grid = $("#grid1").data("kendoGrid");
+							var ds = grid.dataSource;
+							result.forEach(x => {
+								var exists = ds.data().some(d => 
+									d.PI_No === x.PI_No &&
+									d.DN_No === x.DN_No &&
+									d.Part_No === x.Part_No &&
+									d.ExCore === x.ExCore &&
+									d.Job_No === x.Job_No &&
+									d.KanbanSeq === x.KanbanSeq
+								);
+								if (!exists) {
+									ds.add(x);
+								}
+							});
 						}
-						else if (result.data[0].remarks !== 'success') {
-							swal('', result.data[0].remarks, 'error');
-							return;
-						}
-
-						var grid = $("#grid1").data("kendoGrid");
-						grid.dataSource.data(result.data);
 					}).fail(function(jqXHR, textStatus, errorThrown) {
 						swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
 						console.log(jqXHR);
-					}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
-						o.dom.$grid.data('kendoGrid').dataSource.read();
 					});
 				}
-
-				var grid = $("#grid1").data("kendoGrid");
-				grid.dataSource.data(o.data.KanbanNo);
 			},
 			onClickFocus(e){$(e.target).select();},
 			onClickBtnClear(e){
 				var o = this;
-				o.data.KanbanNo = [];
+				o.data.kanban = '';
 
 				var grid = $("#grid1").data("kendoGrid");
 				grid.dataSource.data([]);
@@ -224,6 +283,45 @@
 				$("#KanbanNo").val('');
 				$("#KanbanNo").select();
 			},
+		},
+		fn: {
+			printSKID: function(SKID_ID){
+				var o = this;
+
+				swal.fire({
+					title: 'Success',
+					text: 'Print SKID Label?',
+					icon: 'success',
+					showCancelButton: true,
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'No',
+					showLoaderOnConfirm: true,
+					allowOutsideClick: false,
+					allowEscapeKey: false,
+					preConfirm: () => {
+						return new Promise((resolve) => {
+							setTimeout(() => {
+								$.ajax({
+									method: 'post',
+									headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+									url: "@myurl"+'ScanBoxLabel/PrintSKID',
+									dataType: 'text',
+									data: JSON.stringify({
+										SKID_ID: SKID_ID
+									})
+								}).done(function(data, textStatus, jqXHR) {
+									o.data.skid = JSON.parse(data);
+									swal.close();
+								}).fail(function(jqXHR, textStatus, errorThrown) {
+									swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+									console.log(jqXHR);
+								}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+								});
+							}, 1000);
+						});
+					}
+				});
+			}
 		},
 		init: function() {
 			var o = this;
@@ -239,10 +337,16 @@
 				dataSource: {
 					data: [],
 					pageSize: 10,
-					aggregate: [{ field: "BoxSeq", aggregate: "count" }]
+					sort: [
+						{ field: "PI_No", dir: "asc" },
+						{ field: "DN_No", dir: "asc" },
+						{ field: "ExCore", dir: "asc" },
+						{ field: "Job_No", dir: "asc" },
+						{ field: "KanbanSeq", dir: "asc" }
+					],
+					aggregate: [{ field: "KanbanSeq", aggregate: "count" }]
 				},
 				scrollable: true,
-				sortable: true,
 				pageable: true,
 				columns: [
 					{
@@ -265,18 +369,22 @@
 						template: "<div class='customClass text-center'> #= (ExCore == null) ? ' ' : kendo.toString(ExCore, '') # </div>",
 					},
 					{
-						field: "JobNo",
+						field: "Job_No",
 						title: "Job No.",
 						width: 50,
-						template: "<div class='customClass text-center'> #= (JobNo == null) ? ' ' : kendo.toString(JobNo, '') # </div>",
+						template: "<div class='customClass text-center'> #= (Job_No == null) ? ' ' : kendo.toString(Job_No, '') # </div>",
 					},
 					{
-						field: "BoxSeq",
+						field: "KanbanSeq",
 						title: "Seq",
 						width: 30,
-						template: "<div class='customClass text-center'> #= (BoxSeq == null) ? ' ' : kendo.toString(BoxSeq, '') # </div>",
+						template: "<div class='customClass text-center'> #= (KanbanSeq == null) ? ' ' : kendo.toString(KanbanSeq, '') # </div>",
 						aggregates: ["count"],
 						footerTemplate: "<div class='text-center'><span style=\'float:center;font-size: 11px\'>#=(count == null) ? '0' : count#</span></div>",
+					},
+					{
+						field: "Part_No",
+						hidden: true
 					},
 					{
 						field: "KanbanNo",
