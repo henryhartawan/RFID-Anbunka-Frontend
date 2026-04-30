@@ -21,10 +21,13 @@
                 <div class="col-xs-12 col-md-6">
                     <div id="qr_code"></div>
                 </div>
+                @if (Context.Session.GetString("read_ScanDriver") == "True")
+                {
                 <div class="col-xs-12" style="text-align:center;">
                     <button type="button" class="btn btn-success" onclick="location.href='@Url.Action("ScanDriver", "Step3")'" style="width:50%; white-space: normal;">SCAN TRIPNOTE</button>
                 </div>
                 <br/>
+                }
                 <div class="col-xs-12" style="text-align:center;">
                     <button type="button" class="btn btn-warning" onclick="location.href='@Url.Action("Logout", "Login")'" style="width:50%; white-space: normal;">LOGOUT</button>
                 </div>

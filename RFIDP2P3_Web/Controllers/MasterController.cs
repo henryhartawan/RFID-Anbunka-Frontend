@@ -1,83 +1,98 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RFIDP2P3_Web.Filters;
 
 namespace RFIDP2P3_Web.Controllers
 {
     public class MasterController : Controller
     {
+        [SessionAuthorize("read_master_user_group")]
         public IActionResult MasterUserGroup()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_user_priv")]
         public IActionResult MasterPrivilege()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_user")]
         public IActionResult MasterUser()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_plant")]
         public IActionResult MasterPlant()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_gedung")]
         public IActionResult MasterGedung()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_line")]
         public IActionResult MasterLine()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_shop")]
         public IActionResult MasterShop()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_department")]
         public IActionResult MasterDepartment()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_section")]
         public IActionResult MasterSection()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_shift")]
         public IActionResult MasterShift()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_pallet")]
         public IActionResult MasterPallet()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_part")]
         public IActionResult MasterPart()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_gi_p2")]
         public IActionResult MasterGIP2()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_gi_p3")]
         public IActionResult MasterGIP3()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_approval_ldk")]
         public IActionResult MasterApprovalLDK()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
     }
 }

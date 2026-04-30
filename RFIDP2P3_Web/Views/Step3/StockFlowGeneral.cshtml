@@ -35,8 +35,7 @@
 			o.dom.$btnLoad = $("#btnLoad");
 		},
 		data: {
-			From: '',
-			To: '',
+			Periode: kendo.toString(new Date(), 'yyyyMM'),
 			Line: '',
 			Supplier: ''
 		},
@@ -59,8 +58,7 @@
 					url: "@myurl"+'StockFlowGeneral/INQ',
 					dataType: 'text',
 					data: JSON.stringify({
-						From: o.data.From,
-						To: o.data.To,
+						Periode: o.data.Periode,
 						LineOrderCode: o.data.Line,
 						SupplierCode: o.data.Supplier
 					})
@@ -154,7 +152,7 @@
 								continue;
 							}
 
-							var tgl = key.substring(7,9) + '/' + key.substring(5,7) + '/' + key.substring(1,5);
+							var tgl = key.substring(1,3) + '/' + key.substring(3,5) + '/' + key.substring(4,8);
 
 							if(column != null && column.title != tgl){
 								columns.push(column);
@@ -172,7 +170,7 @@
 							column.columns.push(
 								{
 									field: key,
-									title: key.substring(10,11),
+									title: key.substring(0,1),
 									width: 80,
 									filterable: false,
 									template: "<div class='customClass'> #= (" + key + " == 0) ? '0' : kendo.toString(" + key + ", '0.00') # </div>",
@@ -256,28 +254,18 @@
 		},
 		initAfter: function () {
 			var o = this;
-			o.dom.From = $("#From");
-			o.dom.To = $("#To");
+			o.dom.Periode = $("#Periode");
 			o.dom.Line = $("#Line");
 			o.dom.Supplier = $("#Supplier");
 
-			o.dom.From.kendoDatePicker({
-				format: 'dd MMM yyyy',
-				value: o.data.From,
+			o.dom.Periode.kendoDatePicker({
+				format: 'yyyyMM',
+				value: o.data.Periode,
 				max: kendo.toString(new Date(),'yyyy-MM-dd'),
+				start: "year",
+				depth: "year",
 				change: function () {
-					o.data.From = this.value() != null ? kendo.toString(this.value(), 'yyyy-MM-dd') : '';
-					if (this.value() != null) o.dom.To.data('kendoDatePicker').min(o.data.From);
-				}
-			});
-
-			o.dom.To.kendoDatePicker({
-				format: 'dd MMM yyyy',
-				value: o.data.To,
-				max: kendo.toString(new Date(), 'yyyy-MM-dd'),
-				change: function () {
-					o.data.To = this.value() != null ? kendo.toString(this.value(), 'yyyy-MM-dd') : '';
-					if (this.value() != null) o.dom.From.data('kendoDatePicker').max(o.data.To);
+					o.data.Periode = this.value() != null ? kendo.toString(this.value(), 'yyyyMM') : '';
 				}
 			});
 
@@ -372,9 +360,7 @@
 			<i class="k-icon k-i-excel"></i>
 		</button>
 		&nbsp;&nbsp;
-		<input type="text" id="From" placeholder="From" />
-		&nbsp;&nbsp;
-		<input type="text" id="To" placeholder="To" />
+		<input type="text" id="Periode" placeholder="Periode" />
 		&nbsp;&nbsp;
 		<input type="date" id="Line" placeholder="Line" />
 		&nbsp;&nbsp;

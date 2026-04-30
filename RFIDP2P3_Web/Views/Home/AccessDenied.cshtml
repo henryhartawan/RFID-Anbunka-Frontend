@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="access-denied-container">
+    <div class="card">
+        <h1>🚫 Access Denied</h1>
+        <p>Kamu tidak memiliki akses ke halaman ini.</p>
+        <p>Silakan hubungi admin jika ini adalah kesalahan.</p>
+
+        <div class="actions">
+            <a href="/" class="btn btn-primary">Kembali ke Home</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .access-denied-container {
+        height: 80vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .card {
+        text-align: center;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        background: #fff;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .card h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #dc3545;
+    }
+
+    .card p {
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .actions {
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>

@@ -607,7 +607,7 @@
     };
 
     $(function () {
-       AppD.init();
+        AppD.init();
     });
 </script>
 
@@ -615,19 +615,17 @@
     <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Master Suffix to Unique -&nbsp;&nbsp;</span>
     <div class="toolbar">
 
-       <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
-          <i class="k-icon k-i-excel"></i>
-       </button>
-       
-       @if (Context.Session.GetString("add_master_suffix") == "True" || Context.Session.GetString("add_master_finish_goods") == "True")
-       {
-          <button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
-          <i class="k-icon k-i-plus"></i>
-       </button>
-       
-          <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
-          <i class="k-icon k-i-upload"></i>
-       </button>
-       }
+    @if (Context.Session.GetString("add_MasterSuffixToUnique") == "True")
+    {
+        <button data-toggle="tooltip" title="Create" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnCreate">
+            <i class="k-icon k-i-plus"></i>
+        </button>
+        <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+            <i class="k-icon k-i-upload"></i>
+        </button>
+    }
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+           <i class="k-icon k-i-excel"></i>
+        </button>
     </div>
 </script>

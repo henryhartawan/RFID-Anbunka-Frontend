@@ -48,7 +48,7 @@
                             return new Promise((resolve) => {
                                 setTimeout(() => {
                                     var x;
-                                    var y = 2.5;
+                                    var y = 2;
                                     var count = 0;
 
                                     var pdf = new jsPDF({
@@ -58,117 +58,113 @@
                                     });
 
                                     for(let i = 0; i < datas.length; i++) {
-                                        x = 2.5;
+                                        x = 4;
                                         count++;
 
-                                        if(count == 8) {
+                                        if(count == 10) {
                                             count = 1;
-                                            y = 2.5;
+                                            y = 2;
 
-                                            pdf.addPage({
-                                                orientation: "p",
-                                                unit: "mm",
-                                                format: "a4"
-                                            });
+                                            pdf.addPage();
                                         }
 
                                         pdf.setLineDash([0], 1);
-                                        pdf.setLineWidth(0.3);
+                                        pdf.setLineWidth(0.4);
 
-                                        pdf.rect(x, y, 25, 5);
-                                        pdf.setFontSize(8);
+                                        pdf.rect(x, y, 20, 3);
+                                        pdf.setFontSize(6);
                                         pdf.setFontStyle("bold");
                                         pdf.setTextColor(0, 0, 0);
 
-                                        pdf.text("POSISI", x + 12.5, y + 3.5, "center");
+                                        pdf.text("POSISI", x + 10, y + 2.25, "center");
 
-                                        x += 25;
-                                        pdf.rect(x, y, 60, 5);
-                                        pdf.text("JOB NUMBER", x + 30, y + 3.5, "center");
+                                        x += 20;
+                                        pdf.rect(x, y, 60, 3);
+                                        pdf.text("JOB NUMBER", x + 30, y + 2.25, "center");
 
                                         x += 60;
-                                        pdf.rect(x, y, 25, 5);
-                                        pdf.text("QR CODE", x + 12.5, y + 3.5, "center");
+                                        pdf.rect(x, y, 20, 3);
+                                        pdf.text("QR CODE", x + 10, y + 2.25, "center");
 
-                                        x += 25;
-                                        pdf.rect(x, y, 95, 5);
-                                        pdf.text("PART NAME", x + 47.5, y + 3.5, "center");
+                                        x += 20;
+                                        pdf.rect(x, y, 80, 3);
+                                        pdf.text("PART NAME", x + 40, y + 2.25, "center");
 
-                                        x = 2.5;
-                                        y += 5;
-                                        pdf.rect(x, y, 25, 25);
+                                        x = 4;
+                                        y += 3;
+                                        pdf.rect(x, y, 20, 18);
 
-                                        x += 7.5;
+                                        x += 6.25;
                                         pdf.setFillColor(0, 0, 0);
-                                        pdf.rect(x, y + 2, 10, 14.5, "F");
-                                        pdf.triangle(x - 5, y + 16, x + 5, y + 22.5, x + 15, y + 16, "F")
+                                        pdf.rect(x, y + 1.5, 7.5, 10.5, "F");
+                                        pdf.triangle(x - 2.5, y + 11.5, x + 3.75, y + 16.5, x + 10, y + 11.5, "F")
 
-                                        x += 17.5;
-                                        pdf.rect(x, y, 60, 25);
-                                        pdf.setFontSize(35);
-                                        pdf.text(datas[i].JobNo, x + 30, y + 16, "center");
+                                        x += 13.75;
+                                        pdf.rect(x, y, 60, 18);
+                                        pdf.setFontSize(30);
+                                        pdf.text(datas[i].JobNo, x + 30, y + 12.5, "center");
 
                                         x += 60;
-                                        pdf.rect(x, y, 25, 32.5);
+                                        pdf.rect(x, y, 20, 24);
 
                                         $("#qr_code").html("");
                                         $('#qr_code').qrcode(datas[i].ExCore);
                                         var canvas = document.querySelector("#qr_code canvas");
-                                        var img = canvas.toDataURL("image/jpeg", 1);
-                                        pdf.addImage(img, 'png', x + 2.5, y + 6, 20, 20);
+                                        var img = canvas.toDataURL("image/png");
+                                        pdf.addImage(img, 'PNG', x + 2, y + 4, 16, 16);
 
-                                        x += 25;
-                                        pdf.rect(x, y, 95, 7.5);
-                                        pdf.setFontSize(10);
-                                        pdf.text(datas[i].PartName, x + 47.5, y + 5, "center");
-
-                                        y += 7.5;
-                                        pdf.rect(x, y, 47.5, 5);
+                                        x += 20;
+                                        pdf.rect(x, y, 80, 6);
                                         pdf.setFontSize(8);
-                                        pdf.text("PART NO", x + 23.75, y + 3.5, "center");
-                                        pdf.rect(x + 47.5, y, 23.75, 5);
-                                        pdf.text("LAYER", x + 59.375, y + 3.5, "center");
-                                        pdf.rect(x + 71.25, y, 23.75, 5);
-                                        pdf.text("MAX CAP", x + 83.125, y + 3.5, "center");
+                                        pdf.text(datas[i].PartName, x + 40, y + 4, "center");
 
-                                        y += 5;
-                                        pdf.rect(x, y, 47.5, 7.5);
-                                        pdf.setFontSize(10);
-                                        pdf.text(datas[i].PartNumber, x + 23.75, y + 5, "center");
-                                        pdf.rect(x + 47.5, y, 23.75, 7.5);
-                                        pdf.text((datas[i].Layer).toString(), x + 59.375, y + 5, "center");
-                                        pdf.rect(x + 71.25, y, 23.75, 7.5);
-                                        pdf.text((datas[i].MaxCapacity).toString(), x + 83.125, y + 5, "center");
+                                        y += 6;
+                                        pdf.rect(x, y, 40, 3);
+                                        pdf.setFontSize(6);
+                                        pdf.text("PART NO", x + 20, y + 2.25, "center");
+                                        pdf.rect(x + 40, y, 20, 3);
+                                        pdf.text("LAYER", x + 50, y + 2.25, "center");
+                                        pdf.rect(x + 60, y, 20, 3);
+                                        pdf.text("MAX CAP", x + 70, y + 2.25, "center");
 
-                                        y += 7.5;
-                                        pdf.rect(x, y, 47.5, 5);
+                                        y += 3;
+                                        pdf.rect(x, y, 40, 6);
                                         pdf.setFontSize(8);
-                                        pdf.text("SUPPLIER", x + 23.75, y + 3.5, "center");
-                                        pdf.rect(x + 47.5, y, 23.75, 5);
-                                        pdf.text("HOLE", x + 59.375, y + 3.5, "center");
-                                        pdf.rect(x + 71.25, y, 23.75, 5);
-                                        pdf.text("LAST UPDATE", x + 83.125, y + 3.5, "center");
+                                        pdf.text(datas[i].PartNumber, x + 20, y + 4, "center");
+                                        pdf.rect(x + 40, y, 20, 6);
+                                        pdf.text((datas[i].Layer).toString(), x + 50, y + 4, "center");
+                                        pdf.rect(x + 60, y, 20, 6);
+                                        pdf.text((datas[i].MaxCapacity).toString(), x + 70, y + 4, "center");
 
-                                        y += 5;
-                                        pdf.rect(x, y, 47.5, 7.5);
-                                        pdf.setFontSize(10);
-                                        pdf.text(datas[i].SupplierAlias, x + 23.75, y + 5, "center");
-                                        pdf.rect(x + 47.5, y, 23.75, 7.5);
-                                        pdf.text((datas[i].Hole).toString(), x + 59.375, y + 5, "center");
-                                        pdf.rect(x + 71.25, y, 23.75, 7.5);
-                                        pdf.text(datas[i].LastUpdate, x + 83.125, y + 5, "center");
+                                        y += 6;
+                                        pdf.rect(x, y, 40, 3);
+                                        pdf.setFontSize(6);
+                                        pdf.text("SUPPLIER", x + 20, y + 2.25, "center");
+                                        pdf.rect(x + 40, y, 20, 3);
+                                        pdf.text("HOLE", x + 50, y + 2.25, "center");
+                                        pdf.rect(x + 60, y, 20, 3);
+                                        pdf.text("LAST UPDATE", x + 70, y + 2.25, "center");
 
-                                        x = 2.5;
-                                        pdf.rect(x, y, 85, 7.5);
-                                        pdf.text(datas[i].ExCore, x + 42.5, y + 5, "center");
+                                        y += 3;
+                                        pdf.rect(x, y, 40, 6);
+                                        pdf.setFontSize(8);
+                                        pdf.text(datas[i].SupplierAlias, x + 20, y + 4, "center");
+                                        pdf.rect(x + 40, y, 20, 6);
+                                        pdf.text((datas[i].Hole).toString(), x + 50, y + 4, "center");
+                                        pdf.rect(x + 60, y, 20, 6);
+                                        pdf.text(datas[i].LastUpdate, x + 70, y + 4, "center");
+
+                                        x = 4;
+                                        pdf.rect(x, y, 80, 6);
+                                        pdf.text(datas[i].ExCore, x + 40, y + 4, "center");
 
                                         x = 0;
-                                        y += 10;
+                                        y += 8;
 
                                         pdf.setLineDash([1], 1);
                                         pdf.line(0, y, 210, y);
 
-                                        y += 2.5;
+                                        y += 2;
                                     }
 
                                     pdf.save('Print Part Address.pdf');
@@ -354,7 +350,10 @@
                         this.value(null);
                     }
 
+                    o.data.JobNo = '';
+                    $("#JobNo").data('kendoMultiSelect').value('');
                     o.dom.$grid.data('kendoGrid').dataSource.read();
+                    $("#JobNo").data('kendoMultiSelect').dataSource.read();
                 }
             });
 
@@ -370,7 +369,10 @@
                                 headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
                                 url: "@myurl" + 'DropDown/INQ',
                                 dataType: 'text',
-								data: JSON.stringify({ Ftype: "JobNo", Plant: "" })
+								data: JSON.stringify({
+                                    Ftype: "JobNo",
+                                    Plant: o.data.Line
+                                })
                             }).done(function (data, textStatus, jqXHR) {
                                 try {
                                     var result = JSON.parse(data);
@@ -415,7 +417,7 @@
             <i class="k-icon k-i-print"></i>
         </button>
         &nbsp;&nbsp;
-        <input id="LineOrderCode" placeholder="Line" />
+        <input id="LineOrderCode" placeholder="Line" style="width:300px;" />
         &nbsp;&nbsp;
         <input type="text" id="JobNo" placeholder="Job No." style="width:200px;" />
     </div>

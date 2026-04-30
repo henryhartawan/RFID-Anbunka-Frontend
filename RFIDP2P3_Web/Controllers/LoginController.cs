@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
+using System.Net;
 
 namespace RFIDP2P3_Web.Controllers
 {
@@ -46,10 +47,22 @@ namespace RFIDP2P3_Web.Controllers
                 StringContent content = new StringContent(JsonConvert.SerializeObject(userLogin), Encoding.UTF8, "application/json");
 
                 client.DefaultRequestHeaders.Add("XApiKey", "pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp");
-				string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+
+                string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "UnknownIP";
+                client.DefaultRequestHeaders.Add("X-Forwarded-For", clientIp);
+
+                string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
                 using (var response = await client.PostAsync(myurl + "Login/Index", content))
                 {
                     apiResponse = await response.Content.ReadAsStringAsync();
+
+                    if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        dynamic? errorResponse = JsonConvert.DeserializeObject(apiResponse);
+                        ViewBag.Message = errorResponse?.message ?? "Terlalu banyak percobaan login gagal. Silakan tunggu.";
+                        return View();
+                    }
+
                     if (apiResponse == "User not found/not active")
                     {
                         ViewBag.Message = "User not found/not active";

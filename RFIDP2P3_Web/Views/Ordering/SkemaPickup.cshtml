@@ -92,6 +92,7 @@
 								Calc2: { type: "string" },
 								MinutePerPL: { type: "number" },
 								Last_PickUp_ID_PL: { type: "number" },
+								Last_PickUp_Date: { type: "date" },
 								PickUp_ID_PL_Awal: { type: "number" },
 								Last_PickUp_ID_PL_Before: { type: "string" },
 								Last_PickUp_ID_Date_Before: { type: "string" },
@@ -236,6 +237,12 @@
 						width: 100,
 						template: "<div class='customClass'> #= (Last_PickUp_ID_Date_Before == null) ? ' ' : kendo.toString(Last_PickUp_ID_Date_Before, 'dd/MM/yyyy') # </div>",
 					}]
+				},
+				{
+					field: "Last_PickUp_Date",
+					title: "Pickup Date",
+					width: 80,
+					template: "<div class='customClass'> #= (Last_PickUp_Date == null) ? '0' : kendo.toString(Last_PickUp_Date, 'dd/MM/yyyy') # </div>",
 				},
 				{
 					field: "PickUp_ID_PL_Awal",

@@ -120,11 +120,24 @@
                         swal.fire('Error', data, 'error');
                         return;
                     }
-                    swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
+                    swal.fire({
+                        title: 'Success',
+                        text: 'Data saved',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        location.reload();
+                    });
                 }).fail(function (jqXHR, textStatus, errorThrown) {
-                    swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                    swal.fire({
+                        title: 'Error',
+                        html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
+                        icon: 'error'
+                    }).then(() => {
+                        location.reload();
+                    });
                 }).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
-                    location.reload();
                 });
             }
         });

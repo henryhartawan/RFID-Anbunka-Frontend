@@ -1,128 +1,152 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RFIDP2P3_Web.Filters;
 
 namespace RFIDP2P3_Web.Controllers
 {
     public class MasterOrderingController : Controller
     {
+        [SessionAuthorize("read_master_dock")]
         public IActionResult MasterDock()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_line_order")]
         public IActionResult MasterLineOrder()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_supplier")]
         public IActionResult MasterSupplier()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_packing_spec")]
         public IActionResult MasterPackingSpec()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_part_order")]
         public IActionResult MasterPartOrder()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_depth")]
         public IActionResult MasterDepth()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_id_part")]
         public IActionResult MasterIDPart()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_data_route")]
         public IActionResult MasterDataRoute()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_cycle_issue_lp")]
         public IActionResult MasterCycleIssueLP()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_cycle_issue_part")]
         public IActionResult MasterCycleIssuePart()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_finish_goods")]
         public IActionResult MasterFinishGoods()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_unique_line")]
         public IActionResult MasterUniqueLine()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_cpl")]
         public IActionResult MasterCPL()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_progress_lane")]
         public IActionResult MasterProgressLane()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_grouping")]
         public IActionResult MasterGrouping()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_part_grouping")]
         public IActionResult MasterPartGrouping()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_dpr")]
         public IActionResult MasterDPR()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_calendar")]
         public IActionResult MasterCalendar()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_oee_tt")]
         public IActionResult MasterOEETT()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_master_param_jam")]
         public IActionResult MasterParamJam()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_MasterCustomerOrder")]
         public IActionResult MasterCustomerOrder()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_MasterSuffixToUnique")]
         public IActionResult MasterSuffixToUnique()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_AddMasterCalendar")]
         public IActionResult AddMasterCalendar()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
+
+        [SessionAuthorize("read_MasterOEETTFuture")]
         public IActionResult MasterOEETTFuture()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
     }
 }

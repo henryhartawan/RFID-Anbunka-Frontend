@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RFIDP2P3_Web.Filters;
 
 namespace RFIDP2P3_Web.Controllers
 {
 	public class PlanScheduleController : Controller
-	{
-		public IActionResult Index()
+    {
+        [SessionAuthorize("read_MasterPlanSchedule")]
+        public IActionResult Index()
         {
-            if (HttpContext.Session.GetString("PIC_ID") != null) return View();
-            else return RedirectToAction("Index", "Login");
+            return View();
         }
 	}
 }

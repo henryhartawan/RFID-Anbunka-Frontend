@@ -348,7 +348,11 @@
 								o.dom.$editor.modal('hide');
 								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
 							}).fail(function (jqXHR, textStatus, errorThrown) {
-								swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+								swal.fire({
+									title: 'Error',
+									html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
+									icon: 'error'
+								});
 							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
 								o.dom.$grid.data('kendoGrid').dataSource.read();
 							});

@@ -3,6 +3,8 @@
 	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
 }
 
+<div id="qr_code" style="display:none;"></div>
+
 <div class="page-main">
 	<div class="page-content padding-10">
 		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
@@ -38,11 +40,11 @@
 		eventHandlers: {
 			onClickBtnPrint: function (e) {
 				var o = this;
+				var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
 
 				swal.fire({
-					title: 'Success',
-					text: 'Print SKID Label?',
-					icon: 'success',
+					title: 'Reprint SKID Label',
+					icon: 'question',
 					showCancelButton: true,
 					confirmButtonText: 'Yes',
 					cancelButtonText: 'No',
@@ -58,10 +60,229 @@
 									url: "@myurl"+'ScanBoxLabel/PrintSKID',
 									dataType: 'text',
 									data: JSON.stringify({
-										SKID_ID: SKID_ID
+										SKID_ID: di.SKID_ID
 									})
 								}).done(function(data, textStatus, jqXHR) {
 									o.data.skid = JSON.parse(data);
+
+									var x = 2.5;
+									var y = 2.5;
+									var no = 1;
+
+									var pdf = new jsPDF({
+										orientation: "p",
+										unit: "mm",
+										format: "a4"
+									});
+
+									pdf.setLineDash([0], 1);
+									pdf.setLineWidth(0.1);
+
+									pdf.rect(x, y, 205, 10);
+									pdf.setFontSize(20);
+									pdf.setFontStyle("bold");
+									pdf.setTextColor(0, 0, 0);
+									pdf.text("PT. ADM ENGINE PLANT", x + 102.5, y + 7.5, "center");
+
+									y += 10;
+									pdf.rect(x, y, 51.25, 8);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("VENDOR CODE", x + 1, y + 3.5);
+
+									x += 51.25;
+									pdf.rect(x, y, 102.5, 8);
+									pdf.setFontSize(11.5);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].SupplierCode, x + 1, y + 5.5);
+
+									x += 102.5;
+									pdf.rect(x, y, 51.25, 8);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("PACKING GROUP", x + 1, y + 3.5);
+
+									x = 2.5;
+									y += 8;
+									pdf.rect(x, y, 51.25, 8);
+									pdf.text("VENDOR NAME", x + 1, y + 3.5);
+
+									x += 51.25;
+									pdf.rect(x, y, 102.5, 8);
+									pdf.setFontSize(11.5);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].SupplierName, x + 1, y + 5.5);
+
+									x += 102.5;
+									pdf.rect(x, y, 51.25, 8);
+									pdf.setFontSize(11.5);
+									pdf.text(o.data.skid[0].Packaging_Group, x + 25.625, y + 5.5, "center");
+
+									x = 2.5;
+									y += 9;
+									pdf.rect(x, y, 51.25, 12);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("DOCK :", x + 1, y + 3.5);
+									pdf.setFontSize(16);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].Doc_Code, x + 25.625, y + 10, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 51.25, 12);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("LINE :", x + 1, y + 3.5);
+									pdf.setFontSize(16);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].LineOrderCode, x + 25.625, y + 10, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 102.5, 12);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("DN NO :", x + 1, y + 3.5);
+									pdf.setFontSize(16);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].DN_No, x + 1, y + 10);
+
+									x = 2.5;
+									y += 13;
+									pdf.rect(x, y, 51.25, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("DELIVERY DATE :", x + 1, y + 3.5);
+									pdf.setFontSize(12);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].DeliveryDate, x + 25.625, y + 9, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 51.25, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("CYCLE :", x + 1, y + 3.5);
+									pdf.setFontSize(16);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].CycleArrival.toString(), x + 25.625, y + 9, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 51.25, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("LANE NO :", x + 1, y + 3.5);
+									pdf.setFontSize(16);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].Lane_No.toString(), x + 25.625, y + 9, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 51.25, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("ARRIVAL TIME :", x + 1, y + 3.5);
+									pdf.setFontSize(14);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].TimeArrival, x + 25.625, y + 9, "center");
+
+									x = 2.5;
+									y += 11;
+									pdf.rect(x, y, 51.25, 33);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("SKID NO :", x + 1, y + 3.5);
+
+									x += 51.25;
+									pdf.rect(x, y, 76.875, 33);
+
+									$("#qr_code").html("");
+									$('#qr_code').qrcode(o.data.skid[0].SKID_ID);
+									var canvas = document.querySelector("#qr_code canvas");
+									var img = canvas.toDataURL("image/jpeg", 1);
+									pdf.addImage(img, 'png', x + 23, y + 1.5, 30, 30, "center");
+
+									x += 76.875;
+									pdf.rect(x, y, 76.875, 11);
+									pdf.setFontSize(7);
+									pdf.text("SKID ID :", x + 1, y + 3.5);
+									pdf.setFontSize(12);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].SKID_ID, x + 1, y + 9);
+
+									y += 11;
+									pdf.rect(x, y, 76.875, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("ROUTE :", x + 1, y + 3.5);
+									pdf.setFontSize(12);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].Group_Route, x + 1, y + 9);
+
+									y += 11;
+									pdf.rect(x, y, 76.875, 11);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("PI NUMBER :", x + 1, y + 3.5);
+									pdf.setFontSize(12);
+									pdf.setFontStyle("bold");
+									pdf.text(o.data.skid[0].PI_No, x + 1, y + 9);
+
+									x = 2.5;
+									y += 11;
+									pdf.rect(x, y, 205, 5);
+									pdf.setFontSize(7);
+									pdf.setFontStyle("normal");
+									pdf.text("CONTENT LIST :", x + 1, y + 3.5);
+
+									x = 2.5;
+									y += 5;
+									pdf.rect(x, y, 25.625, 5);
+									pdf.text("NO", x + 12.8125, y + 3.5, "center");
+
+									x += 25.625;
+									pdf.rect(x, y, 51.25, 5);
+									pdf.text("EXCORE", x + 25.625, y + 3.5, "center");
+
+									x += 51.25;
+									pdf.rect(x, y, 25.625, 5);
+									pdf.text("JOB NO", x + 12.8125, y + 3.5, "center");
+
+									x += 25.625;
+									pdf.rect(x, y, 76.875, 5);
+									pdf.text("PART NAME", x + 38.4375, y + 3.5, "center");
+
+									x += 76.875;
+									pdf.rect(x, y, 25.625, 5);
+									pdf.text("QTY (BOX)", x + 12.8125, y + 3.5, "center");
+
+									for(let i = 0; i < 39; i++) {
+										x = 2.5;
+										y += 5;
+										pdf.rect(x, y, 25.625, 5);
+										x += 25.625;
+										pdf.rect(x, y, 51.25, 5);
+										x += 51.25;
+										pdf.rect(x, y, 25.625, 5);
+										x += 25.625;
+										pdf.rect(x, y, 76.875, 5);
+										x += 76.875;
+										pdf.rect(x, y, 25.625, 5);
+
+										if(i < o.data.skid.length) {
+											x = 2.5;
+											pdf.text(no.toString(), x + 12.8125, y + 3.5, "center");
+											x += 25.625;
+											pdf.text(o.data.skid[i].ExCore, x + 1, y + 3.5);
+											x += 51.25;
+											pdf.text(o.data.skid[i].Job_No, x + 1, y + 3.5);
+											x += 25.625;
+											pdf.text(o.data.skid[i].Part_Name, x + 1, y + 3.5);
+											x += 76.875;
+											pdf.text(o.data.skid[i].QtyBox.toString(), x + 12.8125, y + 3.5, "center");
+
+											no++;
+										}
+									}
+
+									pdf.save('SKID Label ' + o.data.skid[0].SKID_ID + '.pdf');
 									swal.close();
 								}).fail(function(jqXHR, textStatus, errorThrown) {
 									swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
@@ -179,7 +400,7 @@
 				{
 					field: "KanbanNos",
 					title: "Kanban No (s)",
-					width: 650
+					width: 550
 				},
 				{
 					field: "KanbanQty",

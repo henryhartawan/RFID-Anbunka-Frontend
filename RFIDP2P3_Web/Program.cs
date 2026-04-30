@@ -23,9 +23,24 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
+
 app.UseAuthorization();
 
-app.UseSession();
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+
+    if (response.StatusCode == 403)
+    {
+        response.Redirect("/Home/AccessDenied");
+    }
+
+    if (response.StatusCode == 404)
+    {
+        response.Redirect("/Home/PageNotFound");
+    }
+});
 
 app.MapControllerRoute(
     name: "default",

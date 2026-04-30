@@ -214,7 +214,8 @@
 					dataType: 'text',
 					data: JSON.stringify({
 						Type: 'ScanInADM',
-						TN_No: tnno
+						TN_No: tnno,
+						UserLogin: "@Context.Session.GetString("PIC_ID")"
 					})
 				}).done(function(data, textStatus, jqXHR) {
 					var result = data.split('~');
@@ -292,7 +293,6 @@
 				sortable: true,
 				resizable: true,
 				reorderable: true,
-				editable: true,
 				filterable: {
 					extra: false,
 					operators: {
