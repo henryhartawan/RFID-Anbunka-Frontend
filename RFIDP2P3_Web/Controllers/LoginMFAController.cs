@@ -124,6 +124,15 @@ namespace RFIDP2P3_Web.Controllers
                 // Evaluasi hasil MFA
                 if (result?.status == 1)
                 {
+                    string token = result.token;
+                    Response.Cookies.Append("jwt_token", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true, 
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTimeOffset.UtcNow.AddHours(8)
+                    });
+                    
                     HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "true");
                     return Json(new { status = 1, data = new { url = Url.Action("Index", "Home") } });
                 }

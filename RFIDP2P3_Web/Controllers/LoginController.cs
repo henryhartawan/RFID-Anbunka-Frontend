@@ -46,7 +46,7 @@ namespace RFIDP2P3_Web.Controllers
                 userLogin.password = password;
                 StringContent content = new StringContent(JsonConvert.SerializeObject(userLogin), Encoding.UTF8, "application/json");
 
-                client.DefaultRequestHeaders.Add("XApiKey", "pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp");
+                // client.DefaultRequestHeaders.Add("XApiKey", "pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp");
 
                 string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "UnknownIP";
                 client.DefaultRequestHeaders.Add("X-Forwarded-For", clientIp);
@@ -75,20 +75,25 @@ namespace RFIDP2P3_Web.Controllers
                     }
                     else
                     {
-                        userLogin = JsonConvert.DeserializeObject<User>(apiResponse.Substring(1, apiResponse.Length - 2));
-                        HttpContext.Session.SetString("PIC_ID", userLogin.PIC_ID);
-                        HttpContext.Session.SetString("PIC_Name", userLogin.PIC_Name);
-						HttpContext.Session.SetString("UserGroup_Id", userLogin.UserGroup_Id);
-						HttpContext.Session.SetString("UserGroup_Name", userLogin.UserGroup_Name);
-						foreach (var privilege in userLogin.Privileges)
+                        dynamic loginResult = JsonConvert.DeserializeObject(apiResponse);
+                        bool requireMfa = loginResult.requireMfa ?? false;
+                        User userLoginResult = JsonConvert.DeserializeObject<User>(JsonConvert.SerializeObject(loginResult.user));
+                        
+                        HttpContext.Session.SetString("PIC_ID", userLoginResult.PIC_ID);
+                        HttpContext.Session.SetString("PIC_Name", userLoginResult.PIC_Name);
+						HttpContext.Session.SetString("UserGroup_Id", userLoginResult.UserGroup_Id);
+						HttpContext.Session.SetString("UserGroup_Name", userLoginResult.UserGroup_Name);
+                        if (userLoginResult.Privileges != null)
                         {
-                            HttpContext.Session.SetString("read_" + privilege.Menu_Id, privilege.checkedbox_read);
-                            HttpContext.Session.SetString("add_" + privilege.Menu_Id, privilege.checkedbox_add);
-                            HttpContext.Session.SetString("edit_" + privilege.Menu_Id, privilege.checkedbox_edit);
-                            HttpContext.Session.SetString("del_" + privilege.Menu_Id, privilege.checkedbox_del);
+                            foreach (var privilege in userLoginResult.Privileges)
+                            {
+                                HttpContext.Session.SetString("read_" + (privilege.Menu_Id ?? ""), privilege.checkedbox_read ?? "");
+                                HttpContext.Session.SetString("add_" + (privilege.Menu_Id ?? ""), privilege.checkedbox_add ?? "");
+                                HttpContext.Session.SetString("edit_" + (privilege.Menu_Id ?? ""), privilege.checkedbox_edit ?? "");
+                                HttpContext.Session.SetString("del_" + (privilege.Menu_Id ?? ""), privilege.checkedbox_del ?? "");
+                            }
                         }
                         
-                        bool requireMfa = userLogin.MFAStatus?.ToLower() == "true";
                         if (requireMfa)
                         {
                             HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "false");
@@ -96,6 +101,15 @@ namespace RFIDP2P3_Web.Controllers
                         }
                         else
                         {
+                            string token = loginResult.token;
+                            Response.Cookies.Append("jwt_token", token, new CookieOptions
+                            {
+                                HttpOnly = true,
+                                Secure = true, 
+                                SameSite = SameSiteMode.Strict,
+                                Expires = DateTimeOffset.UtcNow.AddHours(8)
+                            });
+                            
                             HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "true");
                             return RedirectToAction("Index", "Home");
                         }
@@ -107,6 +121,7 @@ namespace RFIDP2P3_Web.Controllers
         public async Task<IActionResult> Logout()
         {
             HttpContext.Session.Clear();
+            Response.Cookies.Delete("jwt_token");
             return RedirectToAction("Index", "Login");
         }
     }

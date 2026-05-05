@@ -1433,7 +1433,35 @@
 		</div>
 	</div>
 
-	<script type="text/javascript">
+<script type="text/javascript">
+
+	var backendUrl = "@myurl";
+
+	$.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+		if (options.url && options.url.startsWith(backendUrl)) {
+			var targetPath = options.url.substring(backendUrl.length);
+			options.url = '/ApiProxy/Forward/' + targetPath;
+
+			if (options.headers && options.headers['XApiKey']) {
+				delete options.headers['XApiKey'];
+			}
+		}
+	});
+
+	$(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+		if (jqXHR.status === 401) {
+			swal.fire({
+				title: 'Session Expired',
+				text: 'Your session has ended. Please log in again.',
+				icon: 'warning',
+				confirmButtonText: 'OK',
+				allowOutsideClick: false
+			}).then((result) => {
+				window.location.href = '/Login/Logout';
+			});
+		}
+	});
+	
 		window.onresize = function () {
 			resized(0)
 		};
@@ -1536,8 +1564,8 @@
 
 			$.ajax({
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
-				url: "@myurl" + 'LDK/INQn',
+				headers: { 'Content-Type': 'application/json' },
+				url: backendUrl + 'LDK/INQn',
 				dataType: 'text',
 				data: JSON.stringify({
 					UserLogin: "@Context.Session.GetString("PIC_ID")"
@@ -1552,8 +1580,9 @@
 					console.log(jqXHR);
 				}
 			}).fail(function (jqXHR, textStatus, errorThrown) {
-				swal.fire('Error Loading Notifications', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
-				console.log(jqXHR);
+				if(jqXHR.status !== 401){
+					console.log("LDK Notification Check Failed:", jqXHR.status);
+				}
 			});
 		}
 
@@ -1568,6 +1597,6 @@
 		});
 	</script>
 
-	@await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
