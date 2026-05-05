@@ -156,7 +156,11 @@
 							data: formData,
 							contentType: false,
 							processData: false
-						}).done(function () {
+						}).done(function (data, textStatus, jqXHR) {
+							if(data[0].Remarks != '') {
+								swal.fire('Warning', data[0].Remarks, 'warning');
+								return;
+							}
 							o.dom.$editorUpload.modal('hide');
 							swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
 							$("#fileUpload").data('kendoUpload').clearAllFiles();

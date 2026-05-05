@@ -131,9 +131,9 @@
                     });
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     swal.fire({
-                        title: 'Error',
+                        title: 'Warning',
                         html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
-                        icon: 'error'
+                        icon: 'warning'
                     }).then(() => {
                         location.reload();
                     });

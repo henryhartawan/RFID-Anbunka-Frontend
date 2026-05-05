@@ -349,9 +349,9 @@
 								swal.fire({ title: 'Success', text: 'Data saved', icon: 'success', timer: 2000, showConfirmButton: false });
 							}).fail(function (jqXHR, textStatus, errorThrown) {
 								swal.fire({
-									title: 'Error',
+									title: 'Warning',
 									html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
-									icon: 'error'
+									icon: 'warning'
 								});
 							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
 								o.dom.$grid.data('kendoGrid').dataSource.read();
