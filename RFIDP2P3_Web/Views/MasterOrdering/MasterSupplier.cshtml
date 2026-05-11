@@ -166,7 +166,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterSupplier/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -199,7 +199,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterSupplier/ACT',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -259,7 +259,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterSupplier/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -312,7 +312,6 @@
 
 						$.ajax({
 							url: "@myurl" + "MasterSupplier/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
-							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
 							type: 'post',
 							data: formData,
 							contentType: false,
@@ -354,7 +353,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterSupplier/INQ',
 								dataType: 'text',
 								data: JSON.stringify({

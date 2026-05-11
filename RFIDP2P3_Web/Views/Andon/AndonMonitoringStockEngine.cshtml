@@ -287,7 +287,7 @@
                         read: function (options) {
                             $.ajax({
                                 method: 'post',
-                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                headers: { 'Content-Type': 'application/json' },
                                 url: "@myurl" + 'DropDown/INQ',
                                 dataType: 'text',
                                 data: JSON.stringify({ Ftype: "Gedung", Plant: "P2" })
@@ -330,7 +330,7 @@
 
         $.ajax({
             method: 'post',
-            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            headers: { 'Content-Type': 'application/json' },
             url: "@myurl" + 'Andon/Shift',
             dataType: 'text',
             data: JSON.stringify({ Plant: 'P2' })
@@ -370,7 +370,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockEngineList',
                             dataType: 'text',
                             data: JSON.stringify({ gedung: gedung, tabGrid: tabGrid1, type: '0' })
@@ -487,7 +487,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockEngineList',
                             dataType: 'text',
                             data: JSON.stringify({ gedung: gedung, tabGrid: tabGrid2, type: '0' })
@@ -589,7 +589,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockEngine',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid3 , gedung:gedung})
@@ -732,7 +732,7 @@
                             read: function (options) {
                                 $.ajax({
                                     method: 'post',
-                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    headers: { 'Content-Type': 'application/json' },
                                     url: "@myurl" + 'DropDown/INQ',
                                     dataType: 'text',
                                     data: JSON.stringify({ Ftype: "Gedung", Plant: "P2" })
@@ -809,7 +809,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockEngineList',
                             dataType: 'text',
                             data: JSON.stringify({ gedung: gedung, tabGrid: tabGrid4, type: '2' })
@@ -904,7 +904,7 @@
 
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl" + 'Andon/Shift',
                     dataType: 'text',
                     data: JSON.stringify({ Plant: 'P2' })

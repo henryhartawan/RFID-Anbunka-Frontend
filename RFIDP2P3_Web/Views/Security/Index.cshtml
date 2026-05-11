@@ -108,7 +108,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl"+'Security',
                     dataType: 'text',
                     data: JSON.stringify({
@@ -117,7 +117,13 @@
                     })
                 }).done(function (data, textStatus, jqXHR) {
                     if (data !== 'success') {
-                        swal.fire('Error', data, 'error');
+                        swal.fire({
+                            title: 'Error',
+                            html: data,
+                            icon: 'error'
+                        }).then(() => {
+                            location.reload();
+                        });
                         return;
                     }
                     swal.fire({
@@ -131,9 +137,9 @@
                     });
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     swal.fire({
-                        title: 'Warning',
-                        html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
-                        icon: 'warning'
+                        title: 'Error',
+                        html: (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
+                        icon: 'error'
                     }).then(() => {
                         location.reload();
                     });

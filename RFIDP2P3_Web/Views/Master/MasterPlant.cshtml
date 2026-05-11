@@ -113,7 +113,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterPlant/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -147,7 +147,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterPlant/ACT',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -202,7 +202,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterPlant/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -252,7 +252,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterPlant/INQ',
 								dataType: 'text',
 								data: JSON.stringify({

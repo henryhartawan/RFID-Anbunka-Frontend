@@ -112,7 +112,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterDepartment/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -166,7 +166,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterDepartment/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -216,7 +216,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterDepartment/INQ',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -351,7 +351,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Plant", Plant: "" })
@@ -385,7 +385,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Shop", Plant: "" })

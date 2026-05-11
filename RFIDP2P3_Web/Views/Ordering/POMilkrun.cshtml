@@ -82,7 +82,7 @@
 							if (result.isConfirmed) {
 								$.ajax({
 									method: 'post',
-									headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+									headers: { 'Content-Type': 'application/json' },
 									url: "@myurl"+'POMilkrun/DEL',
 									dataType: 'text',
 									data: JSON.stringify({
@@ -131,7 +131,6 @@
 
 						$.ajax({
 							url: "@myurl" + "POMilkrun/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
-							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
 							type: 'post',
 							data: formData,
 							contentType: false,
@@ -174,7 +173,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'POMilkrun/INQ',
 								dataType: 'text',
 								data: JSON.stringify({

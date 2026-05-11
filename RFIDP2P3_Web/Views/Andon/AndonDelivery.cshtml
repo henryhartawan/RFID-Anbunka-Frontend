@@ -295,7 +295,7 @@
                         read: function (options) {
                             $.ajax({
                                 method: 'post',
-                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                headers: { 'Content-Type': 'application/json' },
                                 url: "@myurl" + 'DropDown/INQ',
                                 dataType: 'text',
                                 data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
@@ -339,7 +339,7 @@
 
         $.ajax({
             method: 'post',
-            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            headers: { 'Content-Type': 'application/json' },
             url: "@myurl" + 'Andon/Shift',
             dataType: 'text',
             data: JSON.stringify({ Plant: 'P3' })
@@ -380,7 +380,7 @@
 
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonDeliveryDetail',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid2, gedung: gedung })
@@ -475,7 +475,7 @@
                             read: function (options) {
                                 $.ajax({
                                     method: 'post',
-                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    headers: { 'Content-Type': 'application/json' },
                                     url: "@myurl" + 'DropDown/INQ',
                                     dataType: 'text',
                                     data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
@@ -569,7 +569,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonDelivery',
                             dataType: 'text',
                             data: JSON.stringify({gedung: gedung })
@@ -757,7 +757,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonPreDelivery',
                             dataType: 'text',
                             data: JSON.stringify({gedung: gedung })
@@ -895,7 +895,7 @@
                             read: function (options) {
                                 $.ajax({
                                     method: 'post',
-                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    headers: { 'Content-Type': 'application/json' },
                                     url: "@myurl" + 'DropDown/INQ',
                                     dataType: 'text',
                                     data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
@@ -1000,7 +1000,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonPairingKanbanList',
                             dataType: 'text',
                             data: JSON.stringify({gedung: gedung })
@@ -1154,7 +1154,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonPairingKanbanHeader',
                             dataType: 'text',
                             data: JSON.stringify({gedung: gedung })
@@ -1307,7 +1307,7 @@
                             read: function (options) {
                                 $.ajax({
                                     method: 'post',
-                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    headers: { 'Content-Type': 'application/json' },
                                     url: "@myurl" + 'DropDown/INQ',
                                     dataType: 'text',
                                     data: JSON.stringify({ Ftype: "Gedung", Plant: "P3" })
@@ -1372,7 +1372,7 @@
 
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl" + 'Andon/Shift',
                     dataType: 'text',
                     data: JSON.stringify({ Plant: 'P3' })
@@ -1396,7 +1396,7 @@
             } else if (intr > 0) {
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl" + 'Andon/AndonPairingCek',
                     dataType: 'text',
                     data: JSON.stringify({ param: 'Predelivery', gedung: gedung })

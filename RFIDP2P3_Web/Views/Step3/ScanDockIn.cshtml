@@ -185,7 +185,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'ScanDockIn/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -212,7 +212,7 @@
 
 				$.ajax({
 					method: 'post',
-					headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+					headers: { 'Content-Type': 'application/json' },
 					url: "@myurl"+'ScanDockIn/CheckTN',
 					dataType: 'text',
 					data: JSON.stringify({
@@ -256,7 +256,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'ScanDockIn/INQ',
 								dataType: 'text',
 								data: {}

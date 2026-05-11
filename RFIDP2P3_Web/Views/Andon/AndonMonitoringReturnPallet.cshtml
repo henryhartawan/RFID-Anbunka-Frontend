@@ -264,7 +264,7 @@
                         read: function (options) {
                             $.ajax({
                                 method: 'post',
-                                headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                headers: { 'Content-Type': 'application/json' },
                                 url: "@myurl" + 'DropDown/INQ',
                                 dataType: 'text',
                                 data: JSON.stringify({ Ftype: "Gedung", Plant: "P2" })
@@ -310,7 +310,7 @@
 
         $.ajax({
             method: 'post',
-            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+            headers: { 'Content-Type': 'application/json' },
             url: "@myurl" + 'Andon/Shift',
             dataType: 'text',
             data: JSON.stringify({ Plant: 'P2' })
@@ -347,7 +347,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonReturnPallet',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid1, gedung:gedung })
@@ -476,7 +476,7 @@
                             read: function (options) {
                                 $.ajax({
                                     method: 'post',
-                                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                                    headers: { 'Content-Type': 'application/json' },
                                     url: "@myurl" + 'DropDown/INQ',
                                     dataType: 'text',
                                     data: JSON.stringify({ Ftype: "Gedung", Plant: "P2" })
@@ -525,7 +525,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockLDKList',
                             dataType: 'text',
                             data: JSON.stringify({gedung:gedung})
@@ -639,7 +639,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockLDKList',
                             dataType: 'text',
                             data: JSON.stringify({gedung:gedung})
@@ -746,7 +746,7 @@
 
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl" + 'Andon/Shift',
                     dataType: 'text',
                     data: JSON.stringify({ Plant: 'P2' })

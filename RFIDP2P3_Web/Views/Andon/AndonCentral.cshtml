@@ -300,7 +300,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonStockEngineCentral',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid1, gedung: gedung })
@@ -388,7 +388,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/SMRCentral',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid2, gedung: gedung })

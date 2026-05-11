@@ -131,7 +131,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterWarehouse/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -164,7 +164,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterWarehouse/ACT',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -207,7 +207,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterWarehouse/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -276,7 +276,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterWarehouse/INQ',
 								dataType: 'text',
 								data: {}
@@ -451,7 +451,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "PlantCode", Plant: "" })
@@ -491,7 +491,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "LinePlant", Plant: "" })

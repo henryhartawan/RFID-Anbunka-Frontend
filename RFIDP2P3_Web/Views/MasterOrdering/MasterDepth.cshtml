@@ -168,7 +168,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterDepth/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -201,7 +201,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterDepth/ACT',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -265,7 +265,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterDepth/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -318,7 +318,6 @@
 
 						$.ajax({
 							url: "@myurl" + "MasterDepth/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
-							headers: { 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
 							type: 'post',
 							data: formData,
 							contentType: false,
@@ -360,7 +359,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterDepth/INQ',
 								dataType: 'text',
 								data: {}
@@ -542,7 +541,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "LineOrder", Plant: "" })

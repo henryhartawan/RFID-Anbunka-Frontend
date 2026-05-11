@@ -235,7 +235,7 @@
 					if (result.isConfirmed) {
 						$.ajax({
 							method: 'post',
-							headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+							headers: { 'Content-Type': 'application/json' },
 							url: "@myurl"+'MasterUser/DEL',
 							dataType: 'text',
 							data: JSON.stringify({
@@ -322,7 +322,7 @@
 						if (result.isConfirmed) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'MasterUser/INS',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -350,7 +350,7 @@
 							}).fail(function (jqXHR, textStatus, errorThrown) {
 								swal.fire({
 									title: 'Warning',
-									html: 'Password cannot contain :<br>' + (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
+									html: (jqXHR.responseText !== '' ? jqXHR.responseText : ''),
 									icon: 'warning'
 								});
 							}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
@@ -381,7 +381,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterUser/INQ',
 								dataType: 'text',
 								data: JSON.stringify({
@@ -547,7 +547,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl"+'MasterUserGroup/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ UserGroup_Id: "@Context.Session.GetString("UserGroup_Id")" })
@@ -598,7 +598,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Plant", Plant: "" })
@@ -631,7 +631,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Gedung", Plant: "" })
@@ -666,7 +666,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Dept", Plant: "" })
@@ -717,7 +717,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Section", Plant: '', DeptID: '' })
@@ -780,7 +780,7 @@
 						read: function (options) {
 							$.ajax({
 								method: 'post',
-								headers: { 'Content-Type': 'application/json', 'XApiKey': 'pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp' },
+								headers: { 'Content-Type': 'application/json' },
 								url: "@myurl" + 'DropDown/INQ',
 								dataType: 'text',
 								data: JSON.stringify({ Ftype: "Supplier", Plant: "" })
