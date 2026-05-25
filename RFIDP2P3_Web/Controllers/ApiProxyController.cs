@@ -96,7 +96,24 @@ namespace RFIDP2P3_Web.Controllers
             var result = await response.Content.ReadAsStringAsync();
             var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
             
-            return Content(result, contentType);
+            if (contentType.Contains("application/vnd.openxmlformats-officedocument") || 
+                contentType.Contains("application/octet-stream"))
+            {
+                var fileStream = await response.Content.ReadAsStreamAsync();
+                var contentDisposition = response.Content.Headers.ContentDisposition;
+                string downloadName = contentDisposition?.FileNameStar ?? contentDisposition?.FileName?.Trim('"') ?? "download.xlsx";
+    
+                string pureMediaType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+    
+                return File(fileStream, pureMediaType, downloadName);
+            }
+            
+            return new ContentResult
+            {
+                Content = result,
+                ContentType = contentType,
+                StatusCode = (int)response.StatusCode
+            };
         }
     }
 }

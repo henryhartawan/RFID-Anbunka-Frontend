@@ -251,6 +251,7 @@
 								Line: { type: "string" },
 								FinishGoods: { type: "string" },
 								UniqueLineStatus: { type: "string" },
+								QtyPerBox: { type: "string" },
 								LastUpdate: { type: "string" },
 								UserUpdate: { type: "string" },
 								Remarks: { type: "string" },
@@ -307,38 +308,37 @@
 						}]
 					},
 					</text>
-				}
-				{
+				} {
 					field: "UniqueLineID",
 					title: "ID",
 					width: 100
-				},
-				{
+				}, {
 					field: "Line",
 					title: "Line",
 					width: 100,
 					template: "<div class='customClass'> #= (Line == null) ? ' ' : kendo.toString(Line, '') # </div>",
-				},
-				{
+				}, {
 					field: "FinishGoods",
 					title: "Finish Goods",
 					width: 150,
 					template: "<div class='customClass'> #= (FinishGoods == null) ? ' ' : kendo.toString(FinishGoods, '') # </div>",
-				},
-				{
+				}, {
 					field: "UniqueLineStatus",
 					title: "Status",
 					width: 100
-				},
-				{
+				}, {
+					field: "QtyPerBox",
+					title: "Qty",
+					width: 100,
+					template: "<div class='customClass'> #= (QtyPerBox == null) ? ' ' : kendo.toString(QtyPerBox, '') # </div>",
+				}, {
 					title: "Last Update",
 					columns: [
 					{
 						field: "UserUpdate",
 						title: "User",
 						width: 100
-					},
-					{
+					}, {
 						field: "LastUpdate",
 						title: "Date",
 						width: 150

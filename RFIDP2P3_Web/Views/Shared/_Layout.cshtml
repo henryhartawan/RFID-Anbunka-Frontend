@@ -1419,7 +1419,61 @@
 						</ul>
 					</li>
 				}
-				</ul>
+
+				@if (
+					Context.Session.GetString("read_FirmOrder") == "True" ||
+					Context.Session.GetString("read_SummaryOrder") == "True")
+				{
+					<li class="gui-folder">
+						<a>
+							<div class="gui-icon"><i class="fa fa-inbox"></i></div>
+							<span class="title">Capacity Calculation</span>
+						</a>
+						<ul>
+							@if (Context.Session.GetString("read_FirmOrder") == "True")
+							{
+								<li>
+									<a asp-controller="CapacityCalculation" asp-action="FirmOrder" class="@getClass("CapacityCalculation", "FirmOrder")">
+										<span class="title">Firm Tentatif Order</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_SummaryOrder") == "True")
+							{
+								<li>
+									<a asp-controller="CapacityCalculation" asp-action="SummaryOrder" class="@getClass("CapacityCalculation", "SummaryOrder")">
+										<span class="title">Summary Order</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_ParameterCapacity") == "True")
+							{
+							<li>
+								<a asp-controller="CapacityCalculation" asp-action="ParameterCapacity" class="@getClass("CapacityCalculation", "ParameterCapacity")">
+									<span class="title">Parameter Calc Capacity</span>
+								</a>
+							</li>
+							}
+							@if (Context.Session.GetString("read_ProcessCapacity") == "True")
+							{
+							<li>
+								<a asp-controller="CapacityCalculation" asp-action="ProcessCapacity" class="@getClass("CapacityCalculation", "ProcessCapacity")">
+									<span class="title">Process</span>
+								</a>
+							</li>
+							}
+							@if (Context.Session.GetString("read_ResultCapacity") == "True")
+							{
+								<li>
+									<a asp-controller="CapacityCalculation" asp-action="ResultCapacity" class="@getClass("CapacityCalculation", "ResultCapacity")">
+										<span class="title">Result</span>
+									</a>
+								</li>
+							}
+						</ul>
+					</li>
+				}
+			</ul>
 				<div class="menubar-foot-panel">
 					<small class="no-linebreak hidden-folded">
 						<span class="opacity-75">&copy;2023 - </span> <strong>PT Daihatsu Astra Motor</strong>

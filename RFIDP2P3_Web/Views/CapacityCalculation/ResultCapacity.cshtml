@@ -1,0 +1,330 @@
+@{
+ViewData["Title"] = "Result Capacity";
+string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+    .page-content {
+        display: block;
+    }
+    #grid {
+        width: 100%;
+        min-height: 450px;
+    }
+    .row-category {
+        font-weight: bold;
+        color: #333;
+        width: 130px;
+        display: inline-block;
+    }
+    .row-parameter {
+        color: #555;
+    }
+</style>
+
+<div class="page-main">
+    <div class="page-content padding-10">
+        <button type="button" id="btnLoad" class="btn btn-primary" style="display:none;">Load</button>
+        <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<script>
+    var AppD = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+            o.dom.$btnLoad.on('click', o.eventHandlers.onClickBtnLoad.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$grid = $("#grid");
+            o.dom.$btnLoad = $("#btnLoad");
+        },
+        data: {
+            Periode: new Date(),
+        },
+        dom: {},
+        eventHandlers: {
+            onClickBtnExcel: function () {
+                var o = this;
+                o.dom.$grid.data('kendoGrid').saveAsExcel();
+            },
+            onClickBtnLoad: function(){
+                var o = this;
+
+                swal.fire({ title: 'Loading...', allowOutsideClick: false, didOpen: () => { swal.showLoading(); } });
+
+                $.ajax({
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json' },
+                    url: "@myurl" + 'ResultCapacity/INQ',
+                    dataType: 'text',
+                    data: JSON.stringify({
+                        Periode: kendo.toString(o.data.Periode, 'yyyyMM')
+                    })
+                }).done(function (data) {
+                    swal.close();
+                    try {
+                        var rawData = JSON.parse(data);
+                        o.buildPivotedGrid(rawData);
+                    } catch (e) {
+                        swal.fire('Error', 'Gagal memproses format data', 'error');
+                    }
+                }).fail(function (jqXHR) {
+                    swal.close();
+                    swal.fire('Error', 'Gagal memuat data dari server', 'error');
+                });
+            }
+        },
+
+        buildPivotedGrid: function(rawData) {
+            var o = this;
+
+            if (typeof o.dom.$grid.data('kendoGrid') != 'undefined') {
+                o.dom.$grid.data('kendoGrid').destroy();
+                o.dom.$grid.empty();
+            }
+
+            if (!rawData || rawData.length === 0) {
+                o.dom.$grid.html("<div style='text-align:center; padding:20px;'>Tidak ada data kalkulasi pada periode ini.</div>");
+                return;
+            }
+
+            rawData.sort(function(a, b) { return a.OffsetN - b.OffsetN; });
+
+            var uniqueMonths = [];
+            var monthMap = {};
+
+            rawData.forEach(function(r) {
+                if(!monthMap[r.TargetMonth]) {
+                    var fieldName = "M_" + uniqueMonths.length;
+                    monthMap[r.TargetMonth] = fieldName;
+                    uniqueMonths.push({ field: fieldName, title: r.TargetMonth });
+                }
+            });
+
+            var groupedData = {};
+            rawData.forEach(function(r) {
+                var key = r.LineOrderCode + "|" + r.EngineBase;
+                if(!groupedData[key]) groupedData[key] = { Line: r.LineOrderCode, EngineBase: r.EngineBase, items: [] };
+                groupedData[key].items.push(r);
+            });
+
+            var metrics = [
+                { field: "ShiftCount", category: "", label: "Jumlah Shift", decimals: 0 },
+                { field: "LoadingCustomerQty", category: "", label: "Loading Customer", decimals: 0 },
+                { field: "ProdPlanMonthly", category: "Prod. Plan", label: "Monthly", decimals: 0 },
+                { field: "AdvanceQty", category: "Prod. Plan", label: "Advance", decimals: 0 },
+                { field: "ProdPlanDaily", category: "Prod. Plan", label: "Daily", decimals: 0 },
+                { field: "ProdPlanTaktTime", category: "Prod. Plan", label: "Takt Time", decimals: 1 },
+                { field: "LoadingTime", category: "", label: "Loading Time", decimals: 0 },
+                { field: "MandatoryTime", category: "", label: "Mandatory", decimals: 0 },
+                { field: "TotalOperatingTime", category: "", label: "Total operating time", decimals: 0 },
+                { field: "WorkingDay", category: "Loading", label: "Working Day", decimals: 1 },
+                { field: "CT_Min", category: "Loading", label: "CT [min]", decimals: 2 },
+                { field: "EFF_Pct", category: "Loading", label: "EFF [%]", isPct: true, decimals: 0 },
+                { field: "CapacityNormal", category: "Capacity", label: "Normal", decimals: 0 },
+                { field: "CapacityOT_2h", category: "Capacity", label: "+OT 2h", decimals: 2 },
+                { field: "CapacityHOT_4s", category: "Capacity", label: "+HOT 4s", decimals: 2 },
+                { field: "CapacityTotal", category: "Capacity", label: "DOT 2h + HOT 4s", decimals: 2 },
+                { field: "HotShiftOvertime", category: "Overtime", label: "HOT [shift]", decimals: 0 },
+                { field: "Overtime_DOT_Hours", category: "Overtime", label: "DOT [hour]", decimals: 2 },
+                { field: "Overtime_Pct", category: "Overtime", label: "%", isPct: true, decimals: 2 },
+                { field: "IdlePerDay_Min", category: "Overtime", label: "Idle/day [min]", decimals: 0 }
+            ];
+
+            var pivotedData = [];
+            var schemaFields = {
+                LineOrderCode: { type: "string" },
+                EngineBase: { type: "string" },
+                Category: { type: "string" },
+                Parameter: { type: "string" },
+                SortOrder: { type: "number" },
+                FormatStr: { type: "string" },
+                IsPct: { type: "boolean" }
+            };
+
+            uniqueMonths.forEach(function(m) {
+                schemaFields[m.field] = { type: "number" };
+            });
+
+            for (var key in groupedData) {
+                var g = groupedData[key];
+
+                metrics.forEach(function(m, index) {
+                    var row = {
+                        LineOrderCode: g.Line,
+                        EngineBase: g.EngineBase,
+                        Category: m.category,
+                        Parameter: m.label,
+                        SortOrder: index,
+                        FormatStr: "n" + m.decimals,
+                        IsPct: m.isPct || false
+                    };
+
+                    g.items.forEach(function(item) {
+                        var targetCol = monthMap[item.TargetMonth];
+                        var val = item[m.field];
+
+                        if (m.isPct && val != null) {
+                            val = val * 100;
+                        }
+                        row[targetCol] = val;
+                    });
+
+                    pivotedData.push(row);
+                });
+            }
+
+            var columns = [
+                {
+                    field: "LineOrderCode",
+                    title: "Line Code",
+                    width: 80,
+                    filterable: { multi: true, search: true }
+                },
+                {
+                    field: "EngineBase",
+                    title: "Engine Base",
+                    width: 80,
+                    filterable: { multi: true, search: true }
+                },
+                { field: "SortOrder", hidden: true },
+                {
+                    field: "Parameter",
+                    title: "Parameter",
+                    width: 280,
+                    filterable: {
+                        cell: {
+                            operator: "contains",
+                            suggestionOperator: "contains"
+                        }
+                    },
+                    template: function(dataItem) {
+                        var num = "<span style='display:inline-block; width:25px; font-weight:bold; color:\\#333;'>" + (dataItem.SortOrder + 1) + ".</span>";
+
+                        if (dataItem.Category) {
+                            return num + "<span class='row-category'>" + dataItem.Category + "</span> <span class='row-parameter'>" + dataItem.Parameter + "</span>";
+                        }
+                        return num + "<span class='row-category'>" + dataItem.Parameter + "</span>";
+                    }
+                }
+            ];
+
+            uniqueMonths.forEach(function(m) {
+                columns.push({
+                    field: m.field,
+                    title: m.title,
+                    width: 100,
+                    filterable: false,
+                    attributes: { style: "text-align: right;" },
+                    headerAttributes: { style: "text-align: right;" },
+                    template: function(dataItem) {
+                        var val = dataItem[m.field];
+                        if (val == null) return "-";
+
+                        var formatted = kendo.toString(val, dataItem.FormatStr);
+                        if (dataItem.IsPct) return formatted + " %";
+                        return formatted;
+                    }
+                });
+            });
+
+            o.dom.$grid.kendoGrid({
+                excel: { fileName: "Result_Capacity.xlsx", allPages: true, filterable: true },
+                dataSource: {
+                    data: pivotedData,
+                    schema: {
+                        model: { fields: schemaFields }
+                    },
+                    pageSize: 20,
+                    sort: [
+                        { field: "LineOrderCode", dir: "asc" },
+                        { field: "EngineBase", dir: "asc" },
+                        { field: "SortOrder", dir: "asc" }
+                    ]
+                },
+                scrollable: true,
+                sortable: false,
+                resizable: true,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            contains: "Contains",
+                            eq: "Equal to"
+                        }
+                    }
+                },
+                pageable: {
+                    refresh: true,
+                    pageSizes: [20, 60, 100, "all"],
+                    buttonCount: 5
+                },
+                columns: columns,
+                toolbar: $("#template_toolbar").html(),
+                dataBound: function (e) {
+                    o.initAfter();
+
+                    var grid = e.sender;
+                    grid.tbody.find("tr").each(function () {
+                        var dataItem = grid.dataItem(this);
+                        if (dataItem && dataItem.Parameter === "Normal") {
+                            $(this).css("border-top", "2px solid #d9534f");
+                        }
+                        if (dataItem && dataItem.Parameter === "HOT [shift]") {
+                            $(this).css("border-top", "1px solid #999");
+                        }
+                    });
+                }
+            });
+        },
+
+        init: function () {
+            var o = this;
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+            o.dom.$btnLoad.click();
+        },
+        initAfter: function () {
+            var o = this;
+
+            if (!$("#Periode").data("kendoDatePicker")) {
+                $("#Periode").kendoDatePicker({
+                    start: "year",
+                    depth: "year",
+                    format: 'yyyy-MM',
+                    value: o.data.Periode,
+                    change: function () {
+                        o.data.Periode = this.value();
+                        if (this.value()) {
+                            o.dom.$btnLoad.click();
+                        }
+                    }
+                });
+            }
+        }
+    };
+
+    $(function () {
+        AppD.init();
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Result Capacity -&nbsp;&nbsp;</span>
+    <div class="toolbar">
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+
+        &nbsp;&nbsp;
+        <input type="date" id="Periode" placeholder="Select Period" style="width: 150px;" />
+        &nbsp;&nbsp;
+    </div>
+</script>

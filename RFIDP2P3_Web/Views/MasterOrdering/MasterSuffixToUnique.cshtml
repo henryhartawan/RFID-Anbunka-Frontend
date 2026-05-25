@@ -38,7 +38,7 @@
                          <div class="form-group form-material col-md-6">
                             <label class="col-sm-3 control-label">Unique Code</label>
                             <div class="col-sm-9">
-                               <input type="text" class="form-control" id="UniqueCode"/>
+                               <input type="text" class="form-control" id="UniqueCode" maxlength="20"/>
                             </div>
                          </div>
                       </div>
@@ -46,13 +46,13 @@
                          <div class="form-group form-material col-md-6">
                             <label class="col-sm-3 control-label">Suffix</label>
                             <div class="col-sm-9">
-                               <input type="text" class="form-control" id="SuffixCode"/>
+                               <input type="text" class="form-control" id="SuffixCode" maxlength="5"/>
                             </div>
                          </div>
                          <div class="form-group form-material col-md-6">
                             <label class="col-sm-3 control-label">Model Group</label>
                             <div class="col-sm-9">
-                               <input type="text" class="form-control" id="ModelGroup" disabled/>
+                               <input type="text" class="form-control" id="ModelGroup" maxlength="25" disabled/>
                             </div>
                          </div>
                       </div>
@@ -60,7 +60,13 @@
                          <div class="form-group form-material col-md-6">
                             <label class="col-sm-3 control-label">Line Order Code</label>
                             <div class="col-sm-9">
-                               <input type="text" class="form-control" id="LineOrderCode"/>
+                               <input type="text" class="form-control" id="LineOrderCode" maxlength="10"/>
+                            </div>
+                         </div>
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Order From</label>
+                            <div class="col-sm-9">
+                               <input type="text" class="form-control" id="OrderFrom" maxlength="20"/>
                             </div>
                          </div>
                       </div>
@@ -130,6 +136,7 @@
           o.dom.inputs.$inputLineOrder = $("#LineOrderCode");
           o.dom.inputs.$inputUniqueCode= $("#UniqueCode");
           o.dom.inputs.$inputModelGroup = $("#ModelGroup");
+          o.dom.inputs.$inputOrderFrom = $("#OrderFrom");
        },
        data: {},
        dom: {},
@@ -149,6 +156,10 @@
              var cbLine = o.dom.inputs.$inputLineOrder.data("kendoComboBox");
              cbLine.value('');
              cbLine.enable(true);
+
+             var cbOrderFrom = o.dom.inputs.$inputOrderFrom.data("kendoComboBox");
+             cbOrderFrom.value('');
+             cbOrderFrom.enable(true);
              
              o.dom.$editor.modal('show');
           },
@@ -249,7 +260,7 @@
                          UserLogin: "@Context.Session.GetString("PIC_ID")"
                       })
                    }).done(function (data, textStatus, jqXHR) {
-                      if (data !== 'success') {
+                      if (data !== 'Success') {
                          swal.fire('Error', data, 'error');
                          return;
                       }
@@ -287,6 +298,12 @@
                 cbLine.enable(false);
              }
 
+             var cbOrderFrom = o.dom.inputs.$inputOrderFrom.data("kendoComboBox");
+             if (cbOrderFrom) {
+                cbOrderFrom.value(di.OrderFrom);
+                cbOrderFrom.enable(true);
+             }
+
              o.dom.$editor.modal('show');
           },
           onClickBtnSave: function (e) {
@@ -295,6 +312,7 @@
              var suffixCode = o.dom.inputs.$inpuSuffixCode.val();
              var uniqueCode = o.dom.inputs.$inputUniqueCode.data("kendoComboBox").value();
              var lineOrderCode = o.dom.inputs.$inputLineOrder.data("kendoComboBox").value();
+             var orderFrom = o.dom.inputs.$inputOrderFrom.data("kendoComboBox").value();
              var modelGroup = o.dom.inputs.$inputModelGroup.val();
 
              if(suffixCode != '' && uniqueCode != '' && lineOrderCode != ''){
@@ -316,6 +334,7 @@
                             UniqueCode: uniqueCode,
                             LineOrderCode: lineOrderCode,
                             ModelGroup: modelGroup,
+                            OrderFrom: orderFrom,
                             IUType: IUType,
                             UserLogin: "@Context.Session.GetString("PIC_ID")"
                          })
@@ -387,6 +406,8 @@
                          UniqueCode: { type: "string" },
                          LineOrderCode: { type: "string" },
                          ModelGroup: { type: "string" },
+                         OrderFrom: { type: "string" },
+                         PartNumber: { type: "string" },
                          CreatedBy: { type: "string" },
                          CreatedDate: { type: "string" },
                          UpdatedBy: { type: "string" },
@@ -466,6 +487,16 @@
                 title: "Suffix",
                 width: 120,
                 template: "<div class='customClass'> #= (SuffixCode == null) ? ' ' : kendo.toString(SuffixCode, '') # </div>",
+             }, {
+                field: "OrderFrom",
+                title: "Order From",
+                width: 100,
+                template: "<div class='customClass'> #= (OrderFrom == null) ? ' ' : kendo.toString(OrderFrom, '') # </div>",
+             }, {
+                field: "PartNumber",
+                title: "Part Number",
+                width: 200,
+                template: "<div class='customClass'> #= (PartNumber == null) ? ' ' : kendo.toString(PartNumber, '') # </div>",
              }, {
                 title: "Create",
                 columns: [
@@ -579,6 +610,44 @@
                 }
                 else {
                    AppD.dom.inputs.$inputModelGroup.val("");
+                }
+             }
+          }).data("kendoComboBox");
+
+          $("#OrderFrom").width("100%").kendoComboBox({
+             dataValueField: "IdValue",
+             dataTextField: "ViewValue",
+             filter: "contains",
+             dataSource: {
+                transport: {
+                   read: function (options) {
+                      $.ajax({
+                         method: 'post',
+                         headers: { 'Content-Type': 'application/json' },
+                         url: "@myurl" + 'DropDown/INQ',
+                         dataType: 'text',
+                         data: JSON.stringify({ Ftype: "OrderFrom", Plant: "" })
+                      }).done(function (data, textStatus, jqXHR) {
+                         try {
+                            var result = JSON.parse(data);
+                         }
+                         catch (e) {
+                            swal.fire('Error', 'Error loading grid', 'error');
+                            options.success({ data: [] });
+                            return;
+                         }
+                         options.success(result);
+                      }).fail(function (jqXHR, textStatus, errorThrown) {
+                         swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                         options.success({ data: [] });
+                      });
+                   }
+                }
+             },
+             change: function(){
+                if (this.value() && this.selectedIndex == -1) {
+                   this.text("");
+                   this.value(null);
                 }
              }
           }).data("kendoComboBox");

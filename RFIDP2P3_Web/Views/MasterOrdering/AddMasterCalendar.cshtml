@@ -109,7 +109,7 @@
 					}
 				});
 
-				fetch("@myurl" + "AddMasterCalendar/DownloadTemplate?periode=" + selectedMonth, {
+				fetch("/ApiProxy/Forward/AddMasterCalendar/DownloadTemplate?periode=" + selectedMonth, {
 					method: 'GET',
 				}).then(response => response.blob()).then(blob => {
 					swal.close();
@@ -249,7 +249,10 @@
 								Shift: { type: "string" },
 								CalendarStatus: { type: "string" },
 								WorkingTime: { type: "number" },
-								Overtime: { type: "number" },
+								OEE: { type: "number" },
+								CT: { type: "number" },
+								EarlyOvertime: { type: "number" },
+								EndOvertime: { type: "number" },
 								MandatoryPdt: { type: "number" },
 								OtherPdt: { type: "number" },
 								TimePdt: { type: "number" },
@@ -311,10 +314,22 @@
 						field: "WorkingTime",
 						title: "Working Time",
 						width: 150
-					}, {
-						field: "Overtime",
-						title: "Overtime",
+					},  {
+						field: "OEE",
+						title: "OEE",
 						width: 100
+					},  {
+						field: "CT",
+						title: "CT",
+						width: 100
+					}, {
+						field: "EarlyOvertime",
+						title: "Early Overtime",
+						width: 150
+					}, {
+						field: "EndOvertime",
+						title: "End Overtime",
+						width: 150
 					}, {
 						field: "MandatoryPdt",
 						title: "Mandatory PDT",
