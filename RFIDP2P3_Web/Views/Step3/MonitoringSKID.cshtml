@@ -9,6 +9,29 @@
 	</div>
 </div>
 
+<div class="modal fade modal-primary" id="editorUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="padding-top:25vh;">
+	<div class="" role="document" style="padding-left:25vw;">
+		<div class="modal-content" style="width:50vw">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalTitle">Upload SKID</h4>
+			</div>
+			<div class="modal-body margin-bottom-0 padding-bottom-0">
+				<form id="formUpload" enctype="multipart/form-data">
+					<span>Download template <a href="../../templates/SKID.xlsx" style="color:#0099ff" download="Template SKID.xlsx">here</a></span>
+					<input type="file" name="file" class="form-control" id="fileUpload" accept=".xls,.xlsx" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" id='clear'>Close</button>
+				<button type="button" class="btn btn-primary" id="btnSaveUpload" value="Upload">Upload</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <style>
 	.k-grid .k-group-footer td.no-padding-footer {
 		padding: 0 !important;
@@ -21,10 +44,14 @@
 		attachEvents: function () {
 			var o = this;
 			o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+			o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
+			o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
 		},
 		cacheDom: function () {
 			var o = this;
 			o.dom.$grid = $("#grid");
+			o.dom.$editorUpload = $("#editorUpload");
+			o.dom.$btnSaveUpload = $("#btnSaveUpload");
 		},
 		data: {
 			DeliveryDate: kendo.toString(new Date(), 'yyyy-MM-dd'),
@@ -34,6 +61,46 @@
 			onClickBtnExcel: function () {
 				var o = this;
 				o.dom.$grid.data('kendoGrid').saveAsExcel();
+			},
+			onClickBtnUpload: function () {
+				var o = this;
+				$("#fileUpload").data('kendoUpload').clearAllFiles();
+				o.dom.$editorUpload.modal('show');
+			},
+			onClickBtnSaveUpload: function () {
+				var o = this;
+				swal.fire({
+					title: 'Upload Master Part?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						let formData = new FormData();
+						let files = $("#fileUpload").data('kendoUpload').getFiles();
+						let file = files[0].rawFile;
+						formData.append('file', file);
+
+						$.ajax({
+							url: "@myurl" + "MonitoringSKID/Upload?UID=" + "@Context.Session.GetString("PIC_ID")",
+							type: 'post',
+							data: formData,
+							contentType: false,
+							processData: false
+						}).done(function (data, textStatus, jqXHR) {
+							if(data[0].Remarks != '') {
+								swal.fire('Warning', data[0].Remarks, 'warning');
+								return;
+							}
+							o.dom.$editorUpload.modal('hide');
+							swal.fire({ title: 'Success', text: 'Data Uploaded', icon: 'success', timer: 2000, showConfirmButton: false });
+							$("#fileUpload").data('kendoUpload').clearAllFiles();
+						}).always(function (data_or_jqXHR, textStatus, jqXHR_or_errorThrown) {
+							$("#grid").data('kendoGrid').dataSource.read();
+							$("#fileUpload").data('kendoUpload').clearAllFiles();
+						});
+					}
+				});
 			},
 		},
 		init: function () {
@@ -283,6 +350,13 @@
 					o.initAfter();
 				}
 			});
+
+			$("#fileUpload").kendoUpload({
+				multiple: false,
+				validation: {
+					allowedExtensions: [".xls", "xlsx"]
+				}
+			});
 		},
 		initAfter: function () {
 			var o = this;
@@ -314,6 +388,12 @@
 <script type="text/x-kendo-template" id="template_toolbar">
 	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Monitoring SKID -&nbsp;&nbsp;</span>
 	<div class="toolbar">
+    @if (Context.Session.GetString("add_MonitoringSKID") == "True")
+	{
+		<button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
+			<i class="k-icon k-i-upload"></i>
+		</button>
+	}
 		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
 			<i class="k-icon k-i-excel"></i>
 		</button>

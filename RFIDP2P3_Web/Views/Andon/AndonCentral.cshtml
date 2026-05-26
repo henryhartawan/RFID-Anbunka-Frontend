@@ -1,7 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Andon Central Logstic Control Room";
     string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
-    string myxapi = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:XAPI").Value;
     Layout = "~/Views/Shared/_LayoutAndon.cshtml";
 }
 
@@ -260,7 +259,7 @@
 
         $.ajax({
             method: 'post',
-            headers: { 'Content-Type': 'application/json', 'XApiKey': '@myxapi' },
+            headers: { 'Content-Type': 'application/json' },
             url: "@myurl" + 'Andon/Shift',
             dataType: 'text',
             data: JSON.stringify({ Plant: 'P3' })
@@ -481,7 +480,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': '@myxapi' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonCentral',
                             dataType: 'text',
                             data: JSON.stringify({ tabGrid: tabGrid3, gedung:gedung })
@@ -747,7 +746,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': '@myxapi' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonDeliveryCentral',
                             dataType: 'text',
                             data: JSON.stringify({ gedung: gedung })
@@ -907,7 +906,7 @@
                     read: function (options) {
                         $.ajax({
                             method: 'post',
-                            headers: { 'Content-Type': 'application/json', 'XApiKey': '@myxapi' },
+                            headers: { 'Content-Type': 'application/json' },
                             url: "@myurl" + 'Andon/AndonPreDeliveryCentral',
                             dataType: 'text',
                             data: JSON.stringify({ gedung: gedung })
@@ -1080,7 +1079,7 @@
 
                 $.ajax({
                     method: 'post',
-                    headers: { 'Content-Type': 'application/json', 'XApiKey': '@myxapi' },
+                    headers: { 'Content-Type': 'application/json' },
                     url: "@myurl" + 'Andon/Shift',
                     dataType: 'text',
                     data: JSON.stringify({ Plant: 'P3' })

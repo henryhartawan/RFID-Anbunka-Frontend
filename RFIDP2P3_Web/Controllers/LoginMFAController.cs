@@ -39,7 +39,7 @@ namespace RFIDP2P3_Web.Controllers
             
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("XApiKey", "pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp");
+                //client.DefaultRequestHeaders.Add("XApiKey", "pgH7QzFHJx4w46fI~5Uzi4RvtTwlEXp");
                 var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
 
                 string apiUrl = new ConfigurationBuilder()
