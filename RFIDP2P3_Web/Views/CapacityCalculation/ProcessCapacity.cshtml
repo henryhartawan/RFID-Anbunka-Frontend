@@ -52,6 +52,8 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                       start: "year",
                       depth: "year"
                    });
+
+                   $("#PeriodeReset").attr("readonly", true);
                 },
                 preConfirm: () => {
                    var periodeDate = $("#PeriodeReset").data('kendoDatePicker').value();
@@ -123,6 +125,8 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                       value: today,
                       min: today
                    });
+                   
+                   $("#ProcessPeriode").attr("readonly", true);
                 },
                 preConfirm: () => {
                    var periodeDate = $("#ProcessPeriode").data('kendoDatePicker').value();

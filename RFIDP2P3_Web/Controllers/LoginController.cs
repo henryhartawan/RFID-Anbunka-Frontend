@@ -120,8 +120,28 @@ namespace RFIDP2P3_Web.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            var token = Request.Cookies["jwt_token"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                try
+                {
+                    var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+                    string apiUrl = config.GetSection("Path:URL").Value ?? "";
+                    string fullUrl = apiUrl.TrimEnd('/') + "/Login/Logout";
+
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                        await client.PostAsync(fullUrl, null); 
+                    }
+                }
+                catch { }
+            }
+            
             HttpContext.Session.Clear();
             Response.Cookies.Delete("jwt_token");
+
             return RedirectToAction("Index", "Login");
         }
     }

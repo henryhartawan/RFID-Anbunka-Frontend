@@ -827,14 +827,6 @@
 								</a>
 							</li>
 						}
-						@if (Context.Session.GetString("read_MasterCustomerOrder") == "True")
-						{
-						<li>
-							<a asp-controller="MasterOrdering" asp-action="MasterCustomerOrder" class="@getClass("MasterOrdering", "MasterCustomerOrder")">
-								<span class="title">Master Customer Order</span>
-							</a>
-						</li>
-						}
 						@if (Context.Session.GetString("read_MasterSuffixToUnique") == "True")
 						{
 							<li>
@@ -1422,7 +1414,11 @@
 
 				@if (
 					Context.Session.GetString("read_FirmOrder") == "True" ||
-					Context.Session.GetString("read_SummaryOrder") == "True")
+					Context.Session.GetString("read_SummaryOrder") == "True" ||
+					Context.Session.GetString("read_ParameterCapacity") == "True" ||
+					Context.Session.GetString("read_ProcessCapacity") == "True" ||
+					Context.Session.GetString("read_ResultCapacity") == "True"
+					)
 				{
 					<li class="gui-folder">
 						<a>
@@ -1467,6 +1463,46 @@
 								<li>
 									<a asp-controller="CapacityCalculation" asp-action="ResultCapacity" class="@getClass("CapacityCalculation", "ResultCapacity")">
 										<span class="title">Result</span>
+									</a>
+								</li>
+							}
+						</ul>
+					</li>
+				}
+				@if (
+					Context.Session.GetString("read_CustomerOrder") == "True")
+				{
+					<li class="gui-folder">
+						<a>
+							<div class="gui-icon"><i class="fa fa-archive"></i></div>
+							<span class="title">Monthly Calculation</span>
+						</a>
+						<ul>
+							@if (Context.Session.GetString("read_CustomerOrder") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="CustomerOrder" class="@getClass("MonthlyCalculation", "CustomerOrder")">
+										<span class="title">Customer Order</span>
+									</a>
+								</li>
+							}
+						</ul>
+					</li>
+				}
+				@if (
+					Context.Session.GetString("read_OrderTmmin") == "True")
+				{
+					<li class="gui-folder">
+						<a>
+							<div class="gui-icon"><i class="fa fa-list"></i></div>
+							<span class="title">Daily Calculation</span>
+						</a>
+						<ul>
+							@if (Context.Session.GetString("read_OrderTmmin") == "True")
+							{
+								<li>
+									<a asp-controller="DailyCalculation" asp-action="OrderTmmin" class="@getClass("DailyCalculation", "OrderTmmin")">
+										<span class="title">Order TMMIN</span>
 									</a>
 								</li>
 							}

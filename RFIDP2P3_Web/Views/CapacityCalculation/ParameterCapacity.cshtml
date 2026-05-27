@@ -122,13 +122,22 @@
 
                 fetch("/ApiProxy/Forward/ParameterCapacity/DownloadTemplate?periode=" + selectedMonth, {
                     method: 'GET',
-                }).then(response => response.blob()).then(blob => {
+                }).then(async response => {
+                    if (!response.ok) {
+                        let errorText = await response.text();
+                        throw new Error(errorText);
+                    }
+                    return response.blob();
+                }).then(blob => {
                     swal.close();
                     var url = window.URL.createObjectURL(blob);
                     var a = document.createElement('a');
                     a.href = url;
                     a.download = "Template_ParameterCapacity_" + selectedMonth + ".xlsx";
                     a.click();
+                }).catch(error => {
+                    swal.close();
+                    swal.fire('Download Gagal', error.message, 'error');
                 });
             },
             onClickBtnSaveUpload: function () {
@@ -324,6 +333,8 @@
                     value: today,
                     min: today
                 });
+
+                $("#PeriodeUpload").attr("readonly", true);
             }
 
             if (!$("#UploadDate").data("kendoDatePicker")) {
@@ -340,6 +351,8 @@
                         }
                     }
                 });
+
+                $("#UploadDate").attr("readonly", true);
             }
         }
     };
@@ -363,7 +376,7 @@
         }
 
         &nbsp;&nbsp;
-        <input type="date" id="UploadDate" placeholder="Select Period" style="width: 150px;" />
+        <input type="date" id="UploadDate" placeholder="Select Period" style="width: 150px;"/>
         &nbsp;&nbsp;
     </div>
 </script>

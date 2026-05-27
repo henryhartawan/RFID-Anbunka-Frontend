@@ -125,12 +125,6 @@ namespace RFIDP2P3_Web.Controllers
             return View();
         }
 
-        [SessionAuthorize("read_MasterCustomerOrder")]
-        public IActionResult MasterCustomerOrder()
-        {
-            return View();
-        }
-
         [SessionAuthorize("read_MasterSuffixToUnique")]
         public IActionResult MasterSuffixToUnique()
         {
