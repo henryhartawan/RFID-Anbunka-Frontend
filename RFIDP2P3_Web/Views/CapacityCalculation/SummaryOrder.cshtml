@@ -43,6 +43,8 @@
           },
           onClickBtnLoad: function(){
              var o = this;
+
+             kendo.ui.progress(o.dom.$grid, true);
              
              $.ajax({
                 method: 'post',
@@ -56,7 +58,7 @@
                 var isEmpty = (!data || data.length === 0);
 
                 if (isEmpty) {
-                   swal.fire('Info', 'Tidak ada data pada periode tersebut', 'info');
+                   swal.fire('Info', 'No data available for the selected period.', 'info');
                    data = [];
                 }
 
@@ -83,6 +85,7 @@
                    GroupOrder: {type: "number"},
                    OrderFrom: {type: "string"},
                    EngineGrouping: {type: "string"},
+                   EngineType: {type: "string"},
                    EngineBase: {type: "string"}
                 };
 
@@ -100,6 +103,7 @@
                    },
                    { field: "OrderFrom", hidden: true },
                    { field: "EngineGrouping", title: "Engine Assy/Vehicle", width: 200 },
+                   { field: "EngineType", title: "Engine Type", width: 100 },
                    { field: "EngineBase", title: "EG Base", width: 100 }
                 ];
 
@@ -111,7 +115,7 @@
                 if(!isEmpty) {
                    for(var originalKey in data[0]){
                       if(data[0].hasOwnProperty(originalKey)){
-                         if(['GroupOrder', 'OrderFrom', 'EngineGrouping', 'EngineBase'].indexOf(originalKey) >= 0){
+                         if(['GroupOrder', 'OrderFrom', 'EngineGrouping', 'EngineType', 'EngineBase'].indexOf(originalKey) >= 0){
                             continue;
                          }
 
@@ -222,9 +226,11 @@
                       });
                    }
                 });
-                
+
              }).fail(function (jqXHR) {
-                swal.fire('Error', 'Gagal meload data summary.', 'error');
+                swal.fire('Error', 'Failed to load summary data.', 'error');
+             }).always(function () {
+                kendo.ui.progress(o.dom.$grid, false);
              });
           }
        },

@@ -48,7 +48,7 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                    $("#PeriodeReset").kendoDatePicker({
                       format: "yyyy-MM", 
                       value: today,
-                      min: today,
+                      //min: today,
                       start: "year",
                       depth: "year"
                    });
@@ -94,7 +94,14 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                          swal.fire('Failed', data, 'error');
                          return;
                       }
-                      swal.fire({ title: 'Success!', text: 'Calculation has been reset.', icon: 'success', timer: 2000, showConfirmButton: false });
+                      swal.fire({ 
+                         title: 'Success!', 
+                         text: 'Calculation has been reset.',
+                         icon: 'success', 
+                         timer: 2000, 
+                         showConfirmButton: false 
+                      });
+                      
                    }).fail(function( jqXHR, textStatus, errorThrown ) {
                       swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
                    }).always(function(){
@@ -122,8 +129,8 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                       start: "year",
                       depth: "year",
                       format: "yyyy-MM",
-                      value: today,
-                      min: today
+                      value: today
+                      //min: today
                    });
                    
                    $("#ProcessPeriode").attr("readonly", true);
@@ -167,7 +174,14 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                          swal.fire('Failed', data, 'error');
                          return;
                       }
-                      swal.fire({ title: 'Success!', text: 'Calculation completed successfully.', icon: 'success', timer: 2000, showConfirmButton: false });
+                      swal.fire({ 
+                         title: 'Success!', 
+                         text: 'Calculation completed successfully.', 
+                         icon: 'success',
+                         timer: 2000,
+                         showConfirmButton: false 
+                      });
+                      
                    }).fail(function( jqXHR, textStatus, errorThrown ) {
                       swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
                    }).always(function(){

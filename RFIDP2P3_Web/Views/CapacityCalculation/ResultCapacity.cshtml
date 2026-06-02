@@ -53,7 +53,13 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
             onClickBtnLoad: function(){
                 var o = this;
 
-                swal.fire({ title: 'Loading...', allowOutsideClick: false, didOpen: () => { swal.showLoading(); } });
+                swal.fire({ 
+                    title: 'Loading...', 
+                    allowOutsideClick: false,
+                    didOpen: () => { 
+                        swal.showLoading();
+                    } 
+                });
 
                 $.ajax({
                     method: 'post',
@@ -69,11 +75,11 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                         var rawData = JSON.parse(data);
                         o.buildPivotedGrid(rawData);
                     } catch (e) {
-                        swal.fire('Error', 'Gagal memproses format data', 'error');
+                        swal.fire('Error', 'Failed to process data format', 'error');
                     }
                 }).fail(function (jqXHR) {
                     swal.close();
-                    swal.fire('Error', 'Gagal memuat data dari server', 'error');
+                    swal.fire('Error', 'Failed to load data from server', 'error');
                 });
             }
         },
@@ -85,12 +91,7 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                 o.dom.$grid.data('kendoGrid').destroy();
                 o.dom.$grid.empty();
             }
-
-            if (!rawData || rawData.length === 0) {
-                o.dom.$grid.html("<div style='text-align:center; padding:20px;'>Tidak ada data kalkulasi pada periode ini.</div>");
-                return;
-            }
-
+            
             rawData.sort(function(a, b) { return a.OffsetN - b.OffsetN; });
 
             var uniqueMonths = [];

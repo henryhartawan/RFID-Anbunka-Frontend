@@ -21,21 +21,18 @@
             </div>
             <div class="modal-body margin-bottom-0 padding-bottom-0">
                 <form id="formUpload" enctype="multipart/form-data" class="form-horizontal">
-
                     <div class="form-group">
                         <label class="col-sm-3 control-label" style="text-align:left;">Periode</label>
                         <div class="col-sm-9">
                             <input type="text" id="PeriodeUpload" style="width: 100%;" required />
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label class="col-sm-3 control-label" style="text-align:left;">File Excel</label>
                         <div class="col-sm-9">
                             <input type="file" name="file" id="fileUpload" accept=".xls,.xlsx" />
                         </div>
                     </div>
-
                     <div class="form-group">
                         <div class="col-sm-12">
                             <span>Download template <a href="#" id="btnDownloadTemplate" style="color:#0099ff">here</a></span>
@@ -77,23 +74,18 @@
             },
             onClickBtnUpload: function () {
                 var o = this;
-
                 var upload = $("#fileUpload").data('kendoUpload');
                 if(upload) upload.clearAllFiles();
 
                 var dpUpload = $("#PeriodeUpload").data("kendoDatePicker");
                 if (dpUpload) {
                     var today = new Date();
-                    var nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
                     dpUpload.value(today);
                 }
-
                 o.dom.$editorUpload.modal('show');
             },
             onClickBtnDownloadTemplate: function (e) {
                 e.preventDefault();
-                var o = this;
-
                 var dpPeriode = $("#PeriodeUpload").data("kendoDatePicker");
                 var selectedDateValue = dpPeriode.value();
 
@@ -101,23 +93,12 @@
                     swal.fire('Warning', 'Please select a period first.', 'warning');
                     return;
                 }
-                var currentMonthStart = new Date();
-                currentMonthStart.setDate(1);
-                currentMonthStart.setHours(0, 0, 0, 0);
-
-                //if (selectedDateValue <= currentMonthStart) {
-                    //swal.fire('Warning', 'You can only download templates for next month or future periods. Current and past months are locked.', 'warning');
-                    //return;
-                //}
 
                 var selectedMonth = kendo.toString(selectedDateValue, 'yyyy-MM');
-
                 swal.fire({
                     title: 'Generating Template...',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        swal.showLoading()
-                    }
+                    didOpen: () => { swal.showLoading() }
                 });
 
                 fetch("/ApiProxy/Forward/ParameterCapacity/DownloadTemplate?periode=" + selectedMonth, {
@@ -137,12 +118,11 @@
                     a.click();
                 }).catch(error => {
                     swal.close();
-                    swal.fire('Download Gagal', error.message, 'error');
+                    swal.fire('Download Failed', error.message, 'error');
                 });
             },
             onClickBtnSaveUpload: function () {
                 var o = this;
-
                 let files = $("#fileUpload").data('kendoUpload').getFiles();
                 if (files.length === 0) {
                     swal.fire('Warning', 'Please select a file to upload.', 'warning');
@@ -157,14 +137,11 @@
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
-
                         swal.fire({
                             title: 'Uploading...',
                             text: 'Please wait while the system processes the data.',
                             allowOutsideClick: false,
-                            didOpen: () => {
-                                swal.showLoading();
-                            }
+                            didOpen: () => { swal.showLoading(); }
                         });
 
                         let formData = new FormData();
@@ -216,7 +193,7 @@
                 excel: {
                     fileName: "Parameter Capacity.xlsx",
                     allPages: true,
-                    filterable: true
+                    filterable: false
                 },
                 dataSource: {
                     transport: {
@@ -231,11 +208,40 @@
                                 })
                             }).done(function (data, textStatus, jqXHR) {
                                 try {
-                                    var result = JSON.parse(data);
-                                    options.success(result);
+                                    var rawResult = JSON.parse(data);
+
+                                    var grouped = {};
+                                    rawResult.forEach(function(item) {
+                                        if (!grouped[item.LineCode]) grouped[item.LineCode] = [];
+                                        grouped[item.LineCode].push(item);
+                                    });
+
+                                    var pivotedResult = [];
+                                    for (var lineCode in grouped) {
+                                        var items = grouped[lineCode].sort(function(a, b) {
+                                            return String(a.Month).localeCompare(String(b.Month));
+                                        });
+
+                                        var advRow = { LineCode: lineCode, Parameter: "Advance", N: null, N_1: null, N_2: null, N_3: null };
+                                        var manRow = { LineCode: lineCode, Parameter: "Mandatory", N: null, N_1: null, N_2: null, N_3: null };
+                                        var hotRow = { LineCode: lineCode, Parameter: "Overtime HOT", N: null, N_1: null, N_2: null, N_3: null };
+
+                                        items.forEach(function(item, index) {
+                                            var mField = index === 0 ? "N" : "N_" + index;
+                                            if (index <= 3) {
+                                                advRow[mField] = item.Advance;
+                                                manRow[mField] = item.Mandatory;
+                                                hotRow[mField] = item.OvertimeHOT;
+                                            }
+                                        });
+
+                                        pivotedResult.push(advRow, manRow, hotRow);
+                                    }
+                                    
+                                    options.success(pivotedResult);
                                 }
                                 catch (e) {
-                                    swal.fire('Error', 'Failed to load grid data', 'error');
+                                    swal.fire('Error', 'Failed to parse grid data', 'error');
                                     options.success({ data: [] });
                                 }
                             }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -246,21 +252,18 @@
                     },
                     schema: {
                         model: {
-                            id: "Id",
+                            id: "LineCode",
                             fields: {
-                                Id: { type: "number" },
-                                Periode: { type: "string" },
                                 LineCode: { type: "string" },
-                                Month: { type: "string" },
-                                Advance: { type: "number" },
-                                Mandatory: { type: "number" },
-                                OvertimeHOT: { type: "number" },
-                                User: { type: "string" },
-                                UploadDate: { type: "date" }
+                                Parameter: { type: "string" },
+                                N: { type: "number" },
+                                N_1: { type: "number" },
+                                N_2: { type: "number" },
+                                N_3: { type: "number" }
                             }
                         }
                     },
-                    pageSize: 20
+                    pageSize: 30
                 },
                 scrollable: true,
                 sortable: true,
@@ -284,15 +287,36 @@
                     buttonCount: 5
                 },
                 columns: [
-                    { field: "Periode", title: "Periode", width: 100 },
-                    { field: "LineCode", title: "Line Code", width: 120 },
-                    { field: "Month", title: "Month", width: 100 },
-                    { field: "Advance", title: "Advance", width: 100, attributes: { style: "text-align: right;" } },
-                    { field: "Mandatory", title: "Mandatory", width: 100, attributes: { style: "text-align: right;" } },
-                    { field: "OvertimeHOT", title: "Overtime HOT", width: 120, attributes: { style: "text-align: right;" } }
+                    { field: "LineCode", title: "Line", width: 80 },
+                    { field: "Parameter", title: "Parameter", width: 150 },
+                    { field: "N", title: "N", width: 80, attributes: { style: "text-align: center;" } },
+                    { field: "N_1", title: "N+1", width: 80, attributes: { style: "text-align: center;" } },
+                    { field: "N_2", title: "N+2", width: 80, attributes: { style: "text-align: center;" } },
+                    { field: "N_3", title: "N+3", width: 80, attributes: { style: "text-align: center;" } }
                 ],
                 toolbar: $("#template_toolbar").html(),
                 dataBound: function(e) {
+                    var grid = this;
+                    var rows = grid.tbody.find("tr[role='row']");
+
+                    // --- ROWSPAN LOGIC ---
+                    var previousRow = null;
+                    var rowspan = 1;
+
+                    for (var i = 0; i < rows.length; i++) {
+                        var row = $(rows[i]);
+                        var cell = row.children().eq(0); // Sel LineCode
+
+                        if (previousRow && cell.text() === previousRow.children().eq(0).text()) {
+                            cell.hide();
+                            rowspan++;
+                            previousRow.children().eq(0).attr("rowspan", rowspan);
+                        } else {
+                            previousRow = row;
+                            rowspan = 1;
+                        }
+                    }
+
                     o.initAfter();
                 }
             });
@@ -323,17 +347,14 @@
             }
 
             var today = new Date();
-            var nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
             if (!$("#PeriodeUpload").data("kendoDatePicker")) {
                 $("#PeriodeUpload").kendoDatePicker({
                     start: "year",
                     depth: "year",
                     format: "yyyy-MM",
-                    value: today,
-                    min: today
+                    value: today
                 });
-
                 $("#PeriodeUpload").attr("readonly", true);
             }
 
@@ -351,7 +372,6 @@
                         }
                     }
                 });
-
                 $("#UploadDate").attr("readonly", true);
             }
         }

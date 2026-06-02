@@ -70,6 +70,18 @@
                             </div>
                          </div>
                       </div>
+                      <div class="col-md-12">
+                         <div class="form-group form-material col-md-6">
+                            <label class="col-sm-3 control-label">Status</label>
+                            <div class="col-sm-9"> <div class="checkbox checkbox-styled checkbox-success" id="statusContainer">
+                                  <label>
+                                     <input type="checkbox" id="IsActive" checked />
+                                     <span id="statusLabel" style="font-weight: 500;">Active</span>
+                                  </label>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
                       <div class="clearfix"></div>
                    </form>
                 </div>
@@ -122,6 +134,20 @@
           o.dom.$grid.on('click', '.btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
 
           $("#btnSaveUpload").on('click', o.eventHandlers.onClickSubmitUpload.bind(o));
+
+          $("#IsActive").on('change', function () {
+             var isChecked = $(this).is(':checked');
+             var $container = $("#statusContainer");
+             var $label = $("#statusLabel");
+
+             if (isChecked) {
+                $label.text("Active").css("color", "#4caf50");
+                $container.addClass("checkbox-success");
+             } else {
+                $label.text("Deactive").css("color", "#9e9e9e");
+                $container.removeClass("checkbox-success");
+             }
+          });
        },
        cacheDom: function () {
           var o = this;
@@ -137,6 +163,7 @@
           o.dom.inputs.$inputUniqueCode= $("#UniqueCode");
           o.dom.inputs.$inputModelGroup = $("#ModelGroup");
           o.dom.inputs.$inputOrderFrom = $("#OrderFrom");
+          o.dom.inputs.$inputIsActive = $("#IsActive");
        },
        data: {},
        dom: {},
@@ -160,6 +187,8 @@
              var cbOrderFrom = o.dom.inputs.$inputOrderFrom.data("kendoComboBox");
              cbOrderFrom.value('');
              cbOrderFrom.enable(true);
+
+             o.dom.inputs.$inputIsActive.prop('checked', true).trigger('change');
              
              o.dom.$editor.modal('show');
           },
@@ -242,6 +271,16 @@
              var o = this;
              var di = o.dom.$grid.data('kendoGrid').dataItem($(e.target).closest('tr'));
 
+             console.log(di.Active);
+             if (di.IsActive === true) {
+                swal.fire({
+                   title: 'Warning!',
+                   text: 'Data is still Active. Please deactivate it first before deleting.',
+                   icon: 'warning'
+                });
+                return;
+             }
+
              swal.fire({
                 title: 'Delete Data?',
                 text: "Data will be permanently deleted!",
@@ -304,6 +343,8 @@
                 cbOrderFrom.enable(true);
              }
 
+             o.dom.inputs.$inputIsActive.prop('checked', di.IsActive).trigger('change');
+
              o.dom.$editor.modal('show');
           },
           onClickBtnSave: function (e) {
@@ -314,6 +355,7 @@
              var lineOrderCode = o.dom.inputs.$inputLineOrder.data("kendoComboBox").value();
              var orderFrom = o.dom.inputs.$inputOrderFrom.data("kendoComboBox").value();
              var modelGroup = o.dom.inputs.$inputModelGroup.val();
+             var isActive = o.dom.inputs.$inputIsActive.prop('checked');
 
              if(suffixCode != '' && uniqueCode != '' && lineOrderCode != ''){
                 swal.fire({
@@ -335,6 +377,7 @@
                             LineOrderCode: lineOrderCode,
                             ModelGroup: modelGroup,
                             OrderFrom: orderFrom,
+                            IsActive: isActive,
                             IUType: IUType,
                             UserLogin: "@Context.Session.GetString("PIC_ID")"
                          })
@@ -371,6 +414,32 @@
                 fileName: "Master Suffix To Unique.xlsx",
                 allPages: true,
                 filterable: true
+             },
+             excelExport: function(e) {
+                var sheet = e.workbook.sheets[0];
+                var statusIndex = -1;
+
+                var headerRow = sheet.rows[0];
+                for (var i = 0; i < headerRow.cells.length; i++) {
+                   if (headerRow.cells[i].value === "Status") {
+                      statusIndex = i;
+                      break;
+                   }
+                }
+                
+                if (statusIndex !== -1) {
+                   for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+                      var row = sheet.rows[rowIndex];
+
+                      if (row.type === "data") {
+                         var cell = row.cells[statusIndex];
+                         if (cell) {
+                            var isTrue = (cell.value === true || String(cell.value).toLowerCase() === "true");
+                            cell.value = isTrue ? "Active" : "Deactive";
+                         }
+                      }
+                   }
+                }
              },
              dataSource: {
                 transport: {
@@ -411,7 +480,8 @@
                          CreatedBy: { type: "string" },
                          CreatedDate: { type: "string" },
                          UpdatedBy: { type: "string" },
-                         UpdatedDate: { type: "string" }
+                         UpdatedDate: { type: "string" },
+                         IsActive: { type: "boolean" }
                       }
                    }
                 },
@@ -497,6 +567,11 @@
                 title: "Part Number",
                 width: 200,
                 template: "<div class='customClass'> #= (PartNumber == null) ? ' ' : kendo.toString(PartNumber, '') # </div>",
+             }, {
+                   field: "IsActive",
+                   title: "Status",
+                   width: 100,
+                   template: "<div class='customClass'>#= IsActive ? 'Active' : 'Deactive' #</div>"
              }, {
                 title: "Create",
                 columns: [
