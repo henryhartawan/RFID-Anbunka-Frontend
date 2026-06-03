@@ -275,7 +275,10 @@
                                 SupplierCode: { type: "string" },
                                 SupplierName: { type: "string" },
                                 OrderDate: { type: "date" },
+                                OrderTime: { type: "string" },
                                 DeliveryDate: { type: "date" },
+                                DeliveryTime: { type: "string" },
+                                DockCode: { type: "string" },
                                 ItemNo: { type: "number" },
                                 BackNo: { type: "string" },
                                 PartNo: { type: "string" },
@@ -315,20 +318,56 @@
                         field: "DnNo", 
                         title: "DN No", 
                         width: 220,
-                    }, { 
-                        field: "SupplierName", 
-                        title: "Supplier Name",
-                        width: 200 
-                    }, { 
-                        field: "OrderDate",
-                        title: "Order Date", 
-                        width: 100, 
-                        format: "{0:yyyy-MM-dd}" 
                     }, {
-                        field: "DeliveryDate",
-                        title: "Deliv Date",
-                        width: 100,
-                        format: "{0:yyyy-MM-dd}" 
+                        title: "Supplier",
+                        columns: [
+                            {
+                                field: "SupplierCode",
+                                title: "Code",
+                                width: 100
+                            }, {
+                                field: "SupplierName",
+                                title: "Name",
+                                width: 200,
+                            }]
+                    }, {
+                        title: "Order",
+                        columns: [
+                            {
+                                field: "CycleIssue",
+                                title: "Cycle Issue",
+                                width: 100
+                            }, {
+                                field: "CycleNumber",
+                                title: "Cycle Number",
+                                width: 110
+                            }, {
+                                field: "OrderDate",
+                                title: "Order Date",
+                                width: 100,
+                                format: "{0:yyyy-MM-dd}"
+                            }, {
+                                field: "OrderTime",
+                                title: "Order Time",
+                                width: 100
+                            }]
+                    }, {
+                        title: "Delivery",
+                        columns: [
+                            {
+                                field: "DockCode",
+                                title: "Dock Code",
+                                width: 100
+                            }, {
+                                field: "DeliveryDate",
+                                title: "Deliv Date",
+                                width: 100,
+                                format: "{0:yyyy-MM-dd}"
+                            }, {
+                                field: "DeliveryTime",
+                                title: "Deliv Time",
+                                width: 90
+                            }]
                     }, { 
                         field: "ItemNo", 
                         title: "No", 
@@ -353,10 +392,6 @@
                         field: "TotalQty", 
                         title: "Total Qty",
                         width: 90, 
-                    }, { 
-                        field: "ActualKanban", 
-                        title: "Actual",
-                        width: 80, 
                     }
                 ],
                 toolbar: kendo.template($("#template_toolbar").html()),
