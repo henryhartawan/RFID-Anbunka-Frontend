@@ -256,6 +256,7 @@
 								MandatoryPdt: { type: "number" },
 								OtherPdt: { type: "number" },
 								TimePdt: { type: "number" },
+								ProductionTarget: { type: "number" },
 								CreatedBy: { type: "string" },
 								CreatedDate: { type: "date" },
 								UpdatedBy: { type: "string" },
@@ -317,7 +318,8 @@
 					},  {
 						field: "OEE",
 						title: "OEE",
-						width: 100
+						width: 100,
+						template: "<div style='text-align: right;'>#= kendo.toString(OEE, 'n2') # %</div>"
 					},  {
 						field: "CT",
 						title: "CT",
@@ -342,6 +344,10 @@
 						field: "TimePdt",
 						title: "PM/AM PDT",
 						width: 100
+					}, {
+						field: "ProductionTarget",
+						title: "Prod. Target",
+						width: 120
 					}, {
 						field: "Remarks",
 						title: "Remarks",

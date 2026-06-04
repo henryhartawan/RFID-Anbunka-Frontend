@@ -203,8 +203,8 @@
 								ExCore: { type: "string" },
 								Periode: { type: "string" },
 								Line: { type: "string" },
-								OEE: { type: "string" },
-								CT: { type: "string" },
+								OEE: { type: "number" },
+								CT: { type: "number" },
 								OEETTStatus: { type: "string" },
 								LastUpdate: { type: "string" },
 								UserUpdate: { type: "string" },
@@ -254,6 +254,7 @@
 					field: "OEE",
 					title: "OEE",
 					width: 100,
+					template: "<div style='text-align: right;'>#= kendo.toString(OEE, 'n2') # %</div>"
 				}, {
 					field: "CT",
 					title: "CT (menit)",
