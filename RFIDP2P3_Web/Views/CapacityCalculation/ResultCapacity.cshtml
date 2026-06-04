@@ -124,14 +124,14 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                 { field: "TotalOperatingTime", category: "", label: "Total operating time", decimals: 0 },
                 { field: "WorkingDay", category: "Loading", label: "Working Day", decimals: 1 },
                 { field: "CT_Min", category: "Loading", label: "CT [min]", decimals: 2 },
-                { field: "EFF_Pct", category: "Loading", label: "EFF [%]", isPct: true, decimals: 0 },
+                { field: "EFF_Pct", category: "Loading", label: "EFF [%]", isPct: true, multiply: false, decimals: 2 },
                 { field: "CapacityNormal", category: "Capacity", label: "Normal", decimals: 0 },
                 { field: "CapacityOT_2h", category: "Capacity", label: "+OT 2h", decimals: 2 },
                 { field: "CapacityHOT_4s", category: "Capacity", label: "+HOT 4s", decimals: 2 },
                 { field: "CapacityTotal", category: "Capacity", label: "DOT 2h + HOT 4s", decimals: 2 },
                 { field: "HotShiftOvertime", category: "Overtime", label: "HOT [shift]", decimals: 0 },
                 { field: "Overtime_DOT_Hours", category: "Overtime", label: "DOT [hour]", decimals: 2 },
-                { field: "Overtime_Pct", category: "Overtime", label: "%", isPct: true, decimals: 2 },
+                { field: "Overtime_Pct", category: "Overtime", label: "%", isPct: true, multiply: false, decimals: 2 },
                 { field: "IdlePerDay_Min", category: "Overtime", label: "Idle/day [min]", decimals: 0 }
             ];
 
@@ -168,7 +168,7 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
                         var targetCol = monthMap[item.TargetMonth];
                         var val = item[m.field];
 
-                        if (m.isPct && val != null) {
+                        if (m.isPct && val != null && m.multiply !== false) {
                             val = val * 100;
                         }
                         row[targetCol] = val;
