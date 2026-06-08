@@ -1470,7 +1470,8 @@
 					</li>
 				}
 				@if (
-					Context.Session.GetString("read_CustomerOrder") == "True")
+					Context.Session.GetString("read_CustomerOrder") == "True" ||
+					Context.Session.GetString("read_MonthlySummaryOrder") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1483,6 +1484,14 @@
 								<li>
 									<a asp-controller="MonthlyCalculation" asp-action="CustomerOrder" class="@getClass("MonthlyCalculation", "CustomerOrder")">
 										<span class="title">Customer Order</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_MonthlySummaryOrder") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="MonthlySummaryOrder" class="@getClass("MonthlyCalculation", "MonthlySummaryOrder")">
+										<span class="title">Monthly Summary Order</span>
 									</a>
 								</li>
 							}

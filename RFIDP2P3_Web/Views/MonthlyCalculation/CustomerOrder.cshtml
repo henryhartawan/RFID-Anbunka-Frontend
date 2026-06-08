@@ -175,7 +175,13 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
 			var month = parseInt(o.currentPeriode.split('-')[1]);
 			var daysInMonth = new Date(year, month, 0).getDate();
 
-			swal.fire({ title: 'Loading...', allowOutsideClick: false, didOpen: () => { swal.showLoading() } });
+			swal.fire({
+				title: 'Loading...',
+				allowOutsideClick: false,
+				didOpen: () => {
+					swal.showLoading();
+				}
+			});
 
 			$.ajax({
 				method: 'post',

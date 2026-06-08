@@ -11,5 +11,10 @@ namespace RFIDP2P3_Web.Controllers
             return View();
         }
         
+        [SessionAuthorize("read_MonthlySummaryOrder")]
+        public IActionResult MonthlySummaryOrder()
+        {
+            return View();
+        }
     }
 }
