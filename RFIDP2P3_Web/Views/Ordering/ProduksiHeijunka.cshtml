@@ -93,10 +93,10 @@
 						model: {
 							fields: {
 								Periode_ID: { type: "string" },
-								Prod_Date: { type: "string" },
+								Prod_Date: { type: "date" },
 								LineOrderCode: { type: "string" },
 								DepthID: { type: "string" },
-								Depth: { type: "date" },
+								Depth: { type: "string" },
 								NewDepth: { type: "string" },
 								ID_Heijunka_From: { type: "string" },
 								ID_Heijunka_To: { type: "string" }
@@ -135,7 +135,8 @@
 				{
 					field: "Prod_Date",
 					title: "Prod Date",
-					width: 100
+					width: 100,
+					template: "<div class='customClass'> #= (Prod_Date == null) ? ' ' : kendo.toString(Prod_Date, 'dd/MM/yyyy') # </div>",
 				},
 				{
 					field: "LineOrderCode",
@@ -168,7 +169,7 @@
 						field: "ID_Heijunka_From",
 						title: "Heijunka From",
 						width: 150
-					},
+					// },
 					// {
 					// 	field: "ID_Heijunka_To",
 					// 	title: "To",
@@ -183,6 +184,9 @@
 		},
 		initAfter: function () {
 			var o = this;
+			if (o.initAfterCalled) return;
+			o.initAfterCalled = true;
+
 			o.dom.Prod_Date = $("#Prod_Date");
 			o.dom.Line = $("#LineOrderCode");
 			o.dom.UN = $("#UniqueNumber");
@@ -195,7 +199,6 @@
 
 					if(this.value()){
 						o.dom.$grid.data('kendoGrid').dataSource.read();
-						o.dom.$btnLoad.click();
 					}
 				}
 			});
@@ -240,7 +243,6 @@
 					}
 
 					o.dom.$grid.data('kendoGrid').dataSource.read();
-					o.dom.$btnLoad.click();
 				}
 			});
 
@@ -284,7 +286,6 @@
 					}
 
 					o.dom.$grid.data('kendoGrid').dataSource.read();
-					o.dom.$btnLoad.click();
 				}
 			});
 		}
