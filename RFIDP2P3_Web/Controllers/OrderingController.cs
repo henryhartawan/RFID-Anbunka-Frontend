@@ -142,5 +142,11 @@ namespace RFIDP2P3_Web.Controllers
         {
             return View();
         }
+
+        [SessionAuthorize("read_ProduksiHeijunka")]
+        public IActionResult ProduksiHeijunka()
+        {
+            return View();
+        }
     }
 }

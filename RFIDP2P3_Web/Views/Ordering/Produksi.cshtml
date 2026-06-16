@@ -129,8 +129,34 @@
 						},
 						{
 							field: "DepthID",
-							title: "Depth",
+							title: "Depth ID",
 							width: 100,
+						},
+						{
+							field: "Depth",
+							title: "Depth",
+							width: 70,
+						},
+						{
+							field: "NewDepth",
+							title: "Last Depth",
+							width: 70,
+						},
+						{
+							title: "Heijunka",
+							columns: [
+							{
+								field: "ID_Heijunka_From",
+								title: "From",
+								width: 140,
+								template: "<div class='customClass'> #= (ID_Heijunka_From == null) ? ' ' : kendo.toString(ID_Heijunka_From, '') # </div>",
+							},
+							{
+								field: "ID_Heijunka_To",
+								title: "To",
+								width: 140,
+								template: "<div class='customClass'> #= (ID_Heijunka_To == null) ? ' ' : kendo.toString(ID_Heijunka_To, '') # </div>",
+							}]
 						},
 						{
 							field: "Unique_No",
@@ -177,12 +203,6 @@
 								continue;
 							}
 							if(['DepthID'].indexOf(key) >= 0){
-								continue;
-							}
-							if(['Depth'].indexOf(key) >= 0){
-								continue;
-							}
-							if(['NewDepth'].indexOf(key) >= 0){
 								continue;
 							}
 							if(['Index_From'].indexOf(key) >= 0){
@@ -240,6 +260,18 @@
 								continue;
 							}
 							if(['JobNo'].indexOf(key) >= 0){
+								continue;
+							}
+							if(['Depth'].indexOf(key) >= 0){
+								continue;
+							}
+							if(['NewDepth'].indexOf(key) >= 0){
+								continue;
+							}
+							if(['ID_Heijunka_From'].indexOf(key) >= 0){
+								continue;
+							}
+							if(['ID_Heijunka_To'].indexOf(key) >= 0){
 								continue;
 							}
 
@@ -329,8 +361,16 @@
 							var grid = this;
 							if(o.data.Type == 'NPL') {
 								grid.showColumn(0);
+								grid.hideColumn(8);
+								grid.hideColumn(9);
+								grid.hideColumn(10);
+								grid.hideColumn(11);
 							} else {
 								grid.hideColumn(0);
+								grid.showColumn(8);
+								grid.showColumn(9);
+								grid.showColumn(10);
+								grid.showColumn(11);
 							}
 						}
 					});

@@ -1015,7 +1015,8 @@
 					Context.Session.GetString("read_CancelDN") == "True" ||
 					Context.Session.GetString("read_SO") == "True" ||
 					Context.Session.GetString("read_ReportPackingInstruction") == "True" ||
-					Context.Session.GetString("read_UploadStockEngine") == "True")
+					Context.Session.GetString("read_UploadStockEngine") == "True" ||
+					Context.Session.GetString("read_ProduksiHeijunka") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1084,6 +1085,14 @@
 							<li>
 								<a asp-controller="Ordering" asp-action="Produksi" class="@getClass("Ordering", "Produksi")">
 									<span class="title">Produksi</span>
+								</a>
+							</li>
+						}
+						@if (Context.Session.GetString("read_ProduksiHeijunka") == "True")
+						{
+							<li>
+								<a asp-controller="Ordering" asp-action="ProduksiHeijunka" class="@getClass("Ordering", "ProduksiHeijunka")">
+									<span class="title">Produksi Heijunka Index</span>
 								</a>
 							</li>
 						}
