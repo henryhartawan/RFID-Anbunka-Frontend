@@ -94,6 +94,7 @@
 							fields: {
 								Periode_ID: { type: "string" },
 								Prod_Date: { type: "date" },
+								ID_PL: { type: "string" },
 								LineOrderCode: { type: "string" },
 								DepthID: { type: "string" },
 								Depth: { type: "string" },
@@ -130,13 +131,18 @@
 				{
 					field: "Periode_ID",
 					title: "Periode",
-					width: 100
+					width: 70
 				},
 				{
 					field: "Prod_Date",
 					title: "Prod Date",
-					width: 100,
+					width: 70,
 					template: "<div class='customClass'> #= (Prod_Date == null) ? ' ' : kendo.toString(Prod_Date, 'dd/MM/yyyy') # </div>",
+				},
+				{
+					field: "ID_PL",
+					title: "ID PL",
+					width: 50,
 				},
 				{
 					field: "LineOrderCode",
