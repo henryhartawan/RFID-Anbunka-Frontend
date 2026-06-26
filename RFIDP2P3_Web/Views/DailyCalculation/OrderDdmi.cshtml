@@ -173,28 +173,28 @@
                 var todayDate = kendo.toString(new Date(), "yyyy-MM-dd");
 
                 swal.fire({
-                    title: 'Delete All Data?',
-                    html: '<label style="margin-bottom: 10px;">Select the date to delete:</label><br>' +
-                        '<input type="date" id="delDate" class="swal2-input" style="width: 80%;" value="' + todayDate + '">',
+                    title: 'Delete Data by Batch Key?',
+                    html: '<label style="margin-bottom: 10px; font-weight:bold;">Enter the Unique Upload Key:</label><br>' +
+                        '<input type="text" id="uploadKey" class="swal2-input" style="width: 80%; text-align:center;" placeholder="BATCH-YYYYMMDD-...">',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Delete',
                     preConfirm: () => {
-                        var val = document.getElementById('delDate').value;
-                        if (!val) {
-                            swal.showValidationMessage('You must select a date first!');
+                        var val = document.getElementById('uploadKey').value;
+                        if (!val || val.trim() === '') {
+                            swal.showValidationMessage('You must input a valid Upload Key!');
                         }
-                        return val;
+                        return val.trim();
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        var dateToDelete = result.value;
+                        var batchKey = result.value;
                         $.ajax({
                             url: "@myurl" + "OrderDdmi/Delete",
                             type: 'post',
                             contentType: 'application/json',
                             data: JSON.stringify({
-                                UploadDate: dateToDelete
+                                UploadBatchKey: batchKey
                             })
                         }).done(function (data) {
                             if(data !== 'success'){
@@ -270,6 +270,7 @@
                         model: {
                             id: "PartNo",
                             fields: {
+                                UploadBatchKey: { type: "string" },
                                 UploadDate: { type: "date" },
                                 DnNo: { type: "string" },
                                 SupplierCode: { type: "string" },
@@ -309,7 +310,11 @@
                     pageSizes: true
                 },
                 columns: [
-                    { 
+                    {
+                        field: "UploadBatchKey",
+                        title: "Batch Key",
+                        width: 180,
+                    },  { 
                         field: "UploadDate", 
                         title: "Upload Date", 
                         width: 100, 

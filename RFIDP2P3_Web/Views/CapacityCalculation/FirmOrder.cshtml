@@ -41,6 +41,7 @@
             o.dom.$btnSaveUpload.on('click', o.eventHandlers.onClickBtnSaveUpload.bind(o));
             o.dom.$grid.on('click', '#btnUpload', o.eventHandlers.onClickBtnUpload.bind(o));
             o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+            o.dom.$grid.on('click', '#btnDelete', o.eventHandlers.onClickBtnDelete.bind(o));
         },
         cacheDom: function () {
             var o = this;
@@ -251,6 +252,118 @@
                     swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
                     options.success({ data: [] });
                 });
+            },
+            onClickBtnDelete: function () {
+                var o = this;
+
+                swal.fire({
+                    title: 'Delete data?',
+                    html: '<div style="margin-bottom:10px;">Select the period to delete:</div><input id="PeriodeDelete" style="width:75%;" Placeholder="Select Period">',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Delete',
+                    cancelButtonText: 'Cancel',
+                    didOpen: () => {
+                        var today = new Date();
+                        var nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+                        $("#PeriodeDelete").kendoDatePicker({
+                            format: "yyyy-MM",
+                            value: today,
+                            //min: today,
+                            start: "year",
+                            depth: "year"
+                        });
+
+                        $("#PeriodeDelete").attr("readonly", true);
+                    },
+                    preConfirm: () => {
+                        var periodeDate = $("#PeriodeDelete").data('kendoDatePicker').value();
+
+                        if(!periodeDate) {
+                            swal.showValidationMessage('Period is required.');
+                            return false;
+                        }
+
+                        return periodeDate;
+                    },
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var periodeDate = result.value;
+                        var periodStr = kendo.toString(periodeDate, "yyyy-MM");
+
+                        var doDelete = function () {
+                            $.ajax({
+                                method: 'post',
+                                headers: {'Content-Type': 'application/json'},
+                                url: "@myurl" + 'FirmOrder/Delete',
+                                dataType: 'json',
+                                data: JSON.stringify({
+                                    Periode: periodStr
+                                }),
+                                beforeSend: function () {
+                                    swal.fire({
+                                        html: '<h5>Deleting data, please wait...</h5>',
+                                        showConfirmButton: false,
+                                        allowOutsideClick: false,
+                                        closeOnClickOutside: false,
+                                        didOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+                                },
+                            }).done(function (data, textStatus, jqXHR) {
+                                var errorMsg = data.Remarks || data.remarks || '';
+
+                                if (errorMsg !== '') {
+                                    swal.fire('Failed', errorMsg, 'error');
+                                    return;
+                                }
+
+                                swal.fire({
+                                    title: 'Success!',
+                                    text: 'Deleted successfully.',
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+                            }).always(function () {
+                                o.dom.$btnLoad.click();
+                            });
+                        };
+
+                        var today = new Date();
+                        var selectedYM = (periodeDate.getFullYear() * 100) + periodeDate.getMonth();
+                        var currentYM = (today.getFullYear() * 100) + today.getMonth();
+
+                        if (selectedYM <= currentYM) {
+                            swal.fire({
+                                title: 'Are you sure?',
+                                html: '<div style="text-align:left; font-size:13px;">' +
+                                    'You have selected the current or a previous month.' +
+                                    '<br/><br/>' +
+                                    '<div style="background-color:#fdf2f2; border:1px solid #f2dede; padding:10px; color:#a94442; border-left:4px solid #d9534f; font-size:12px;">' +
+                                    '<strong>REMINDER:</strong> Deleting data for current or past periods is strictly prohibited in production mode. This action is temporarily accessible for <strong>testing/trial purposes only</strong>.' +
+                                    '</div>' +
+                                    '<br/>Do you want to proceed with deletion anyway?</div>',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#f8c086',
+                                confirmButtonText: 'Yes, Proceed',
+                                cancelButtonText: 'Cancel'
+                            }).then((warningResult) => {
+                                if (warningResult.isConfirmed) {
+                                    doDelete();
+                                }
+                            });
+                        } else {
+                            doDelete();
+                        }
+                    }
+                });
             }
         },
         init: function () {
@@ -325,15 +438,25 @@
 <script type="text/x-kendo-template" id="template_toolbar">
     <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Firm Tentative Order -&nbsp;&nbsp;</span>
     <div class="toolbar">
+    
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+        
         @if (Context.Session.GetString("add_FirmOrder") == "True")
         {
         <button data-toggle="tooltip" title="Upload" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnUpload">
             <i class="k-icon k-i-upload"></i>
         </button>
         }
-        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
-            <i class="k-icon k-i-excel"></i>
-        </button>
+        
+        @if (Context.Session.GetString("del_CustomerOrder") == "True")
+        {
+            <button data-toggle="tooltip" title="Delete Data" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnDelete">
+			<i class="fa fa-trash"></i>
+		</button>
+        }
+        
         &nbsp;&nbsp;
         <input type="date" id="UploadDate" placeholder="Periode" />
         &nbsp;&nbsp;

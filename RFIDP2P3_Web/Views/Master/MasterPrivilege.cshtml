@@ -48,7 +48,8 @@
 				"SkemaPickup", "Produksi", "PartPerCycle", "DN", "TN", "PlanSupplyFinal", "master_param_jam", "ResumeReport",
 				"CancelDN", "ReportPackingInstruction", "MasterCILPFuture", "MasterCIPartFuture", "StockFlowGeneral",
 				"PrintPartAddress", "SupplyMonitoring", "AndonTimelineDelivery", "ReprintSKID", "SummaryOrder",
-				"MonthlySummaryOrder", "MonthlyResult", "ProduksiHeijunka"],
+				"MonthlySummaryOrder", "MonthlyPlanResults", "TargetStockResult", "ProduksiHeijunka", "OrderDdmiHistory"
+			],
 			
 			excludeEdit: ["MonitorPallet", "AnbunkaDNDetail", "AndonCentral", "AndonMonitoringStockCasting", "AndonDelivery",
 				"AndonSummaryReceiving", "AndonMonitoringStockEngine", "AndonMonitoringReturnPallet", "PreDelivery",
@@ -58,8 +59,10 @@
 				"PlanSupplyFinal", "ResumeReport", "ReportPackingInstruction", "Getsudo", "CalculateMonthly", "StockFlowGeneral",
 				"PrintPartAddress", "ScanSupply", "ScanDriver", "ScanInADM", "ManualCalling", "ScanDockIn", "ScanDockOut",
 				"ScanOutADM", "AndonTimelineDelivery", "MasterCustomerOrder", "UploadStockEngine", "AddMasterCalendar",
-				"MasterOEETTFuture", "ScanBoxLabel", "ReprintSKID", "MonitoringSKID", "FirmOrder", "SummaryOrder",
-				"ProcessCapacity", "OrderTmmin", "OrderDdmi", "MonthlySummaryOrder", "ProduksiHeijunka"],
+				"MasterOEETTFuture", "ScanBoxLabel", "ReprintSKID", "MonitoringSKID", "FirmOrder", "CustomerOrder", "SummaryOrder",
+				"ProcessCapacity", "OrderTmmin", "OrderDdmi", "MonthlySummaryOrder", "ProduksiHeijunka",
+				"ProcessMonthlyPlan", "ParameterRecoverySct", "TargetStockParam", "TargetStockResult", "OrderDdmiHistory"
+			],
 			
 			excludeDel: ["password", "master_user_priv", "GRPro", "ApprovalCancel", "MonitorPallet", "AnbunkaDNDetail",
 				"AndonCentral", "AndonMonitoringStockCasting", "AndonDelivery", "AndonSummaryReceiving", "AndonMonitoringStockEngine",
@@ -69,7 +72,9 @@
 				"MasterCIPartFuture", "StockFlowGeneral", "PrintPartAddress", "ScanSupply", "SupplyMonitoring", "ScanDriver",
 				"ScanInADM", "ManualCalling", "ScanDockIn", "ScanDockOut", "ScanOutADM", "AndonTimelineDelivery", "MasterCustomerOrder",
 				"UploadStockEngine", "AddMasterCalendar", "MasterOEETTFuture", "ScanBoxLabel", "ReprintSKID", "MonitoringSKID",
-				"FirmOrder", "SummaryOrder", "ResultCapacity", "CustomerOrder", "MonthlySummaryOrder", "ProduksiHeijunka"]
+				"SummaryOrder", "ResultCapacity", "MonthlySummaryOrder", "ProduksiHeijunka",
+				"ParameterRecoverySct", "MonthlyPlanResults", "TargetStockParam", "TargetStockResult", "OrderDdmiHistory"
+			]
 		},
 		data: {
 			UserGroup_Id: "@Context.Session.GetString("UserGroup_Id")"

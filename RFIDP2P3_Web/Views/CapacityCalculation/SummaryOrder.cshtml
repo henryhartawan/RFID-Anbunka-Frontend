@@ -219,9 +219,14 @@
 
                       var grid = e.sender;
                       grid.tbody.find("tr.k-grouping-row").each(function () {
-                         if ($(this).text().indexOf("RESUME ENGINE") > -1) {
+                         var rowText = $(this).text().toUpperCase();
+
+                         if (rowText.indexOf("RESUME ENGINE") > -1) {
                             $(this).css("background-color", "rgb(226, 240, 217)");
                             $(this).nextUntil(".k-grouping-row").css("background-color", "rgb(226, 240, 217)");
+                            grid.expandGroup(this);
+                         } else {
+                            grid.collapseGroup(this);
                          }
                       });
                    }

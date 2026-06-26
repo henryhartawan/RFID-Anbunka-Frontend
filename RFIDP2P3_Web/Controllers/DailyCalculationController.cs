@@ -16,5 +16,11 @@ namespace RFIDP2P3_Web.Controllers
         {
             return View();
         }
+        
+        [SessionAuthorize("read_OrderDdmiHistory")]
+        public IActionResult OrderDdmiHistory()
+        {
+            return View();
+        }
     }
 }

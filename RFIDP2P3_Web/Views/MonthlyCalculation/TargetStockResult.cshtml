@@ -1,0 +1,379 @@
+﻿@{
+    ViewData["Title"] = "Target Stock Results";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<div class="page-main">
+    <div class="page-content padding-5">
+
+        <div class="panel panel-default" style="margin-bottom: 10px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <label style="font-weight:bold; margin-right: 10px;">Select Period:</label>
+                <input id="PeriodeFilter" style="width: 150px; margin-right: 10px;" />
+            </div>
+            <div>
+                <button type="button" class="btn btn-success btn-sm" id="btnExportExcel">
+                    <i class="fa fa-file-excel-o"></i> Export to Excel
+                </button>
+            </div>
+        </div>
+
+        <div id="tabstripStock">
+            <ul>
+                <li class="k-state-active">Machining Results</li>
+                <li>K-Line Results</li>
+            </ul>
+
+            <div>
+                <div id="gridMachining"></div>
+            </div>
+
+            <div>
+                <div id="gridKLine"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    var AppResult = {
+        init: function () {
+            var o = this;
+            o.initElements();
+            o.attachEvents();
+            o.loadData();
+        },
+        initElements: function () {
+            var o = this;
+            var today = new Date();
+
+            $("#PeriodeFilter").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "yyyy-MM",
+                value: today,
+                change: function() {
+                    o.loadData();
+                }
+            }).attr("readonly", true);
+
+            $("#tabstripStock").kendoTabStrip({
+                animation: { open: { effects: "fadeIn" } }
+            });
+
+            $("#gridMachining").kendoGrid({
+                dataSource: { 
+                    data: []
+                },
+                excel: { 
+                    allPages: true 
+                },
+                scrollable: true, 
+                resizable: true, 
+                height: 500,
+                columns: [
+                    { 
+                        field: "EngineBase", 
+                        title: "Engine Base", 
+                        width: 100,
+                        locked: true
+                    }, { 
+                        field: "UniqueCode", 
+                        title: "Unique",
+                        width: 100,
+                        locked: true
+                    }, { 
+                        field: "PartName", 
+                        title: "Part Name", 
+                        width: 180
+                    },  {
+                        title: "Plan Prod.",
+                        columns: [
+                            {
+                                field: "PlanMonthly",
+                                title: "Monthly",
+                                width: 100,
+                                attributes: {
+                                    style: "text-align:right;"
+                                }
+                            }, {
+                                field: "PlanDaily",
+                                title: "Daily",
+                                width: 100,
+                                attributes: {
+                                    style: "text-align:right;"
+                                }
+                            },]
+                    },  { 
+                        title: "Min",
+                        columns: [
+                            {
+                                field: "MinDay",
+                                title: "Day",
+                                width: 80,
+                                attributes: {
+                                    style: "text-align:center;"
+                                }
+                            }, {
+                                field: "MinUnit",
+                                title: "Unit",
+                                width: 100,
+                                attributes: {
+                                    style: "text-align:right; font-weight:bold; color:\\#cc0000;"
+                                }
+                            }
+                        ]
+                    },  {
+                        title: "Std",
+                        columns: [
+                            {
+                                field: "StdDay",
+                                title: "Day",
+                                width: 80,
+                                attributes: {
+                                    style: "text-align:center;"
+                                }
+                            }, {
+                                field: "StdUnit",
+                                title: "Unit",
+                                width: 100,
+                                attributes: {
+                                    style: "text-align:right; font-weight:bold; color:\\#009900;"
+                                }
+                            },
+                        ]
+                    }, {
+                        title: "Max",
+                        columns: [
+                            {
+                                field: "MaxDay",
+                                title: "Day",
+                                width: 80,
+                                attributes: {
+                                    style: "text-align:center;"
+                                }
+                            }, {
+                                field: "MaxUnit",
+                                title: "Unit",
+                                width: 100,
+                                attributes: {
+                                    style: "text-align:right; font-weight:bold; color:\\#0000cc;"
+                                }
+                            }
+                        ]
+                    }, {
+                        field: 0,
+                        title: "Advance",
+                        width: 180,
+                        hidden: true
+                    },
+                ]
+            });
+
+            $("#gridKLine").kendoGrid({
+                dataSource: { 
+                    data: []
+                },
+                excel: { 
+                    allPages: true 
+                },
+                scrollable: true, 
+                resizable: true, 
+                height: 500,
+                columns: [
+                    { 
+                        field: "OrderFrom",
+                        title: "Order", 
+                        width: 80, 
+                        locked: true 
+                    }, { 
+                        field: "UniqueCode", 
+                        title: "Unique",
+                        width: 80,
+                        locked: true 
+                    }, { 
+                        field: "EngineType", 
+                        title: "Type", 
+                        width: 90 
+                    }, { 
+                        field: "PartName", 
+                        title: "Part Name", 
+                        width: 180 
+                    }, { 
+                        field: "LoadingRatio", 
+                        title: "(%)", 
+                        width: 110, 
+                        template: "#=LoadingRatio# %", 
+                        attributes: { 
+                            style: "text-align:right; font-weight:bold;" 
+                        }
+                    }, {
+                        title: "Loading Volume", 
+                        columns: [
+                            {
+                                field: "VolMonthly",
+                                title: "Monthly", 
+                                width: 100,
+                                attributes: { 
+                                    style: "text-align:right;"
+                                } 
+                            }, { 
+                                field: "VolDaily", 
+                                title: "Daily", 
+                                width: 90,
+                                attributes: { 
+                                    style: "text-align:right;" 
+                                } 
+                            },
+                        ]
+                    }, { 
+                        field: "Trip", 
+                        title: "Trip", 
+                        width: 70, 
+                        attributes: { 
+                            style: "text-align:center;" 
+                        } 
+                    }, { 
+                        field: "BufferHours", 
+                        title: "Buffer (Hours)", 
+                        width: 100, 
+                        attributes: { 
+                            style: "text-align:right;" 
+                        } 
+                    }, { 
+                        field: "OrderCycle", 
+                        title: "Order (Cycle)",
+                        width: 100, 
+                        attributes: {
+                            style: "text-align:right;"
+                        } 
+                    }, { 
+                        title: "Total",
+                        columns: [
+                            {
+                                field: "TotalMinim",
+                                title: "Minim",
+                                width: 110,
+                                attributes: {
+                                    style: "text-align:right; font-weight:bold; color:\\#cc0000;"
+                                }
+                            }, { 
+                                field: "TotalMax", 
+                                title: "Max",
+                                width: 110, 
+                                attributes: { 
+                                    style: "text-align:right; font-weight:bold; color:\\#0000cc;" 
+                                }
+                            }
+                        ]
+                    },
+                ]
+            });
+        },
+        attachEvents: function () {
+            var o = this;
+
+            $("#btnExportExcel").click(function () {
+                var gridMachining = $("#gridMachining").data("kendoGrid");
+                var gridKLine = $("#gridKLine").data("kendoGrid");
+
+                if (gridMachining.dataSource.data().length === 0 && gridKLine.dataSource.data().length === 0) {
+                    swal.fire('Warning', 'No data available to export.', 'warning');
+                    return;
+                }
+
+                swal.fire({ 
+                    title: 'Generating Excel...',
+                    allowOutsideClick: false,
+                    didOpen: () => { 
+                        Swal.showLoading(); 
+                    }
+                });
+
+                var sheets = [];
+                var extractSheet = function(gridObj, sheetTitle) {
+                    var deferred = $.Deferred();
+
+                    gridObj.bind("excelExport", function(e) {
+                        e.preventDefault();
+                        var sheetData = e.workbook.sheets[0];
+                        sheetData.title = sheetTitle;
+                        sheets.push(sheetData);
+                        gridObj.unbind("excelExport");
+                        deferred.resolve();
+                    });
+
+                    gridObj.saveAsExcel();
+                    return deferred.promise();
+                };
+
+                $.when(
+                    extractSheet(gridMachining, "Machining"),
+                    extractSheet(gridKLine, "K-Line")
+                ).done(function() {
+                    var workbook = new kendo.ooxml.Workbook({
+                        sheets: sheets
+                    });
+
+                    var periodeStr = kendo.toString($("#PeriodeFilter").data("kendoDatePicker").value(), "yyyyMM");
+                    kendo.saveAs({
+                        dataURI: workbook.toDataURL(),
+                        fileName: "Target_Stock_Result_" + periodeStr + ".xlsx"
+                    });
+
+                    swal.close();
+                });
+            });
+        }, 
+        loadData: function () {
+            var periodeDate = $("#PeriodeFilter").data('kendoDatePicker').value();
+
+            if(!periodeDate) return;
+
+            var periodStr = kendo.toString(periodeDate, "yyyyMM");
+
+            swal.fire({ 
+                title: 'Loading...', 
+                allowOutsideClick: false, 
+                didOpen: () => {
+                    Swal.showLoading(); 
+                } 
+            });
+
+            var reqMachining = $.ajax({
+                method: 'post',
+                url: "@myurl" + 'TargetStockResult/InqMachining',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify({ 
+                    Periode_ID: periodStr
+                })
+            });
+
+            var reqKLine = $.ajax({
+                method: 'post',
+                url: "@myurl" + 'TargetStockResult/InqKLine',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                data: JSON.stringify({
+                    Periode_ID: periodStr 
+                })
+            });
+
+            $.when(reqMachining, reqKLine).done(function(resMachining, resKLine) {
+                swal.close();
+                $("#gridMachining").data("kendoGrid").dataSource.data(resMachining[0]);
+                $("#gridKLine").data("kendoGrid").dataSource.data(resKLine[0]);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                swal.fire('Error', 'Failed to load grid data', 'error');
+            });
+        }
+    };
+
+    $(function () {
+        AppResult.init();
+    });
+</script>

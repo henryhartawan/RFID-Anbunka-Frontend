@@ -16,5 +16,35 @@ namespace RFIDP2P3_Web.Controllers
         {
             return View();
         }
+        
+        [SessionAuthorize("read_ParameterRecoverySct")]
+        public IActionResult ParameterRecoverySct()
+        {
+            return View();
+        }
+        
+        [SessionAuthorize("read_TargetStockParam")]
+        public IActionResult TargetStockParam()
+        {
+            return View();
+        }
+        
+        [SessionAuthorize("read_ProcessMonthlyPlan")]
+        public IActionResult ProcessMonthlyPlan()
+        {
+            return View();
+        }
+        
+        [SessionAuthorize("read_TargetStockResult")]
+                public IActionResult TargetStockResult()
+                {
+                    return View();
+                }
+        
+        [SessionAuthorize("read_MonthlyPlanResults")]
+        public IActionResult MonthlyPlanResults()
+        {
+            return View();
+        }
     }
 }

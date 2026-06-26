@@ -1480,7 +1480,12 @@
 				}
 				@if (
 					Context.Session.GetString("read_CustomerOrder") == "True" ||
-					Context.Session.GetString("read_MonthlySummaryOrder") == "True")
+					Context.Session.GetString("read_MonthlySummaryOrder") == "True" ||
+					Context.Session.GetString("read_ParameterRecoverySct") == "True" ||
+					Context.Session.GetString("read_TargetStockParam") == "True" ||
+					Context.Session.GetString("read_ProcessMonthlyPlan") == "True" ||
+					Context.Session.GetString("read_TargetStockResult") == "True" ||
+					Context.Session.GetString("read_MonthlyPlanResults") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1504,12 +1509,53 @@
 									</a>
 								</li>
 							}
+							@if (Context.Session.GetString("read_ParameterRecoverySct") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="ParameterRecoverySct" class="@getClass("MonthlyCalculation", "ParameterRecoverySct")">
+										<span class="title">Parameter Recovery SpecialCT</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_TargetStockParam") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="TargetStockParam" class="@getClass("MonthlyCalculation", "TargetStockParam")">
+										<span class="title">Target Stock Parameter</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_ProcessMonthlyPlan") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="ProcessMonthlyPlan" class="@getClass("MonthlyCalculation", "ProcessMonthlyPlan")">
+										<span class="title">Process Monthly Plan</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_TargetStockResult") == "True")
+							{
+							<li>
+								<a asp-controller="MonthlyCalculation" asp-action="TargetStockResult" class="@getClass("MonthlyCalculation", "TargetStockResult")">
+									<span class="title">Target Stock Result</span>
+								</a>
+							</li>
+							}
+							@if (Context.Session.GetString("read_MonthlyPlanResults") == "True")
+							{
+								<li>
+									<a asp-controller="MonthlyCalculation" asp-action="MonthlyPlanResults" class="@getClass("MonthlyCalculation", "MonthlyPlanResults")">
+										<span class="title">Monthly Plan Results</span>
+									</a>
+								</li>
+							}
 						</ul>
 					</li>
 				}
 				@if (
 					Context.Session.GetString("read_OrderTmmin") == "True" ||
-					Context.Session.GetString("read_OrderDdmi") == "True")
+					Context.Session.GetString("read_OrderDdmi") == "True" ||
+					Context.Session.GetString("read_OrderDdmiHistory") == "True")
 				{
 					<li class="gui-folder">
 						<a>
@@ -1530,6 +1576,14 @@
 								<li>
 									<a asp-controller="DailyCalculation" asp-action="OrderDdmi" class="@getClass("DailyCalculation", "OrderDdmi")">
 										<span class="title">Order DDMI</span>
+									</a>
+								</li>
+							}
+							@if (Context.Session.GetString("read_OrderDdmiHistory") == "True")
+							{
+								<li>
+									<a asp-controller="DailyCalculation" asp-action="OrderDdmiHistory" class="@getClass("DailyCalculation", "OrderDdmiHistory")">
+										<span class="title">Order DDMI History</span>
 									</a>
 								</li>
 							}

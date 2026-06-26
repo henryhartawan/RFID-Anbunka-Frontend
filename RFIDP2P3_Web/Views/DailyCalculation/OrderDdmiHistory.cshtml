@@ -1,0 +1,224 @@
+@{
+    ViewData["Title"] = "History Upload Order DDMI";
+    string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+}
+
+<style>
+    .badge-active {
+        background-color: #4caf50;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+    .badge-deleted {
+        background-color: #f44336;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="page-main">
+    <div class="page-content padding-5">
+        <div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
+    </div>
+</div>
+
+<script>
+    var AppHistory = {
+        attachEvents: function () {
+            var o = this;
+            o.dom.$grid.on('click', '#btnExcel', o.eventHandlers.onClickBtnExcel.bind(o));
+        },
+        cacheDom: function () {
+            var o = this;
+            o.dom.$grid = $("#grid");
+        },
+        currentPeriode: "",
+        dom: {},
+        eventHandlers: {
+            onClickBtnExcel: function () {
+                var grid = this.dom.$grid.data('kendoGrid');
+                if (grid) {
+                    grid.saveAsExcel();
+                }
+            }
+        },
+        init: function () {
+            var o = this;
+            
+            o.cacheDom();
+            o.attachEvents();
+            o.initElements();
+        },
+        initElements: function () {
+            var o = this;
+            var now = new Date();
+            o.currentPeriode = kendo.toString(now, "yyyy-MM");
+
+            o.dom.$grid.kendoGrid({
+                excel: {
+                    fileName: "History_Upload_DDMI_" + o.currentPeriode + ".xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    transport: {
+                        read: function (options) {
+                            $.ajax({
+                                method: 'post',
+                                headers: { 'Content-Type': 'application/json' },
+                                url: "@myurl" + 'OrderDdmiHistory/HistoryInq',
+                                dataType: 'json',
+                                data: JSON.stringify({
+                                    Periode: o.currentPeriode
+                                })
+                            }).done(function (result) {
+                                options.success(result);
+                            }).fail(function (jqXHR) {
+                                swal.fire('Error', 'Failed to fetch data: ' + jqXHR.responseText, 'error');
+                                options.success({ Data: [], Total: 0 });
+                            });
+                        }
+                    },
+                    pageSize: 20,
+                    schema: {
+                        data: "Data",
+                        total: "Total",
+                        model: {
+                            id: "PartNo",
+                            fields: {
+                                UploadBatchKey: { type: "string" },
+                                UploadDate: { type: "string" },
+                                UploadBy: { type: "string" },
+                                DnNo: { type: "string" },
+                                SupplierCode: { type: "string" },
+                                SupplierName: { type: "string" },
+                                ItemNo: { type: "number" },
+                                BackNo: { type: "string" },
+                                PartNo: { type: "string" },
+                                PartName: { type: "string" },
+                                QtyPerBox: { type: "number" },
+                                TotalQty: { type: "number" },
+                                Status: { type: "string" },
+                                DeletedBy: { type: "string" },
+                                DeletedDate: { type: "string" }
+                            }
+                        }
+                    }
+                },
+                scrollable: true,
+                sortable: true,
+                resizable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: true
+                },
+                filterable: {
+                    extra: false
+                },
+                columns: [
+                    {
+                        field: "UploadBatchKey",
+                        title: "Upload Batch Key",
+                        width: 220,
+                    }, {
+                        field: "UploadDate",
+                        title: "Upload Date & Time",
+                        width: 140
+                    }, {
+                        field: "UploadBy",
+                        title: "Upload By",
+                        width: 100
+                    }, {
+                        field: "DnNo",
+                        title: "DN No",
+                        width: 200
+                    }, {
+                        title: "Supplier",
+                        columns: [
+                            { field: "SupplierCode", title: "Code", width: 80 },
+                            { field: "SupplierName", title: "Name", width: 180 }
+                        ]
+                    }, {
+                        field: "ItemNo",
+                        title: "No",
+                        width: 50
+                    }, {
+                        field: "BackNo",
+                        title: "Back No",
+                        width: 80
+                    }, {
+                        field: "PartNo",
+                        title: "Part No",
+                        width: 130
+                    }, {
+                        field: "PartName",
+                        title: "Part Name",
+                        width: 220
+                    }, {
+                        field: "QtyPerBox",
+                        title: "Qty/Box",
+                        width: 80
+                    }, {
+                        field: "TotalQty",
+                        title: "Total Qty",
+                        width: 90
+                    }, {
+                        field: "Status",
+                        title: "Status Log",
+                        width: 90,
+                        template: "# if (Status === 'DELETED') { # <span class='badge-deleted'>DELETED</span> # } else { # <span class='badge-active'>ACTIVE</span> # } #"
+                    }, {
+                        field: "DeletedBy",
+                        title: "Deleted By",
+                        width: 100
+                    }, {
+                        field: "DeletedDate",
+                        title: "Deleted Date",
+                        width: 140
+                    }
+                ],
+                toolbar: kendo.template($("#template_toolbar").html()),
+            });
+
+            $("#FilterPeriodeHistory").kendoDatePicker({
+                start: "year",
+                depth: "year",
+                format: "yyyy-MM",
+                value: kendo.parseDate(o.currentPeriode, "yyyy-MM"),
+                change: function() {
+                    var selectedVal = kendo.toString(this.value(), "yyyy-MM");
+                    if (selectedVal && selectedVal !== o.currentPeriode) {
+                        o.currentPeriode = selectedVal;
+                        var grid = o.dom.$grid.data("kendoGrid");
+
+                        if(grid) {
+                            grid.options.excel.fileName = "History_Upload_DDMI_" + o.currentPeriode + ".xlsx";
+                            grid.dataSource.read();
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    $(function () {
+        AppHistory.init();
+    });
+</script>
+
+<script type="text/x-kendo-template" id="template_toolbar">
+    <span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Audit Log Upload History DDMI - &nbsp;&nbsp;</span>
+    <div class="toolbar">
+        <button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
+            <i class="k-icon k-i-excel"></i>
+        </button>
+        
+        &nbsp;&nbsp;
+        <input id="FilterPeriodeHistory" style="width: 150px; margin-right: 10px;" />
+        &nbsp;&nbsp;
+    </div>
+</script>
