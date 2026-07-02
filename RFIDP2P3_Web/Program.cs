@@ -18,6 +18,14 @@ var app = builder.Build();
 //    app.UseHsts();
 //}
 
+bool enableHttpsRedirection = builder.Configuration.GetValue<bool>("EnableHttpsRedirection", false);
+
+if (enableHttpsRedirection)
+{
+    app.UseHsts(); 
+    app.UseHttpsRedirection();
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

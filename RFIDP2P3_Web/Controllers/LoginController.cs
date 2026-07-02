@@ -105,7 +105,7 @@ namespace RFIDP2P3_Web.Controllers
                             Response.Cookies.Append("jwt_token", token, new CookieOptions
                             {
                                 HttpOnly = true,
-                                Secure = true, 
+                                Secure = Request.IsHttps, 
                                 SameSite = SameSiteMode.Strict,
                                 Expires = DateTimeOffset.UtcNow.AddHours(8)
                             });
