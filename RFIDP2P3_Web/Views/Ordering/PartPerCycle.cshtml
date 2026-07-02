@@ -213,6 +213,30 @@
 							allPages: true,
 							filterable: true
 						},
+						excelExport: function(e) {
+							var sheet = e.workbook.sheets[0];
+
+							for (var i = 0; i < sheet.rows.length; i++) {
+								var row = sheet.rows[i];
+
+								for (var j = 0; j < row.cells.length; j++) {
+									var cell = row.cells[j];
+
+									if (cell.value && typeof cell.value === "string") {
+										cell.value = cell.value.replace(/<br\s*[\/]?>/gi, "\n");
+										cell.value = cell.value.replace(/<\/?[^>]+(>|$)/g, "");
+										cell.value = cell.value.trim();
+
+										if (!isNaN(cell.value) && cell.value !== "") {
+											cell.value = Number(cell.value);
+										}
+										else if (typeof cell.value === "string" && cell.value.indexOf("\n") >= 0) {
+											cell.wrap = true;
+										}
+									}
+								}
+							}
+						},
 						dataSource: {
 							transport: {
 								read: function (options) {

@@ -226,7 +226,8 @@
 								Error_Message: { type: "string" },
 								Periode_ID: { type: "string" },
 								Calc_Date: { type: "date" },
-								Calc_By: { type: "string" }
+								Calc_By: { type: "string" },
+								Remarks: { type: "string" }
 							}
 						}
 					},
@@ -289,6 +290,12 @@
 						width: 150,
 						template: "<div class='customClass'> #= (Calc_Date == null) ? ' ' : kendo.toString(Calc_Date, 'dd/MM/yyyy HH:mm:ss') # </div>",
 					}]
+				},
+				{
+					field: "Remarks",
+					title: "Remark",
+					width: 200,
+					template: "<div class='customClass'> #= (Remarks == null) ? ' ' : kendo.toString(Remarks, '') # </div>",
 				}],
 				toolbar: $("#template_toolbar").html(),
 				dataBound: function(e) {

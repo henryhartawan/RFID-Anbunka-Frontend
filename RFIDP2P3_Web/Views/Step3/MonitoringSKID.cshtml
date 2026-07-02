@@ -118,6 +118,73 @@
 					allPages: true,
 					filterable: true
 				},
+				excelExport: function (e) {
+
+					var rows = e.workbook.sheets[0].rows;
+					var groupStack = [];
+					var dataStack = [];
+
+					// Simpan semua group beserta aggregate
+					function parseGroups(groups) {
+						groups.forEach(function (g) {
+
+							groupStack.push({
+								field: g.field,
+								aggregates: g.aggregates
+							});
+
+							if (g.hasSubgroups) {
+								parseGroups(g.items);
+							}
+						});
+					}
+
+					parseGroups(e.data);
+
+					rows.forEach(function (row) {
+
+						if (row.type === "group-header") {
+
+							dataStack.push(groupStack.shift());
+
+						}
+
+						if (row.type === "group-footer") {
+
+							var group = dataStack.pop();
+
+							if (!group) return;
+
+							if (group.field === "Groups") {
+
+								var plan = group.aggregates.Groups.count;
+								var act = group.aggregates.Qty_Act.sum;
+
+								row.cells[2].value = "Qty Box/SKID:";
+								row.cells[6].value = plan;
+
+								row.cells[7].value = "Qty Box/SKID:";
+								row.cells[12].value = act;
+
+							}
+							else if (group.field === "PI_No") {
+
+								var plan = group.aggregates.PI_No.count;
+								var act = group.aggregates.Qty_Act.sum;
+
+								row.cells[2].value = "Total Qty Box/PI:";
+								row.cells[6].value = plan;
+
+								row.cells[7].value = "Total Qty Box/PI:";
+								row.cells[12].value = act;
+
+							}
+
+						}
+
+					});
+
+				},
 				dataSource: {
 					transport: {
 						read: function (options) {
