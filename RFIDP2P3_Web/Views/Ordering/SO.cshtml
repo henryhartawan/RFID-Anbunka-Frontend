@@ -408,7 +408,8 @@
 				{
 					field: "Supplier",
 					title: "Supplier",
-					width: 150
+					width: 200,
+					template: "<div class='customClass'> #= (Supplier == null) ? ' ' : kendo.toString(Supplier, '') # </div>",
 				},
 				{
 					field: "Job_No",
@@ -423,7 +424,8 @@
 				{
 					field: "Part_Name",
 					title: "Part Name",
-					width: 150
+					width: 200,
+					template: "<div class='customClass'> #= (Part_Name == null) ? ' ' : kendo.toString(Part_Name, '') # </div>",
 				},
 				{
 					field: "ExCore",

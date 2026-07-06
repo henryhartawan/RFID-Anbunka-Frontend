@@ -23,7 +23,7 @@
 		},
 		data: {
 			Prod_Date: new Date(),
-			SupplierCode: ''
+			SupplierCode: '@Context.Session.GetString("SupplierCode")'
 		},
 		dom: {},
 		eventHandlers: {
@@ -352,7 +352,6 @@
 		initAfter: function(){
 			var o = this;
 			if (o.initAfterCalled) return;
-
 			o.initAfterCalled = true;
 
 			o.dom.Prod_Date = $("#Prod_Date");
@@ -426,7 +425,10 @@
 		</button>
 		&nbsp;&nbsp;
 		<input type="date" id="Prod_Date" placeholder="Periode" />
-		&nbsp;&nbsp;
-		<input type="text" id="SupplierCode" placeholder="Supplier" style="width:300px;" />
+		@if (Context.Session.GetString("SupplierCode") == "")
+		{
+		<text>&nbsp;&nbsp;</text>
+		<input type="text" id="SupplierCode" style="width:200px;" />
+		}
 	</div>
 </script>

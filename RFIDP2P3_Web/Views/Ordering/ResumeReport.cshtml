@@ -22,7 +22,8 @@
 		data: {
 			From: kendo.toString((function(){var a = new Date(); a.setDate(1); return a})(), 'yyyyMMdd'),
 			To: new Date(),
-			Line: ''
+			Line: '',
+			DN_No: ''
 		},
 		dom: {},
 		eventHandlers: {
@@ -74,7 +75,8 @@
 								data: JSON.stringify({
 									From: kendo.toString(o.data.From, 'yyyyMMdd'),
 									To: kendo.toString(o.data.To, 'yyyyMMdd'),
-									Line: o.data.Line
+									Line: o.data.Line,
+									DN_No: o.data.DN_No
 								}),
 							}).done(function (data, textStatus, jqXHR) {
 								try {
@@ -166,7 +168,7 @@
 				{
 					field: "DN_No",
 					title: "DN No",
-					width: 100,
+					width: 150,
 				},
 				{
 					field: "SupplierCode",
@@ -361,9 +363,11 @@
 			var o = this;
 			if (o.initAfterCalled) return;
 			o.initAfterCalled = true;
+
 			o.dom.From = $("#From");
 			o.dom.To = $("#To");
 			o.dom.Line = $("#Line");
+			o.dom.DN_No = $("#DN_No");
 
 			o.dom.From.kendoDatePicker({
 				format: 'yyyyMMdd',
@@ -431,6 +435,17 @@
 					o.dom.$grid.data('kendoGrid').dataSource.read();
 				}
 			});
+
+			o.dom.DN_No.kendoTextBox({
+				rounded: "large"
+			});
+
+			o.dom.DN_No.on("keydown", function(e) {
+				if (e.which === 13) {
+					o.data.DN_No = $(this).val();
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				}
+			});
 		}
 	};
 
@@ -451,5 +466,7 @@
 		<input type="date" id="To" placeholder="To" />
 		&nbsp;&nbsp;
 		<input type="" id="Line" placeholder="Line" />
+		&nbsp;&nbsp;
+		<input class="" type="text" id="DN_No" placeholder="DN No (press enter to search)" style="width:200px;" />
 	</div>
 </script>

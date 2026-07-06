@@ -22,7 +22,8 @@
 		},
 		data: {
 			Prod_Date: new Date(),
-			Supplier_Code: ''
+			Supplier_Code: '@Context.Session.GetString("SupplierCode")',
+			DN_No: ''
 		},
 		dom: {},
 		eventHandlers: {
@@ -97,7 +98,8 @@
 								dataType: 'text',
 								data: JSON.stringify({
 									Periode: kendo.toString(o.data.Prod_Date, 'yyyyMMdd'),
-									Supplier_Code: o.data.Supplier_Code
+									Supplier_Code: o.data.Supplier_Code,
+									DN_No: o.data.DN_No
 								})
 							}).done(function (data, textStatus, jqXHR) {
 								try {
@@ -125,6 +127,7 @@
 								PO_Month: { type: "string" },
 								PO_No: { type: "string" },
 								Supplier_Code: { type: "string" },
+								SupplierName: { type: "string" },
 								Part_No: { type: "string" },
 								DN_No: { type: "string" },
 								DN_Date: { type: "date" },
@@ -132,6 +135,7 @@
 								Cycle_Issue: { type: "string" },
 								Shop_Code: { type: "string" },
 								DN_Schedule_Delivery_Date: { type: "date" },
+								TimeArrival: { type: "string" },
 								DN_Schedule_Seq: { type: "number" },
 								DN_Qty: { type: "number" },
 								Plant_Code: { type: "string" },
@@ -199,9 +203,19 @@
 					width: 100
 				},
 				{
-					field: "Supplier_Code",
 					title: "Supplier",
-					width: 100
+					columns: [
+					{
+						field: "Supplier_Code",
+						title: "Code",
+						width: 100
+					},
+					{
+						field: "SupplierName",
+						title: "Name",
+						width: 150,
+						template: "<div class='customClass'> #= (SupplierName == null) ? ' ' : kendo.toString(SupplierName, '') # </div>",
+					}]
 				},
 				{
 					field: "Part_No",
@@ -236,10 +250,19 @@
 					template: "<div class='customClass'> #= (Shop_Code == null) ? ' ' : kendo.toString(Shop_Code, '') # </div>",
 				},
 				{
-					field: "DN_Schedule_Delivery_Date",
-					title: "Delivery Date",
-					width: 100,
-					template: "<div class='customClass'> #= (DN_Schedule_Delivery_Date == null) ? ' ' : kendo.toString(DN_Schedule_Delivery_Date, 'dd/MM/yyyy') # </div>",
+					title: "Delivery",
+					columns: [
+					{
+						field: "DN_Schedule_Delivery_Date",
+						title: "Date",
+						width: 100,
+						template: "<div class='customClass'> #= (DN_Schedule_Delivery_Date == null) ? ' ' : kendo.toString(DN_Schedule_Delivery_Date, 'dd/MM/yyyy') # </div>",
+					},
+					{
+						field: "TimeArrival",
+						title: "Time",
+						width: 100
+					}]
 				},
 				{
 					field: "DN_Schedule_Seq",
@@ -264,7 +287,7 @@
 				{
 					field: "Part_Name",
 					title: "Part Name",
-					width: 100,
+					width: 200,
 					template: "<div class='customClass'> #= (Part_Name == null) ? ' ' : kendo.toString(Part_Name, '') # </div>",
 				},
 				{
@@ -341,6 +364,10 @@
 					title: "Status",
 					width: 100,
 					template: "<div class='customClass'> #= (DN_Status == null) ? ' ' : kendo.toString(DN_Status, '') # </div>",
+					filterable: {
+						multi: true,
+						search: true
+					}
 				}],
 				toolbar: $("#template_toolbar").html(),
 				dataBound: function(e) {
@@ -352,8 +379,10 @@
 			var o = this;
 			if (o.initAfterCalled) return;
 			o.initAfterCalled = true;
+
 			o.dom.Prod_Date = $("#Prod_Date");
 			o.dom.Supplier_Code = $("#Supplier_Code");
+			o.dom.DN_No = $("#DN_No");
 
 			o.dom.Prod_Date.kendoDatePicker({
 				format: 'yyyyMMdd',
@@ -371,6 +400,7 @@
 				dataValueField: "IdValue",
 				dataTextField: "ViewValue",
 				filter: "contains",
+				placeholder: "Supplier(s)...",
 				dataSource: {
 					transport: {
 						read: function (options) {
@@ -405,6 +435,17 @@
 				tagMode: "none",
 				clearButton: false
 			});
+
+			o.dom.DN_No.kendoTextBox({
+				rounded: "large"
+			});
+
+			o.dom.DN_No.on("keydown", function(e) {
+				if (e.which === 13) {
+					o.data.DN_No = $(this).val();
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				}
+			});
 		}
 	};
 
@@ -427,7 +468,12 @@
 		</button>
 		&nbsp;&nbsp;
 		<input type="date" id="Prod_Date" placeholder="Periode" />
+		@if (Context.Session.GetString("SupplierCode") == "")
+		{
+		<text>&nbsp;&nbsp;</text>
+		<input type="text" id="Supplier_Code" style="width:200px;" />
+		}
 		&nbsp;&nbsp;
-		<input type="text" id="Supplier_Code" placeholder="Supplier" style="width:200px;" />
+		<input class="" type="text" id="DN_No" placeholder="DN No (press enter to search)" style="width:200px;" />
 	</div>
 </script>

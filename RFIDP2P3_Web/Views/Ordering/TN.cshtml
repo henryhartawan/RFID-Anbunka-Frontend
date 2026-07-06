@@ -22,7 +22,8 @@
 		},
 		data: {
 			Prod_Date: new Date(),
-			Supplier_Code: ''
+			Supplier_Code: '@Context.Session.GetString("SupplierCode")',
+			TN_No: ''
 		},
 		dom: {},
 		eventHandlers: {
@@ -97,7 +98,8 @@
 								dataType: 'text',
 								data: JSON.stringify({
 									Periode: kendo.toString(o.data.Prod_Date, 'yyyyMMdd'),
-									Supplier_Code: o.data.Supplier_Code
+									Supplier_Code: o.data.Supplier_Code,
+									TN_No: o.data.TN_No
 								})
 							}).done(function (data, textStatus, jqXHR) {
 								try {
@@ -126,6 +128,7 @@
 								RouteCode: { type: "string" },
 								PlantCode: { type: "string" },
 								SupplierCode: { type: "string" },
+								SupplierName: { type: "string" },
 								RouteName: { type: "string" },
 								Shift_Info: { type: "string" },
 								Qty: { type: "number" },
@@ -185,9 +188,19 @@
 					width: 100
 				},
 				{
-					field: "SupplierCode",
 					title: "Supplier",
-					width: 100
+					columns: [
+					{
+						field: "SupplierCode",
+						title: "Code",
+						width: 100
+					},
+					{
+						field: "SupplierName",
+						title: "Name",
+						width: 150,
+						template: "<div class='customClass'> #= (SupplierName == null) ? ' ' : kendo.toString(SupplierName, '') # </div>",
+					}]
 				},
 				{
 					field: "RouteName",
@@ -221,6 +234,10 @@
 					title: "Status",
 					width: 100,
 					template: "<div class='customClass'> #= (TN_Status == null) ? ' ' : kendo.toString(TN_Status, '') # </div>",
+					filterable: {
+						multi: true,
+						search: true
+					}
 				}],
 				toolbar: $("#template_toolbar").html(),
 				dataBound: function(e) {
@@ -232,8 +249,10 @@
 			var o = this;
 			if (o.initAfterCalled) return;
 			o.initAfterCalled = true;
+
 			o.dom.Prod_Date = $("#Prod_Date");
 			o.dom.Supplier_Code = $("#Supplier_Code");
+			o.dom.TN_No = $("#TN_No");
 
 			o.dom.Prod_Date.kendoDatePicker({
 				format: 'yyyyMMdd',
@@ -251,6 +270,7 @@
 				dataValueField: "IdValue",
 				dataTextField: "ViewValue",
 				filter: "contains",
+				placeholder: "Supplier(s)...",
 				dataSource: {
 					transport: {
 						read: function (options) {
@@ -285,6 +305,17 @@
 				tagMode: "none",
 				clearButton: false
 			});
+
+			o.dom.TN_No.kendoTextBox({
+				rounded: "large"
+			});
+
+			o.dom.TN_No.on("keydown", function(e) {
+				if (e.which === 13) {
+					o.data.TN_No = $(this).val();
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				}
+			});
 		}
 	};
 
@@ -307,7 +338,12 @@
 		</button>
 		&nbsp;&nbsp;
 		<input type="date" id="Prod_Date" placeholder="Periode" />
-		&nbsp;&nbsp;
+		@if (Context.Session.GetString("SupplierCode") == "")
+		{
+		<text>&nbsp;&nbsp;</text>
 		<input type="text" id="Supplier_Code" placeholder="Supplier" style="width:200px;" />
+		}
+		&nbsp;&nbsp;
+		<input class="" type="text" id="TN_No" placeholder="TN No (press enter to search)" style="width:200px;" />
 	</div>
 </script>

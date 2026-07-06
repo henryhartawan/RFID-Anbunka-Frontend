@@ -86,7 +86,7 @@
 							fields: {
 								ID: { type: "string" },
 								LineOrderCode: { type: "string" },
-								ScanDate: { type: "string" },
+								ScanDate: { type: "date" },
 								RouteCode: { type: "string" },
 								DN_No: { type: "string" },
 								PartNumber: { type: "string" },
@@ -154,7 +154,8 @@
 				{
 					field: "ScanDate",
 					title: "Process Date",
-					width: 150
+					width: 150,
+					template: "<div class='customClass'> #= (ScanDate == null) ? ' ' : kendo.toString(ScanDate, 'dd/MM/yyyy HH:mm:ss') # </div>",
 				},
 				{
 					field: "RouteCode",
@@ -293,7 +294,7 @@
 </script>
 
 <script type="text/x-kendo-template" id="template_toolbar">
-	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Supplu Monitoring -&nbsp;&nbsp;</span>
+	<span class="k-pager-refresh" style="font-weight: bold">&nbsp;&nbsp;- Supply Monitoring -&nbsp;&nbsp;</span>
 	<div class="toolbar">
 		<button data-toggle="tooltip" title="Save as Excel" type="button" class="btn ink-reaction btn-floating-action btn-xs btn-warning" id="btnExcel">
 			<i class="k-icon k-i-excel"></i>

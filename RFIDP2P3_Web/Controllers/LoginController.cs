@@ -83,6 +83,7 @@ namespace RFIDP2P3_Web.Controllers
                         HttpContext.Session.SetString("PIC_Name", userLoginResult.PIC_Name);
 						HttpContext.Session.SetString("UserGroup_Id", userLoginResult.UserGroup_Id);
 						HttpContext.Session.SetString("UserGroup_Name", userLoginResult.UserGroup_Name);
+                        HttpContext.Session.SetString("SupplierCode", userLoginResult.SupplierCode);
                         if (userLoginResult.Privileges != null)
                         {
                             foreach (var privilege in userLoginResult.Privileges)

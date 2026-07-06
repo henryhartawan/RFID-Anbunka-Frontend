@@ -645,6 +645,7 @@
 					}
 
 					if(status != 1) {
+						var CIID = CycleIssueId;
 						var Dock = $("#Dock").data('kendoComboBox').value();
 						var Route = $("#Route").data('kendoComboBox').value();
 						var Operation = $("#Operation").data('kendoDropDownList').value();
@@ -658,6 +659,7 @@
 								url: "@myurl" + 'MasterCycleIssueLP/CheckTime',
 								dataType: 'text',
 								data: JSON.stringify({
+									CycleIssueID: CIID,
 									DockCode: Dock,
 									RouteCode: Route,
 									Operation: Operation,
