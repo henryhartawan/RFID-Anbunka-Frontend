@@ -145,6 +145,7 @@
 			onClickBtnSave: function (e) {
 				var o = this;
 				var CycleArrival = $("#CycleArrival").val();
+				var Dock = $("#Dock").val();
 				var TimeArrival = kendo.toString($("#TimeArrival").data('kendoTimePicker').value(),'HH:mm:ss');
 				var Periode = $("#Periode").val();
 
@@ -163,6 +164,7 @@
 								dataType: 'text',
 								data: JSON.stringify({
 									CycleIssueID: CycleIssueId,
+									DockCode: Dock,
 									Periode_ID: Periode,
 									CycleArrival: CycleArrival,
 									TimeArrival: TimeArrival,
