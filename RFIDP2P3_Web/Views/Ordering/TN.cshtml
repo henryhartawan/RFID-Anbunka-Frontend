@@ -134,7 +134,10 @@
 								Qty: { type: "number" },
 								Create_Date: { type: "date" },
 								Create_By: { type: "string" },
-								TN_Status: { type: "string" }
+								TN_Status: { type: "string" },
+								Delivery_Date_Final: { type: "date" },
+								TimeArrival: { type: "string" },
+								CycleArrival: { type: "string" }
 							}
 						}
 					},
@@ -185,7 +188,7 @@
 				{
 					field: "PlantCode",
 					title: "Plant",
-					width: 100
+					width: 70
 				},
 				{
 					title: "Supplier",
@@ -198,25 +201,46 @@
 					{
 						field: "SupplierName",
 						title: "Name",
-						width: 150,
+						width: 200,
 						template: "<div class='customClass'> #= (SupplierName == null) ? ' ' : kendo.toString(SupplierName, '') # </div>",
 					}]
 				},
 				{
 					field: "RouteName",
 					title: "Route Name",
-					width: 100,
+					width: 200,
 					template: "<div class='customClass'> #= (RouteName == null) ? ' ' : kendo.toString(RouteName, '') # </div>",
 				},
 				{
 					field: "Shift_Info",
 					title: "Shift",
-					width: 100
+					width: 70
 				},
+				{
+					title: "Delivery",
+					columns:[
+						{
+							field: "Delivery_Date_Final",
+							title: "Date",
+							width: 90,
+							template: "<div class='customClass'> #= (Delivery_Date_Final == null) ? ' ' : kendo.toString(Delivery_Date_Final, 'dd/MM/yyyy') # </div>",
+						},
+						{
+							field: "TimeArrival",
+							title: "Time",
+							width: 70
+						},
+						{
+							field: "CycleArrival",
+							title: "Cycle",
+							width: 70
+						}
+					]
+				},				
 				{
 					field: "Qty",
 					title: "Qty",
-					width: 100
+					width: 60
 				},
 				{
 					field: "Create_Date",

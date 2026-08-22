@@ -23,7 +23,7 @@
 		},
 		data: {
 			Type: '1',
-			Periode: kendo.toString(new Date(), "yyyyMMdd")
+			Periode: ''
 		},
 		dom: {},
 		eventHandlers: {
@@ -102,11 +102,15 @@
 
 				swal.fire({
 					title: 'Calculate?',
-					html: '<input id="Groups" style="width:75%;" Placeholder="Group"><br/><br/><input id="Periode" style="width:75%;" Placeholder="Periode">',
+					html: '<div><input id="Groups" style="width:75%;" Placeholder="Group"></div><div id="divPeriode" style="margin-top:15px;"><input id="Periode" style="width:75%;" Placeholder="Periode"></div><div id="divMulti" style="display:none;text-align:center;margin-top:15px;"><input id="PeriodeMulti" style="width:100%;" Placeholder="Periode(s)"></div>',
 					icon: 'warning',
 					showCancelButton: true,
 					confirmButtonText: 'Yes',
 					didOpen: () => {
+						o.data.Type = "1";
+						$("#divMulti").hide();
+						o.data.Periode = ''
+
 						$("#Groups").kendoDropDownList({
 							value: o.data.Type,
 							dataTextField: "text",
@@ -117,21 +121,63 @@
 							],
 							change: function (e) {
 								o.data.Type = this.value();
+
+								if(o.data.Type == 2) {
+									$("#divPeriode").hide();
+									$("#divMulti").show();
+								} else {
+									$("#divPeriode").show();
+									$("#divMulti").hide();
+								}
 							}
 						}).data("kendoDropDownList");
 
 						$("#Periode").kendoDatePicker({
 							format: "yyyyMMdd",
-							value: o.data.Periode,
 							change: function (e) {
 								o.data.Periode = kendo.toString(this.value(), "yyyyMMdd");
 							}
 						}).data("kendoDatePicker");
+
+						$("#PeriodeMulti").kendoMultiSelect({
+							dataValueField: "Periode_ID",
+							dataTextField: "Periode_ID",
+							filter: "contains",
+							placeholder: "Periode(s)...",
+							dataSource: {
+								transport: {
+									read: function (options) {
+										$.ajax({
+											method: 'post',
+											headers: { 'Content-Type': 'application/json' },
+											url: "@myurl" + 'Calculate/INQPeriode',
+											dataType: 'text',
+											data: {}
+										}).done(function (data, textStatus, jqXHR) {
+											try {
+												var result = JSON.parse(data);
+											}
+											catch (e) {
+												swal.fire('Error', 'Error loading periode', 'error');
+												options.success({ data: [] });
+												return;
+											}
+											options.success(result);
+										}).fail(function (jqXHR, textStatus, errorThrown) {
+											swal.fire('Error', (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+											options.success({ data: [] });
+										});
+									}
+								}
+							},
+							change: function () {
+								o.data.Periode = this.value() != null ? this.value().join(';') : '';
+								console.log(o.data.Periode);
+							}
+						}).data("kendoMultiSelect");
 					},
 					preConfirm: () => {
-						var periode = $("#Periode").data('kendoDatePicker').value();
-
-						if(periode === '' || periode == null) {
+						if(o.data.Periode === '' || o.data.Periode == null) {
 							swal.showValidationMessage('Periode harus diisi');
 							return false;
 						}
@@ -143,31 +189,28 @@
 						$.ajax({
 							method: 'post',
 							headers: { 'Content-Type': 'application/json' },
-							url: "@myurl"+'Calculate/Calc',
+							url: "@myurl"+'Calculate/CalcCheck',
 							dataType: 'text',
 							data: JSON.stringify({
 								Type: o.data.Type,
-								Periode_ID: o.data.Periode,
-								User_Login: "@Context.Session.GetString("PIC_ID")"
+								Periode_ID: o.data.Periode
 							}),
-							beforeSend: function() {
+						}).done(function( data, textStatus, jqXHR ) {
+							if(data == 'O'){
 								swal.fire({
-									html: '<h5>Calculating please wait...</h5>',
-									showConfirmButton: false,
-									allowOutsideClick: false,
-									closeOnClickOutside: false,
-									onRender: function() {
-										$('.swal2-content').prepend(sweet_loader);
+									title: 'Calculation exists!',
+									icon: 'warning',
+									text: 'Do you want to recalculate?',
+									showCancelButton: true,
+									confirmButtonText: 'Yes',
+								}).then((result) => {
+									if (result.isConfirmed) {
+										o.fn.doCalc.call(o);
 									}
 								});
-							},
-						}).done(function( data, textStatus, jqXHR ) {
-							if(data !== 'success'){
-								swal.fire('', data, 'error');
-								console.log(jqXHR);
-								return;
+							} else {
+								o.fn.doCalc.call(o);
 							}
-							swal.fire({ title: 'Success', icon: 'success', timer: 2000, showConfirmButton: false });
 						}).fail(function( jqXHR, textStatus, errorThrown ) {
 							swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
 							console.log(jqXHR);
@@ -177,6 +220,46 @@
 					}
 				});
 			},
+		},
+		fn: {
+			doCalc: function() {
+				var o = this;
+
+				$.ajax({
+					method: 'post',
+					headers: { 'Content-Type': 'application/json' },
+					url: "@myurl"+'Calculate/Calc',
+					dataType: 'text',
+					data: JSON.stringify({
+						Type: o.data.Type,
+						Periode_ID: o.data.Periode,
+						User_Login: "@Context.Session.GetString("PIC_ID")"
+					}),
+					beforeSend: function() {
+						swal.fire({
+							html: '<h5>Calculating please wait...</h5>',
+							showConfirmButton: false,
+							allowOutsideClick: false,
+							closeOnClickOutside: false,
+							onRender: function() {
+								$('.swal2-content').prepend(sweet_loader);
+							}
+						});
+					},
+				}).done(function( data, textStatus, jqXHR ) {
+					if(data !== 'success'){
+						swal.fire('', data, 'error');
+						console.log(jqXHR);
+						return;
+					}
+					swal.fire({ title: 'Success', icon: 'success', timer: 2000, showConfirmButton: false });
+				}).fail(function( jqXHR, textStatus, errorThrown ) {
+					swal.fire('Error', errorThrown + (jqXHR.responseText !== '' ? ': ' + jqXHR.responseText : ''), 'error');
+					console.log(jqXHR);
+				}).always(function( data_or_jqXHR, textStatus, jqXHR_or_errorThrown ){
+					o.dom.$grid.data('kendoGrid').dataSource.read();
+				});
+			}
 		},
 		init: function () {
 			var o = this;

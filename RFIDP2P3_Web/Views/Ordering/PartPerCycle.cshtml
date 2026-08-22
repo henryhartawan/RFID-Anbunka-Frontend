@@ -3,6 +3,17 @@
 	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
 }
 
+<style>
+	.k-grid-header th .k-link {
+		white-space: normal !important;
+		word-wrap: break-word;
+	}
+
+	.k-grid-header th {
+		vertical-align: top !important;
+	}
+</style>
+
 <div class="page-main">
 	<div class="page-content padding-10">
 		<button type="button" id="btnLoad" class="btn btn-primary" style="display:none;">Load</button>
@@ -104,23 +115,23 @@
 						},
 						{
 							field: "BatchOrderBox",
-							title: "Batch Order Box",
-							width: 100
+							title: "Batch",
+							width: 70
 						},
 						{
 							field: "QtyPerBox",
-							title: "Qty per Box",
-							width: 100
+							title: "Qty/Box",
+							width: 80
 						},
 						{
 							field: "Vol_Truck",
 							title: "Vol Truck",
-							width: 100
+							width: 80
 						},
 						{
 							field: "QtyBoxPerM3",
-							title: "Qty Box per m3",
-							width: 100
+							title: "Qty Box/m3",
+							width: 80
 						}
 					];
 
@@ -165,6 +176,7 @@
 							if(type == 'B') type = 'Volume';
 							if(type == 'C') type = 'DN';
 							if(type == 'D') type = 'SO';
+							if(type == 'E') type = 'OF';
 
 							if(column != null && column.title != type){
 								columns.push(column);
@@ -185,9 +197,9 @@
 								{
 									field: key,
 									title: key.substring(1,4),
-									width: 50,
+									width: 80,
 									filterable: false,
-									template: "<div class='customClass'> #= (" + key + " == null) ? '0.00' : kendo.toString(" + key + ", '0.00') # </div>",
+									template: "<div style='float:right;'> #= (" + key + " == null) ? '0.00' : kendo.toString(" + key + ", '0.00') # </div>",
 									aggregates: ["sum"],
 									groupFooterTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(sum, '0.00')#</span></div>",
 									footerTemplate: "<div class='text-right'><span style=\'float:right;font-size: 11px\'>#=(sum == null) ? '0' : kendo.toString(sum, '0.00')#</span></div>",

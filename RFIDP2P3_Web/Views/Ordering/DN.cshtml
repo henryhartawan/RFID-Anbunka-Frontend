@@ -3,6 +3,16 @@
 	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
 }
 
+<style>
+	.k-grid-header th .k-link {
+		white-space: normal !important;
+	}
+
+	.k-grid-header th {
+		vertical-align: top !important;
+	}
+</style>
+
 <div class="page-main">
 	<div class="page-content padding-10">
 		<div id="grid" style="margin-top:5px; margin-bottom:5px;"></div>
@@ -129,6 +139,7 @@
 								Supplier_Code: { type: "string" },
 								SupplierName: { type: "string" },
 								Part_No: { type: "string" },
+								DN_No_Temp: { type: "string" },
 								DN_No: { type: "string" },
 								DN_Date: { type: "date" },
 								DN_Seq: { type: "number" },
@@ -154,7 +165,12 @@
 								Create_Date: { type: "date" },
 								Create_By: { type: "string" },
 								DN_Status: { type: "string" },
-								CycleIssueLP: { type: "string" }
+								CycleIssueLP: { type: "string" },
+								Shift_Info: { type: "string" },
+								Prod_Date: { type: "date" },
+								DN_Schedule_Delivery_Date_Init: { type: "date" },
+								DN_Schedule_Delivery_Shift: { type: "string" },
+								Calc_Type: { type: "string" }
 							}
 						}
 					},
@@ -188,6 +204,17 @@
 					width: 100,
 				},
 				{
+					field: "Prod_Date",
+					title: "Prod Date",
+					width: 100,
+					template: "<div class='customClass'> #= (Prod_Date == null) ? ' ' : kendo.toString(Prod_Date, 'dd/MM/yyyy') # </div>",
+				},
+				{
+					field: "Shift_Info",
+					title: "Shift",
+					width: 70,
+				},
+				{
 					field: "PO_Year",
 					title: "PO Year",
 					width: 80
@@ -195,7 +222,7 @@
 				{
 					field: "PO_Month",
 					title: "PO Month",
-					width: 100
+					width: 70
 				},
 				{
 					field: "PO_No",
@@ -223,6 +250,11 @@
 					width: 100
 				},
 				{
+					field: "DN_No_Temp",
+					title: "DN No Temp",
+					width: 150
+				},
+				{
 					field: "DN_No",
 					title: "DN No",
 					width: 150
@@ -236,7 +268,7 @@
 				{
 					field: "DN_Seq",
 					title: "DN Seq",
-					width: 50
+					width: 55
 				},
 				{
 					field: "Cycle_Issue",
@@ -252,6 +284,17 @@
 				{
 					title: "Delivery",
 					columns: [
+					{
+						field: "DN_Schedule_Delivery_Date_Init",
+						title: "Date Init",
+						width: 100,
+						template: "<div class='customClass'> #= (DN_Schedule_Delivery_Date_Init == null) ? ' ' : kendo.toString(DN_Schedule_Delivery_Date_Init, 'dd/MM/yyyy') # </div>",
+					},
+					{
+						field: "DN_Schedule_Delivery_Shift",
+						title: "Shift",
+						width: 70
+					},
 					{
 						field: "DN_Schedule_Delivery_Date",
 						title: "Date",
@@ -347,6 +390,11 @@
 					field: "CycleIssueLP",
 					title: "Cycle Issue LP",
 					width: 100
+				},
+				{
+					field: "Calc_Type",
+					title: "Calc Type",
+					width: 70
 				},
 				{
 					field: "Create_Date",

@@ -423,6 +423,11 @@
 					buttonCount: 5
 				},
 				edit: function(e) {
+					if (o.data.Type === "SKID" && e.container.find("input[name='Qty_GR']").length > 0) {
+						this.closeCell();
+						return;
+					}
+
 					var row = e.container.closest("tr");
 					var checkbox = row.find("input.checkbox");
 					if (!checkbox.is(":checked")) {
@@ -513,6 +518,11 @@
 						if (dataItem.Qty_Remain === 0) {
 							checkbox.prop("disabled", true);
 							checkbox.prop("checked", false);
+						}
+
+						if (o.data.Type == "SKID") {
+							checkbox.prop("disabled", true);
+							$("#checkAll").prop("disabled", true);
 						}
 					});
 				}
