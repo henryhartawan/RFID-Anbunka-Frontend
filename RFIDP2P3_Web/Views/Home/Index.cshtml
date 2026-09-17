@@ -1,17 +1,84 @@
 ﻿@{
     ViewData["Title"] = "Home";
     string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+    string ugSupplier = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:Supplier").Value;
+    string ugDriver = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:Driver").Value;
+    string ugSecurity = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:Security").Value;
 }
+
+<style>
+    .home-container {
+        background-color: white;
+        width: 100%;
+        height: 90vh;
+    }
+
+    .home-title {
+        padding-top: 15px;
+    }
+
+    .download-container {
+        padding-left: 10px;
+        padding-top: 15px;
+        text-align: right;
+    }
+
+    .img-daihatsu {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    @@media (max-width: 768px) {
+        .download-container {
+            text-align: left;
+            padding-left: 10px;
+            padding-top: 0px;
+        }
+
+        .home-image {
+            margin-top: 15px;
+        }
+
+        .img-daihatsu {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+    }
+</style>
 
 <div class="page-main">
     <div class="page-content padding-5">
-        <div class="col-xs-12" style="background-color:white;width:100%;height:90vh">
-            <h3 class="modal-title" style="padding-left: 10px; padding-top:15px">
-                <b>Hi @Context.Session.GetString("PIC_Name"), welcome to ICS</b>
-            </h3>
-            @if (Context.Session.GetString("UserGroup_Id") != "025")
+        <div class="col-xs-12 home-container">
+            <div class="col-xs-12 col-sm-8">
+                <h3 class="modal-title home-title">
+                    <b>Hi @Context.Session.GetString("PIC_Name"), welcome to ICS</b>
+                </h3>
+            </div>
+            @if (Context.Session.GetString("UserGroup_Id") != ugDriver && Context.Session.GetString("UserGroup_Id") != ugSupplier && Context.Session.GetString("UserGroup_Id") != ugSecurity)
             {
-                <img src="~/img/bgdaihatsu.svg" style="display:block;margin-left:auto;margin-right:auto;max-width:100%;max-height:100%;">
+                <div class="col-xs-12 col-sm-4 download-container">
+                    <a href="../../mobile/RFIDP2P3_Mobile.apk" download class="btn btn-primary">
+                        Download ICS Mobile
+                    </a>
+                </div>
+            }
+            @if (Context.Session.GetString("UserGroup_Id") != ugDriver)
+            {
+                <picture class="home-image">
+                    <!-- Mobile / Portrait -->
+                    <source media="(max-width: 767px)"
+                            srcset="~/img/bgdaihatsu-portrait.svg">
+
+                    <!-- PC / Landscape -->
+                    <img src="~/img/bgdaihatsu.svg"
+                         alt="Daihatsu"
+                         class="img-daihatsu">
+                </picture>
+                /*<img src="~/img/bgdaihatsu.svg" style="display:block;margin-left:auto;margin-right:auto;max-width:100%;max-height:100%;">*/
             }
             else
             {

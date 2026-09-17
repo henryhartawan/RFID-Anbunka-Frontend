@@ -1,6 +1,9 @@
 ﻿@{
 	ViewData["Title"] = "Master User";
 	string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Path:URL").Value;
+	string[] ugEmpty = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:AllowEmptyLocation").Get<string[]>();
+	string ugSupplier = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:Supplier").Value;
+	string ugDriver = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("UserGroup:Driver").Value;
 }
 
 <style>
@@ -281,7 +284,7 @@
                 document.getElementById("User_Id").disabled = true;
 				$("#Password").attr("placeholder", "Leave this blank to keep password");
 
-				if(di.UserGroup_Id == '024' || di.UserGroup_Id == '025') {
+				if(di.UserGroup_Id == "@ugSupplier" || di.UserGroup_Id == "@ugDriver") {
 					$("#divSupp").show();
 				} else {
 					$("#divSupp").hide();
@@ -304,12 +307,12 @@
 
 				var RequireMfa = o.dom.inputs.$RequireMfa.prop('checked');
 
-				var allowedEmptyLocationGroups = ['001', '002', '024', '025', '026'];
+				var allowedEmptyLocationGroups = @Html.Raw(Json.Serialize(ugEmpty));
 
 				if (UID == '' || Name == '' || UserGroup == '' || (IUType == 'I' && Password == '') ||
 				  (!allowedEmptyLocationGroups.includes(UserGroup) &&
 					(PlantID == '' || BuildingId == '' || DeptId == '' || SectionId == '')) ||
-				  ((UserGroup == '024' || UserGroup == '025') && Supplier == '' && Email == '')
+				  ((UserGroup == "@ugSupplier" || UserGroup == "@ugDriver") && Supplier == '' && Email == '')
 				) {
 					swal.fire({ title: 'Warning', text: 'Please fill all fields', icon: 'warning' });
 				} else {
@@ -582,7 +585,7 @@
 						}
 					}
 
-					if(this.value() == '024' || this.value() == '025') {
+					if(this.value() == "@ugSupplier" || this.value() == "@ugDriver") {
 						$("#divSupp").show();
 					} else {
 						$("#divSupp").hide();
