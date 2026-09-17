@@ -28,7 +28,6 @@ if (enableHttpsRedirection)
     app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 //app.UseStaticFiles();
 var provider = new FileExtensionContentTypeProvider();
 provider.Mappings[".apk"] = "application/vnd.android.package-archive";

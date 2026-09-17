@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace RFIDP2P3_Web.Controllers
 {
+    [Route("ApiProxy")]
     public class ApiProxyController : Controller
     {
         private readonly IConfiguration _config;
@@ -13,7 +15,7 @@ namespace RFIDP2P3_Web.Controllers
             _config = config;
         }
 
-        [Route("ApiProxy/Forward/{*targetPath}")]
+        [Route("Forward/{*targetPath}")]
         public async Task<IActionResult> Forward(string targetPath)
         {
             var token = Request.Cookies["jwt_token"];
@@ -24,73 +26,64 @@ namespace RFIDP2P3_Web.Controllers
             string fullUrl = $"{baseUrl.TrimEnd('/')}/{targetPath}{Request.QueryString}";
 
             using var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
             var method = new HttpMethod(Request.Method);
-            using var requestMessage = new HttpRequestMessage(method, fullUrl);
 
-            if (method != HttpMethod.Get &&
-                method != HttpMethod.Delete &&
-                method != HttpMethod.Head)
-            {
-                if (Request.HasFormContentType)
-                {
-                    var form = await Request.ReadFormAsync();
-
-                    var multipartContent = new MultipartFormDataContent();
-
-                    foreach (var field in form)
-                    {
-                        multipartContent.Add(
-                            new StringContent(field.Value!),
-                            field.Key);
-                    }
-
-                    foreach (var file in form.Files)
-                    {
-                        var stream = file.OpenReadStream();
-
-                        var fileContent = new StreamContent(stream);
-
-                        fileContent.Headers.ContentType =
-                            new MediaTypeHeaderValue(file.ContentType);
-
-                        multipartContent.Add(
-                            fileContent,
-                            file.Name,
-                            file.FileName);
-                    }
-
-                    requestMessage.Content = multipartContent;
-                }
-                else
-                {
-                    Request.EnableBuffering();
-
-                    Request.Body.Position = 0;
-
-                    using var reader = new StreamReader(
-                        Request.Body,
-                        Encoding.UTF8,
-                        leaveOpen: true);
-
-                    var body = await reader.ReadToEndAsync();
-
-                    Request.Body.Position = 0;
-
-                    requestMessage.Content = new StringContent(
-                        body,
-                        Encoding.UTF8,
-                        Request.ContentType ?? "application/json");
-                }
-            }
-
+            using var requestMessage = await CreateRequestMessageAsync(method, fullUrl);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await client.SendAsync(requestMessage);
             
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                Response.Cookies.Delete("jwt_token");
-                return Unauthorized(new { message = "Token rejected by the server (Expired)." });
+                var refreshToken = Request.Cookies["jwt_refresh_token"];
+                if (!string.IsNullOrEmpty(refreshToken))
+                {
+                    var refreshPayload = new
+                    {
+                        AccessToken = token,
+                        RefreshToken = refreshToken
+                    };
+
+                    var refreshContent = new StringContent(JsonConvert.SerializeObject(refreshPayload), Encoding.UTF8, "application/json");
+                    var refreshResponse = await client.PostAsync($"{baseUrl.TrimEnd('/')}/Auth/Refresh", refreshContent);
+
+                    if (refreshResponse.IsSuccessStatusCode)
+                    {
+                        var refreshResultStr = await refreshResponse.Content.ReadAsStringAsync();
+                        dynamic refreshResult = JsonConvert.DeserializeObject(refreshResultStr);
+                        string newToken = refreshResult.token;
+                        string newRefreshToken = refreshResult.refreshToken;
+
+                        Response.Cookies.Append("jwt_token", newToken, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = Request.IsHttps,
+                            SameSite = SameSiteMode.Strict
+                        });
+
+                        Response.Cookies.Append("jwt_refresh_token", newRefreshToken, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = Request.IsHttps,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = DateTimeOffset.UtcNow.AddDays(_config.GetValue<int>("CookieSettings:RefreshTokenExpireDays", 7))
+                        });
+
+                        using var retryMessage = await CreateRequestMessageAsync(method, fullUrl);
+                        retryMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+                        response = await client.SendAsync(retryMessage);
+                    }
+                    else
+                    {
+                        Response.Cookies.Delete("jwt_token");
+                        Response.Cookies.Delete("jwt_refresh_token");
+                        return Unauthorized(new { message = "Session expired completely. Please log in again." });
+                    }
+                }
+                else
+                {
+                    Response.Cookies.Delete("jwt_token");
+                    return Unauthorized(new { message = "Token rejected by the server (Expired)." });
+                }
             }
 
             var result = await response.Content.ReadAsStringAsync();
@@ -114,6 +107,41 @@ namespace RFIDP2P3_Web.Controllers
                 ContentType = contentType,
                 StatusCode = (int)response.StatusCode
             };
+        }
+
+        private async Task<HttpRequestMessage> CreateRequestMessageAsync(HttpMethod method, string fullUrl)
+        {
+            var requestMessage = new HttpRequestMessage(method, fullUrl);
+
+            if (method != HttpMethod.Get && method != HttpMethod.Delete && method != HttpMethod.Head)
+            {
+                if (Request.HasFormContentType)
+                {
+                    var multipartContent = new MultipartFormDataContent();
+                    foreach (var field in Request.Form)
+                    {
+                        multipartContent.Add(new StringContent(field.Value!), field.Key);
+                    }
+                    foreach (var file in Request.Form.Files)
+                    {
+                        var stream = file.OpenReadStream();
+                        var fileContent = new StreamContent(stream);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                        multipartContent.Add(fileContent, file.Name, file.FileName);
+                    }
+                    requestMessage.Content = multipartContent;
+                }
+                else
+                {
+                    Request.EnableBuffering();
+                    Request.Body.Position = 0;
+                    using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
+                    var body = await reader.ReadToEndAsync();
+                    Request.Body.Position = 0;
+                    requestMessage.Content = new StringContent(body, Encoding.UTF8, Request.ContentType ?? "application/json");
+                }
+            }
+            return requestMessage;
         }
     }
 }

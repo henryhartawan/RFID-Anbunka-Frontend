@@ -103,12 +103,21 @@ namespace RFIDP2P3_Web.Controllers
                         else
                         {
                             string token = loginResult.token;
+                            string refreshToken = loginResult.refreshToken;
+
                             Response.Cookies.Append("jwt_token", token, new CookieOptions
                             {
                                 HttpOnly = true,
                                 Secure = Request.IsHttps, 
+                                SameSite = SameSiteMode.Strict
+                            });
+
+                            Response.Cookies.Append("jwt_refresh_token", refreshToken, new CookieOptions
+                            {
+                                HttpOnly = true,
+                                Secure = Request.IsHttps,
                                 SameSite = SameSiteMode.Strict,
-                                Expires = DateTimeOffset.UtcNow.AddHours(8)
+                                Expires = DateTimeOffset.UtcNow.AddDays(_config.GetValue<int>("CookieSettings:RefreshTokenExpireDays", 7))
                             });
                             
                             HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "true");
@@ -142,6 +151,7 @@ namespace RFIDP2P3_Web.Controllers
             
             HttpContext.Session.Clear();
             Response.Cookies.Delete("jwt_token");
+            Response.Cookies.Delete("jwt_refresh_token");
 
             return RedirectToAction("Index", "Login");
         }

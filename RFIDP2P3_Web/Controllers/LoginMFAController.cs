@@ -125,16 +125,33 @@ namespace RFIDP2P3_Web.Controllers
                 if (result?.status == 1)
                 {
                     string token = result.token;
+                    string refreshToken = result.refreshToken;
+
                     Response.Cookies.Append("jwt_token", token, new CookieOptions
                     {
                         HttpOnly = true,
                         Secure = Request.IsHttps, 
+                        SameSite = SameSiteMode.Strict
+                    });
+
+                    var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+                    Response.Cookies.Append("jwt_refresh_token", refreshToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsHttps,
                         SameSite = SameSiteMode.Strict,
-                        Expires = DateTimeOffset.UtcNow.AddHours(8)
+                        Expires = DateTimeOffset.UtcNow.AddDays(config.GetValue<int>("CookieSettings:RefreshTokenExpireDays", 7))
                     });
                     
                     HttpContext.Session.SetString("SESSION_MFA_VERIFIED", "true");
-                    return Json(new { status = 1, data = new { url = Url.Action("Index", "Home") } });
+                    return Json(new
+                    {
+                        status = 1,
+                        data = new
+                        {
+                            url = Url.Action("Index", "Home")
+                        }
+                    });
                 }
                 else
                 {
