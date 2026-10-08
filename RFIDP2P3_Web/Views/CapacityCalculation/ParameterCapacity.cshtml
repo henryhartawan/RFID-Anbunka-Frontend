@@ -222,22 +222,18 @@
                                             return String(a.Month).localeCompare(String(b.Month));
                                         });
 
-                                        var advRow = { LineCode: lineCode, Parameter: "Advance", N: null, N_1: null, N_2: null, N_3: null };
                                         var manRow = { LineCode: lineCode, Parameter: "Mandatory", N: null, N_1: null, N_2: null, N_3: null };
-                                        var hotRow = { LineCode: lineCode, Parameter: "Overtime HOT", N: null, N_1: null, N_2: null, N_3: null };
 
                                         items.forEach(function(item, index) {
                                             var mField = index === 0 ? "N" : "N_" + index;
                                             if (index <= 3) {
-                                                advRow[mField] = item.Advance;
                                                 manRow[mField] = item.Mandatory;
-                                                hotRow[mField] = item.OvertimeHOT;
                                             }
                                         });
 
-                                        pivotedResult.push(advRow, manRow, hotRow);
+                                        pivotedResult.push(manRow);
                                     }
-                                    
+
                                     options.success(pivotedResult);
                                 }
                                 catch (e) {
@@ -296,27 +292,6 @@
                 ],
                 toolbar: $("#template_toolbar").html(),
                 dataBound: function(e) {
-                    var grid = this;
-                    var rows = grid.tbody.find("tr[role='row']");
-
-                    // --- ROWSPAN LOGIC ---
-                    var previousRow = null;
-                    var rowspan = 1;
-
-                    for (var i = 0; i < rows.length; i++) {
-                        var row = $(rows[i]);
-                        var cell = row.children().eq(0); // Sel LineCode
-
-                        if (previousRow && cell.text() === previousRow.children().eq(0).text()) {
-                            cell.hide();
-                            rowspan++;
-                            previousRow.children().eq(0).attr("rowspan", rowspan);
-                        } else {
-                            previousRow = row;
-                            rowspan = 1;
-                        }
-                    }
-
                     o.initAfter();
                 }
             });
