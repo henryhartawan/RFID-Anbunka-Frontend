@@ -160,6 +160,23 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
 
             cleanData.sort(function(a, b) { return a.OffsetN - b.OffsetN; });
 
+            var overLimitMonths = [];
+            cleanData.forEach(function(r) {
+                var dotVal = parseFloat(r.Overtime_DOT_Hours) || 0;
+                var limitVal = parseFloat(r.LimitDOT) || 0;
+                var isOver = (r.IsOverDOT === 1) || (limitVal > 0 && dotVal > limitVal);
+
+                if (isOver && overLimitMonths.indexOf(r.TargetMonth) === -1) {
+                    overLimitMonths.push(r.TargetMonth);
+                }
+            });
+
+            if (overLimitMonths.length > 0) {
+                o.data.dotWarningText = "Warning: DOT in " + overLimitMonths.join(", ") + " exceeds the limit";
+            } else {
+                o.data.dotWarningText = "";
+            }
+
             o.data.uniqueMonths = [];
             var monthMap = {};
 
@@ -407,6 +424,12 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
         initAfter: function () {
             var o = this;
 
+            if (o.data.dotWarningText) {
+                $("#dotWarningMsg").text(o.data.dotWarningText).show();
+            } else {
+                $("#dotWarningMsg").text("").hide();
+            }
+
             if (!$("#Periode").data("kendoDatePicker")) {
                 $("#Periode").kendoDatePicker({
                     start: "year",
@@ -442,4 +465,6 @@ string myurl = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build(
         <input type="date" id="Periode" placeholder="Select Period" style="width: 150px;" />
         &nbsp;&nbsp;
     </div>
+    <span id="dotWarningMsg" style="color: red; font-weight: bold; margin-left: 10px; display: none;"></span>
+
 </script>
